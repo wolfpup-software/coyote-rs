@@ -26,12 +26,12 @@ pub enum Injection<'a> {
     Attr(&'a str),
     AttrValue(&'a str, &'a str),
     Template(Template<'a>),
-    List(Vec<Injection<'a>>),
+		List(&'a [Injection<'a>]),
 }
 
 #[derive(Debug)]
 pub struct Template<'a> {
-    injections: Vec<Vec<Injection<'a>>>,
+    injections: &'a [Injection<'a>],
     template: &'a str,
 }
 
@@ -50,7 +50,7 @@ pub struct TemplateBit<'a> {
 // no fallback elements, no content: style, script
 // skip html listeners "onclick"
 
-pub fn build<'a>(template: &'a Template) -> String {
+pub fn build<'a>(template: &'a Template<'a>) -> String {
     let mut stack = Vec::<StackBits>::new();
 
     stack.push(StackBits::Template(TemplateBit {
@@ -140,7 +140,13 @@ pub fn build<'a>(template: &'a Template) -> String {
                         ATTRIBUTE_MAP_INJECTION => {
                             let injections = &stack_bit.template.injections[stack_bit.inj_index];
                             stack_bit.inj_index += 1;
+                            
+                            // check if its an
+                            // attr
+                            // attrvalue
+                            // list of attr, attrValue
 
+													/*
                             for injection in injections {
                                 match injection {
                                     Injection::Attr(attr) => {
@@ -159,6 +165,7 @@ pub fn build<'a>(template: &'a Template) -> String {
                                     _ => continue,
                                 }
                             }
+                        */
                         }
                         DESCENDANT_INJECTION => {
                             // if parent is SCRIPT or STYLE, skip
@@ -166,7 +173,12 @@ pub fn build<'a>(template: &'a Template) -> String {
                             stack_bit.inj_index += 1;
 
                             stack.push(StackBits::Template(stack_bit));
-
+														
+														// check if:
+														//	text
+														//	descendant
+														//	list of text, descendant
+														/*
                             for injection in injections.iter().rev() {
                                 match injection {
                                     Injection::Text(text) => stack.push(StackBits::Text(text)),
@@ -174,13 +186,14 @@ pub fn build<'a>(template: &'a Template) -> String {
                                         stack.push(StackBits::Template(TemplateBit {
                                             iterator: parse::parse_str(&template.template)
                                                 .into_iter(),
-                                            template: template,
+                                            template: &template,
                                             inj_index: 0,
                                         }))
                                     }
                                     _ => continue,
                                 }
                             }
+                            */
 
                             // skip to the top of the stack after descendant injection
                             break;
@@ -197,7 +210,7 @@ pub fn build<'a>(template: &'a Template) -> String {
 }
 
 //
-pub fn html<'a>(template: &'a str, injections: Vec<Vec<Injection<'a>>>) -> Template<'a> {
+pub fn html<'a>(template: &'a str, injections: &'a [Injection<'a>]) -> Template<'a> {
     Template {
         template: template,
         injections: injections,

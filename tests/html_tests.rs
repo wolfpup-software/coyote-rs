@@ -11,22 +11,28 @@ what's good
 
 // #[test]
 fn it_works() {
-    let template1 = html(template_str_0, Vec::new());
+    let template1 = html(template_str_0, &[]);
 
     let finished_template = build(&template1);
 }
 
-// #[test]
+#[test]
 fn it_works_with_str_injections() {
-    let inj = Injection::Text(text_injection);
+		let text = "pardner!
+what's good
+		we should hang out
+	with all these dumb tabs
+";
+		let injections = [Injection::Text(text)];
     let template1 = html(
         "<hello mygood=\"sir\">{}</hello>",
-        Vec::from([Vec::from([inj])]),
+        &injections,
     );
 
     let finished_template = build(&template1);
 }
 
+/*
 // #[test]
 fn it_works_with_template_injections() {
     let inj = Injection::Text(text_injection);
@@ -51,16 +57,18 @@ fn it_works_with_multiple_injections() {
 
     let template1 = html(
         "<hello {}>{}</hello>{}",
-        Vec::from([
-            Vec::from([
+        &Vec::from([
+            Injection::List(&[
                 Injection::Attr("howdy"),
                 Injection::AttrValue("howsit", "going"),
             ]),
-            Vec::from([temp_inj, text_inj]),
-            Vec::from([text_inj2]),
+            Injection::List(&[temp_inj, text_inj]),
+            text_inj2,
         ]),
     );
 
     let finished_template = build(&template1);
     println!("{}", finished_template);
 }
+*/
+
