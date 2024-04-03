@@ -145,7 +145,12 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                             // attr
                             // attrvalue
                             // list of attr, attrValue
-
+														match injections {
+															Injection::Attr(text) => {},
+															Injection::AttrValue(template) => {},
+															Injection::List(attributes) => {},
+															_ => {},
+														}
 													/*
                             for injection in injections {
                                 match injection {
@@ -178,6 +183,13 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
 														//	text
 														//	descendant
 														//	list of text, descendant
+														
+														match injections {
+															Injection::Text(text) => {},
+															Injection::Template(template) => {},
+															Injection::List(descendants) => {},
+															_ => {},
+														}
 														/*
                             for injection in injections.iter().rev() {
                                 match injection {

@@ -24,12 +24,15 @@ what's good
 	with all these dumb tabs
 ";
 		let injections = [Injection::Text(text)];
+    
     let template1 = html(
-        "<hello mygood=\"sir\">{}</hello>",
+        &"<hello mygood=\"sir\">{}</hello>",
         &injections,
     );
 
     let finished_template = build(&template1);
+    
+    println!("{}", finished_template)
 }
 
 /*
