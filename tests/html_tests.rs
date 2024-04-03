@@ -1,4 +1,4 @@
-use html::{build, html, Injection};
+use html::{build, html, Injection, Template};
 
 const template_str_0: &str = "<hello>world</hello>";
 const template_str_1: &str = "<hello mygood=\"sir\">{}</hello>";
@@ -16,6 +16,8 @@ fn it_works() {
     let finished_template = build(&template1);
 }
 
+
+/*
 #[test]
 fn it_works_with_str_injections() {
     let text = "pardner!
@@ -32,7 +34,6 @@ what's good
     println!("{}", finished_template)
 }
 
-/*
 // #[test]
 fn it_works_with_template_injections() {
     let inj = Injection::Text(text_injection);
@@ -47,8 +48,6 @@ fn it_works_with_template_injections() {
     let finished_template = build(&template1);
     println!("{}", finished_template);
 }
-
-*/
 
 #[test]
 fn it_works_with_multiple_injections() {
@@ -78,3 +77,40 @@ fn it_works_with_multiple_injections() {
 
     println!("{}", finished_template);
 }
+
+*/
+
+
+#[test]
+fn it_works_with_multiple_injections_returnable() {
+		let template = get_template();
+		
+    let finished_template = build(&template);
+
+    println!("{}", finished_template);
+}
+
+fn get_template<'a>() -> Template<'a> {
+    let descendant_template = html(template_str_0, &[]);
+
+    let attributes = [
+        Injection::Attr("whatup"),
+        Injection::AttrValue("howsit", "going"),
+    ];
+
+    let descendants = [
+        Injection::Template(descendant_template),
+        Injection::Text(text_injection),
+    ];
+
+    // much better
+    let template_str = "<howdy {}>{}</howdy>{}";
+    //let injections = [];
+
+    return html("<howdy {}>{}</howdy>{}", Vec::from([
+        Injection::List(&attributes),
+        Injection::List(&descendants),
+        Injection::Text(text_injection),
+    ]));
+}
+

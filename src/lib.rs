@@ -4,7 +4,6 @@ use parsley::constants::{
 };
 use parsley::parse;
 use parsley::type_flyweight::NodeStep;
-use std::collections::HashMap;
 use std::vec;
 
 /*
