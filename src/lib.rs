@@ -25,14 +25,14 @@ pub enum Injection<'a> {
     Attr(&'a str),
     AttrValue(&'a str, &'a str),
     Template(Template<'a>),
-    List(&'a [Injection<'a>]),
+    List(Vec<Injection<'a>>),
 }
 
 #[derive(Debug)]
 pub struct Template<'a> {
-    kind: &'a str,
-    injections: &'a [Injection<'a>],
-    template: &'a str,
+    pub kind: &'a str,
+    pub injections: Vec<Injection<'a>>,
+    pub template_str: &'a str,
 }
 
 pub enum StackBits<'a> {
@@ -54,7 +54,7 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
     let mut stack = Vec::<StackBits>::new();
 
     stack.push(StackBits::Template(TemplateBit {
-        iterator: parse::parse_str(&template.template).into_iter(),
+        iterator: parse::parse_str(&template.template_str).into_iter(),
         template: template,
         inj_index: 0,
     }));
@@ -84,7 +84,7 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                             result.push_str(&"\t".repeat(tab_count));
                             result.push_str("<");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                         }
@@ -100,7 +100,7 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                             // if attribute is blocked, skip
                             result.push_str(" ");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                         }
@@ -108,16 +108,18 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                             // if attribute is blocked, skip
                             result.push_str("=\"");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                             result.push_str("\"");
                         }
                         TEXT => {
-                            let text_iterator =
-                                parse::get_chunk(&stack_bit.template.template, &node_step.vector)
-                                    .trim()
-                                    .split("\n");
+                            let text_iterator = parse::get_chunk(
+                                &stack_bit.template.template_str,
+                                &node_step.vector,
+                            )
+                            .trim()
+                            .split("\n");
 
                             for text in text_iterator {
                                 add_text(&mut result, tab_count, text);
@@ -128,7 +130,7 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                             result.push_str(&"\t".repeat(tab_count));
                             result.push_str("</");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                             result.push_str(">\n");
@@ -171,7 +173,8 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                                 Injection::Text(text) => stack.push(StackBits::Text(text)),
                                 Injection::Template(template) => {
                                     stack.push(StackBits::Template(TemplateBit {
-                                        iterator: parse::parse_str(&template.template).into_iter(),
+                                        iterator: parse::parse_str(&template.template_str)
+                                            .into_iter(),
                                         template: &template,
                                         inj_index: 0,
                                     }))
@@ -184,8 +187,10 @@ pub fn build<'a>(template: &'a Template<'a>) -> String {
                                             }
                                             Injection::Template(template) => {
                                                 stack.push(StackBits::Template(TemplateBit {
-                                                    iterator: parse::parse_str(&template.template)
-                                                        .into_iter(),
+                                                    iterator: parse::parse_str(
+                                                        &template.template_str,
+                                                    )
+                                                    .into_iter(),
                                                     template: &template,
                                                     inj_index: 0,
                                                 }))
@@ -230,10 +235,10 @@ fn add_attr_value(result: &mut String, attr: &str, value: &str) -> () {
 }
 
 //
-pub fn html<'a>(template: &'a str, injections: &'a [Injection<'a>]) -> Template<'a> {
+pub fn html<'a>(template_str: &'a str, injections: Vec<Injection<'a>>) -> Template<'a> {
     Template {
         kind: "html",
-        template: template,
+        template_str: template_str,
         injections: injections,
     }
 }
