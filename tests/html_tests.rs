@@ -9,12 +9,12 @@ what's good
 	with all these dumb tabs
 ";
 
-// #[test]
-fn it_works() {
+#[test]
+fn it_works<'a>() {
     let template1 = Template {
         kind: "html",
         template_str: template_str_0,
-        injections: Vec::new(),
+        injections: Vec::<Injection<'a, ()>>::new(),
     };
 
     let finished_template = build(&template1);
@@ -107,7 +107,7 @@ with all these dumb tabs
     println!("{}", rendered_str);
 }
 
-fn nested_test_component<'a>() -> Template<'a> {
+fn nested_test_component<'a>() -> Template<'a, ()> {
     let descendant_template = html(template_str_0, Vec::new());
 
     let attributes = Vec::from([

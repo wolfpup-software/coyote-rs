@@ -7,6 +7,8 @@ use parsley::type_flyweight::NodeStep;
 use std::vec;
 
 /*
+        HTML template requirements:
+
     handle void elements
 
     don't add closing slashes (not valid html)
@@ -19,29 +21,41 @@ use std::vec;
     than nothing is built
 */
 
+struct StaticBuilder {
+    result: String,
+}
+
+impl StaticBuilder {
+    fn add_attr_map() {}
+    fn add_text() {}
+    fn add_descendants() {}
+}
+
+// Injections could be entirely external to the "builder"
 #[derive(Debug)]
-pub enum Injection<'a> {
+pub enum Injection<'a, T> {
     Text(&'a str),
     Attr(&'a str),
     AttrValue(&'a str, &'a str),
-    Template(Template<'a>),
-    List(Vec<Injection<'a>>),
+    Callback(T),
+    Template(Template<'a, T>),
+    List(Vec<Injection<'a, T>>),
 }
 
 #[derive(Debug)]
-pub struct Template<'a> {
+pub struct Template<'a, T> {
     pub kind: &'a str,
-    pub injections: Vec<Injection<'a>>,
+    pub injections: Vec<Injection<'a, T>>,
     pub template_str: &'a str,
 }
 
-pub enum StackBits<'a> {
-    Template(TemplateBit<'a>),
+pub enum StackBits<'a, T> {
+    Template(TemplateBit<'a, T>),
     Text(&'a str),
 }
 
-pub struct TemplateBit<'a> {
-    template: &'a Template<'a>,
+pub struct TemplateBit<'a, T> {
+    template: &'a Template<'a, T>,
     iterator: vec::IntoIter<NodeStep<'a>>,
     inj_index: usize,
 }
@@ -50,8 +64,8 @@ pub struct TemplateBit<'a> {
 // no fallback elements, no content: style, script
 // skip html listeners "onclick"
 
-pub fn build<'a>(template: &'a Template<'a>) -> String {
-    let mut stack = Vec::<StackBits>::new();
+pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
+    let mut stack = Vec::<StackBits<T>>::new();
 
     stack.push(StackBits::Template(TemplateBit {
         iterator: parse::parse_str(&template.template_str).into_iter(),
@@ -235,7 +249,7 @@ fn add_attr_value(result: &mut String, attr: &str, value: &str) -> () {
 }
 
 //
-pub fn html<'a>(template_str: &'a str, injections: Vec<Injection<'a>>) -> Template<'a> {
+pub fn html<'a, T>(template_str: &'a str, injections: Vec<Injection<'a, T>>) -> Template<'a, T> {
     Template {
         kind: "html",
         template_str: template_str,
