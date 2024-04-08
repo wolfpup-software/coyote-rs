@@ -7,7 +7,7 @@ use parsley::type_flyweight::NodeStep;
 use std::vec;
 
 /*
-        HTML template requirements:
+    HTML template requirements:
 
     handle void elements
 
@@ -21,45 +21,58 @@ use std::vec;
     than nothing is built
 */
 
-struct StaticBuilder {
+struct StaticHtmlBuilder<'a> {
     result: String,
+    tab_count: usize,
+    stack: Vec<StackBits<'a, Injection<'a, ()>>>,
 }
 
-impl StaticBuilder {
+impl<'a> StaticHtmlBuilder<'_> {
+		// steps
+		fn push_node() {}
+		fn add_attr() {}
+		fn add_attr_value() {}
+		fn add_text() {}
+		fn pop_node() {}
+		
+		// injections
     fn add_attr_map() {}
-    fn add_text() {}
     fn add_descendants() {}
 }
 
 // Injections could be entirely external to the "builder"
+
+// where E is for event callbacks
 #[derive(Debug)]
-pub enum Injection<'a, T> {
+pub enum Injection<'a, E> {
     Text(&'a str),
     Attr(&'a str),
     AttrValue(&'a str, &'a str),
-    Callback(T),
-    Template(Template<'a, T>),
-    List(Vec<Injection<'a, T>>),
+    Callback(E),
+    Template(Template<'a, E>),
+    List(Vec<Injection<'a, E>>),
 }
 
 #[derive(Debug)]
-pub struct Template<'a, T> {
+// where I is an Injection Enum
+pub struct Template<'a, I> {
     pub kind: &'a str,
-    pub injections: Vec<Injection<'a, T>>,
+    pub injections: Vec<I>,
     pub template_str: &'a str,
 }
 
-pub enum StackBits<'a, T> {
-    Template(TemplateBit<'a, T>),
+pub enum StackBits<'a, I> {
+    Template(TemplateBit<'a, I>),
     Text(&'a str),
 }
 
-pub struct TemplateBit<'a, T> {
-    template: &'a Template<'a, T>,
+pub struct TemplateBit<'a, I> {
+    template: &'a Template<'a, I>,
     iterator: vec::IntoIter<NodeStep<'a>>,
     inj_index: usize,
 }
-
+// fhtml
+//
 // rules
 // no fallback elements, no content: style, script
 // skip html listeners "onclick"
@@ -84,6 +97,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
 
         match stack_bit {
             StackBits::Text(text) => {
+            		// builder.add_text(text);
                 let text_iterator = text.trim().split("\n");
                 for text in text_iterator {
                     add_text(&mut result, tab_count, text);
@@ -153,6 +167,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
                             let injections = &stack_bit.template.injections[stack_bit.inj_index];
                             stack_bit.inj_index += 1;
 
+														/*
                             match injections {
                                 Injection::Attr(attr) => {
                                     add_attr(&mut result, attr);
@@ -175,6 +190,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
                                 }
                                 _ => {}
                             }
+                            */
                         }
                         DESCENDANT_INJECTION => {
                             // if parent is SCRIPT or STYLE, skip
@@ -183,6 +199,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
 
                             stack.push(StackBits::Template(stack_bit));
 
+														/*
                             match injections {
                                 Injection::Text(text) => stack.push(StackBits::Text(text)),
                                 Injection::Template(template) => {
@@ -215,6 +232,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
                                 }
                                 _ => {}
                             }
+                            */
                             // skip to the top of the stack after descendant injection
                             break;
                         }
@@ -249,10 +267,11 @@ fn add_attr_value(result: &mut String, attr: &str, value: &str) -> () {
 }
 
 //
-pub fn html<'a, T>(template_str: &'a str, injections: Vec<Injection<'a, T>>) -> Template<'a, T> {
+pub fn html<'a, T>(template_str: &'a str, injections: Vec<T>) -> Template<'a, T> {
     Template {
         kind: "html",
         template_str: template_str,
         injections: injections,
     }
 }
+
