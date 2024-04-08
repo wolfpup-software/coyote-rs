@@ -121,7 +121,7 @@ fn nested_test_component<'a>() -> TestTemplate<'a> {
         Injection::Template(descendant_template),
         Injection::Text(text_injection),
     ]);
-		
+
     return html(
         "<howdy {}>{}</howdy>{}",
         Vec::from([

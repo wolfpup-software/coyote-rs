@@ -28,14 +28,14 @@ struct StaticHtmlBuilder<'a> {
 }
 
 impl<'a> StaticHtmlBuilder<'_> {
-		// steps
-		fn push_node() {}
-		fn add_attr() {}
-		fn add_attr_value() {}
-		fn add_text() {}
-		fn pop_node() {}
-		
-		// injections
+    // steps
+    fn push_node() {}
+    fn add_attr() {}
+    fn add_attr_value() {}
+    fn add_text() {}
+    fn pop_node() {}
+
+    // injections
     fn add_attr_map() {}
     fn add_descendants() {}
 }
@@ -97,7 +97,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
 
         match stack_bit {
             StackBits::Text(text) => {
-            		// builder.add_text(text);
+                // builder.add_text(text);
                 let text_iterator = text.trim().split("\n");
                 for text in text_iterator {
                     add_text(&mut result, tab_count, text);
@@ -167,7 +167,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
                             let injections = &stack_bit.template.injections[stack_bit.inj_index];
                             stack_bit.inj_index += 1;
 
-														/*
+                            /*
                             match injections {
                                 Injection::Attr(attr) => {
                                     add_attr(&mut result, attr);
@@ -199,7 +199,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
 
                             stack.push(StackBits::Template(stack_bit));
 
-														/*
+                            /*
                             match injections {
                                 Injection::Text(text) => stack.push(StackBits::Text(text)),
                                 Injection::Template(template) => {
@@ -274,4 +274,3 @@ pub fn html<'a, T>(template_str: &'a str, injections: Vec<T>) -> Template<'a, T>
         injections: injections,
     }
 }
-
