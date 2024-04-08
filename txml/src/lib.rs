@@ -3,7 +3,7 @@ use parsley::constants::{
     INDEPENDENT_NODE_CLOSED, NODE_CLOSED, TAGNAME, TEXT,
 };
 use parsley::parse;
-use parsley::type_flyweight::NodeStep;
+use parsley::type_flyweight::Step;
 use std::vec;
 
 /*
@@ -42,17 +42,6 @@ impl<'a> StaticHtmlBuilder<'_> {
 
 // Injections could be entirely external to the "builder"
 
-// where E is for event callbacks
-#[derive(Debug)]
-pub enum Injection<'a, E> {
-    Text(&'a str),
-    Attr(&'a str),
-    AttrValue(&'a str, &'a str),
-    Callback(E),
-    Template(Template<'a, E>),
-    List(Vec<Injection<'a, E>>),
-}
-
 #[derive(Debug)]
 // where I is an Injection Enum
 pub struct Template<'a, I> {
@@ -68,7 +57,7 @@ pub enum StackBits<'a, I> {
 
 pub struct TemplateBit<'a, I> {
     template: &'a Template<'a, I>,
-    iterator: vec::IntoIter<NodeStep<'a>>,
+    iterator: vec::IntoIter<Step<'a>>,
     inj_index: usize,
 }
 // fhtml
