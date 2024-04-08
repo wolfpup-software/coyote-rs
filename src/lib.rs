@@ -4,10 +4,11 @@ use parsley::constants::{
 };
 use parsley::parse;
 use parsley::type_flyweight::NodeStep;
-use std::collections::HashMap;
 use std::vec;
 
 /*
+        HTML template requirements:
+
     handle void elements
 
     don't add closing slashes (not valid html)
@@ -20,28 +21,41 @@ use std::vec;
     than nothing is built
 */
 
+struct StaticBuilder {
+    result: String,
+}
+
+impl StaticBuilder {
+    fn add_attr_map() {}
+    fn add_text() {}
+    fn add_descendants() {}
+}
+
+// Injections could be entirely external to the "builder"
 #[derive(Debug)]
-pub enum Injection<'a> {
+pub enum Injection<'a, T> {
     Text(&'a str),
     Attr(&'a str),
     AttrValue(&'a str, &'a str),
-    Template(Template<'a>),
-    List(Vec<Injection<'a>>),
+    Callback(T),
+    Template(Template<'a, T>),
+    List(Vec<Injection<'a, T>>),
 }
 
 #[derive(Debug)]
-pub struct Template<'a> {
-    injections: Vec<Vec<Injection<'a>>>,
-    template: &'a str,
+pub struct Template<'a, T> {
+    pub kind: &'a str,
+    pub injections: Vec<Injection<'a, T>>,
+    pub template_str: &'a str,
 }
 
-pub enum StackBits<'a> {
-    Template(TemplateBit<'a>),
+pub enum StackBits<'a, T> {
+    Template(TemplateBit<'a, T>),
     Text(&'a str),
 }
 
-pub struct TemplateBit<'a> {
-    template: &'a Template<'a>,
+pub struct TemplateBit<'a, T> {
+    template: &'a Template<'a, T>,
     iterator: vec::IntoIter<NodeStep<'a>>,
     inj_index: usize,
 }
@@ -50,11 +64,11 @@ pub struct TemplateBit<'a> {
 // no fallback elements, no content: style, script
 // skip html listeners "onclick"
 
-pub fn build<'a>(template: &'a Template) -> String {
-    let mut stack = Vec::<StackBits>::new();
+pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
+    let mut stack = Vec::<StackBits<T>>::new();
 
     stack.push(StackBits::Template(TemplateBit {
-        iterator: parse::parse_str(&template.template).into_iter(),
+        iterator: parse::parse_str(&template.template_str).into_iter(),
         template: template,
         inj_index: 0,
     }));
@@ -72,9 +86,7 @@ pub fn build<'a>(template: &'a Template) -> String {
             StackBits::Text(text) => {
                 let text_iterator = text.trim().split("\n");
                 for text in text_iterator {
-                    result.push_str(&"\t".repeat(tab_count));
-                    result.push_str(text.trim());
-                    result.push_str("\n");
+                    add_text(&mut result, tab_count, text);
                 }
             }
             StackBits::Template(mut stack_bit) => {
@@ -86,7 +98,7 @@ pub fn build<'a>(template: &'a Template) -> String {
                             result.push_str(&"\t".repeat(tab_count));
                             result.push_str("<");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                         }
@@ -102,7 +114,7 @@ pub fn build<'a>(template: &'a Template) -> String {
                             // if attribute is blocked, skip
                             result.push_str(" ");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                         }
@@ -110,21 +122,21 @@ pub fn build<'a>(template: &'a Template) -> String {
                             // if attribute is blocked, skip
                             result.push_str("=\"");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                             result.push_str("\"");
                         }
                         TEXT => {
-                            let text_iterator =
-                                parse::get_chunk(&stack_bit.template.template, &node_step.vector)
-                                    .trim()
-                                    .split("\n");
+                            let text_iterator = parse::get_chunk(
+                                &stack_bit.template.template_str,
+                                &node_step.vector,
+                            )
+                            .trim()
+                            .split("\n");
 
                             for text in text_iterator {
-                                result.push_str(&"\t".repeat(tab_count));
-                                result.push_str(text.trim());
-                                result.push_str("\n");
+                                add_text(&mut result, tab_count, text);
                             }
                         }
                         CLOSE_TAGNAME => {
@@ -132,7 +144,7 @@ pub fn build<'a>(template: &'a Template) -> String {
                             result.push_str(&"\t".repeat(tab_count));
                             result.push_str("</");
                             result.push_str(parse::get_chunk(
-                                &stack_bit.template.template,
+                                &stack_bit.template.template_str,
                                 &node_step.vector,
                             ));
                             result.push_str(">\n");
@@ -141,23 +153,27 @@ pub fn build<'a>(template: &'a Template) -> String {
                             let injections = &stack_bit.template.injections[stack_bit.inj_index];
                             stack_bit.inj_index += 1;
 
-                            for injection in injections {
-                                match injection {
-                                    Injection::Attr(attr) => {
-                                        // if attribute is blocked, skip
-                                        result.push_str(" ");
-                                        result.push_str(attr);
-                                    }
-                                    Injection::AttrValue(attr, value) => {
-                                        // if attribute is blocked, skip
-                                        result.push_str(" ");
-                                        result.push_str(attr);
-                                        result.push_str("=\"");
-                                        result.push_str(value);
-                                        result.push_str("\"");
-                                    }
-                                    _ => continue,
+                            match injections {
+                                Injection::Attr(attr) => {
+                                    add_attr(&mut result, attr);
                                 }
+                                Injection::AttrValue(attr, value) => {
+                                    add_attr_value(&mut result, attr, value);
+                                }
+                                Injection::List(attributes) => {
+                                    for injection in attributes.iter() {
+                                        match injection {
+                                            Injection::Attr(attr) => {
+                                                add_attr(&mut result, attr);
+                                            }
+                                            Injection::AttrValue(attr, value) => {
+                                                add_attr_value(&mut result, attr, value);
+                                            }
+                                            _ => continue,
+                                        }
+                                    }
+                                }
+                                _ => {}
                             }
                         }
                         DESCENDANT_INJECTION => {
@@ -167,21 +183,38 @@ pub fn build<'a>(template: &'a Template) -> String {
 
                             stack.push(StackBits::Template(stack_bit));
 
-                            for injection in injections.iter().rev() {
-                                match injection {
-                                    Injection::Text(text) => stack.push(StackBits::Text(text)),
-                                    Injection::Template(template) => {
-                                        stack.push(StackBits::Template(TemplateBit {
-                                            iterator: parse::parse_str(&template.template)
-                                                .into_iter(),
-                                            template: template,
-                                            inj_index: 0,
-                                        }))
-                                    }
-                                    _ => continue,
+                            match injections {
+                                Injection::Text(text) => stack.push(StackBits::Text(text)),
+                                Injection::Template(template) => {
+                                    stack.push(StackBits::Template(TemplateBit {
+                                        iterator: parse::parse_str(&template.template_str)
+                                            .into_iter(),
+                                        template: &template,
+                                        inj_index: 0,
+                                    }))
                                 }
+                                Injection::List(descendants) => {
+                                    for injection in descendants.iter().rev() {
+                                        match injection {
+                                            Injection::Text(text) => {
+                                                stack.push(StackBits::Text(text))
+                                            }
+                                            Injection::Template(template) => {
+                                                stack.push(StackBits::Template(TemplateBit {
+                                                    iterator: parse::parse_str(
+                                                        &template.template_str,
+                                                    )
+                                                    .into_iter(),
+                                                    template: &template,
+                                                    inj_index: 0,
+                                                }))
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                }
+                                _ => {}
                             }
-
                             // skip to the top of the stack after descendant injection
                             break;
                         }
@@ -196,10 +229,30 @@ pub fn build<'a>(template: &'a Template) -> String {
     result
 }
 
+fn add_text(result: &mut String, tab_count: usize, text: &str) -> () {
+    result.push_str(&"\t".repeat(tab_count));
+    result.push_str(text.trim());
+    result.push_str("\n");
+}
+
+fn add_attr(result: &mut String, attr: &str) -> () {
+    result.push_str(" ");
+    result.push_str(attr);
+}
+
+fn add_attr_value(result: &mut String, attr: &str, value: &str) -> () {
+    result.push_str(" ");
+    result.push_str(attr);
+    result.push_str("=\"");
+    result.push_str(value);
+    result.push_str("\"");
+}
+
 //
-pub fn html<'a>(template: &'a str, injections: Vec<Vec<Injection<'a>>>) -> Template<'a> {
+pub fn html<'a, T>(template_str: &'a str, injections: Vec<Injection<'a, T>>) -> Template<'a, T> {
     Template {
-        template: template,
+        kind: "html",
+        template_str: template_str,
         injections: injections,
     }
 }
