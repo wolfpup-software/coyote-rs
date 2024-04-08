@@ -81,7 +81,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
     let mut stack = Vec::<StackBits<T>>::new();
 
     stack.push(StackBits::Template(TemplateBit {
-        iterator: parse::parse_str(&template.template_str).into_iter(),
+        iterator: parse::parse_str(&template.template_str, "INITIAL").into_iter(),
         template: template,
         inj_index: 0,
     }));

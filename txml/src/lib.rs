@@ -21,13 +21,13 @@ use std::vec;
     than nothing is built
 */
 
-struct StaticHtmlBuilder<'a> {
+struct StaticHtmlBuilder<'a, I> {
     result: String,
     tab_count: usize,
-    stack: Vec<StackBits<'a, Injection<'a, ()>>>,
+    stack: Vec<StackBits<'a, I>>,
 }
 
-impl<'a> StaticHtmlBuilder<'_> {
+impl<'a, I> StaticHtmlBuilder<'_, I> {
 		// steps
 		fn push_node() {}
 		fn add_attr() {}
@@ -70,7 +70,7 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
     let mut stack = Vec::<StackBits<T>>::new();
 
     stack.push(StackBits::Template(TemplateBit {
-        iterator: parse::parse_str(&template.template_str).into_iter(),
+        iterator: parse::parse_str(&template.template_str, "INITIAL").into_iter(),
         template: template,
         inj_index: 0,
     }));
