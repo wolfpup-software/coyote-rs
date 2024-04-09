@@ -17,7 +17,8 @@ pub trait TxmlBuilder<'a, T> {
 
     // injections
     fn add_attr_map(&self, injection: T) -> ();
-    fn add_descendants(&self, injection: T) -> ();
+    // returns []stack_bit vector
+    fn get_descendants(&self, injection: T) -> Vec<StackBits<'a, T>>;
 }
 
 #[derive(Debug)]
@@ -27,20 +28,21 @@ pub struct Template<'a, I> {
     pub template_str: &'a str,
 }
 
+// Vec<StackBit<'a, ()>>;
 pub enum StackBits<'a, I> {
     Template(TemplateBit<'a, I>),
     Text(&'a str),
 }
 
 pub struct TemplateBit<'a, I> {
-    template: &'a Template<'a, I>,
+    template: Template<'a, I>,
     iterator: vec::IntoIter<Step<'a>>,
     inj_index: usize,
 }
 
-pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: &'a Template<'a, T>) -> () {
+pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>) -> () {
     let mut stack = Vec::<StackBits<T>>::from([StackBits::Template(TemplateBit {
-        iterator: parse::parse_str(&template.template_str, "INITIAL").into_iter(),
+        iterator: parse::parse_str(template.template_str, "INITIAL").into_iter(),
         template: template,
         inj_index: 0,
     })]);
@@ -96,19 +98,20 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: &'a Template<'a,
                             ));
                         }
                         ATTRIBUTE_MAP_INJECTION => {
-                            let injections = &stack_bit.template.injections[stack_bit.inj_index];
-                            stack_bit.inj_index += 1;
-                            let injections = &stack_bit.template.injections[stack_bit.inj_index];
-                            stack_bit.inj_index += 1;
-
-                            //stack.push(StackBits::Template(stack_bit));
+                            let injection = stack_bit.template.injections.pop();
+                            if let Some(inj) = injection {
+                                builder.add_attr_map(inj);
+                            };
                         }
                         DESCENDANT_INJECTION => {
                             // if parent is SCRIPT or STYLE, skip
-                            let injections = &stack_bit.template.injections[stack_bit.inj_index];
-                            stack_bit.inj_index += 1;
-
+                            let injection = stack_bit.template.injections.pop();
                             stack.push(StackBits::Template(stack_bit));
+
+                            // descendants must be in reversed order from
+                            if let Some(inj) = injection {
+                                stack.append(&mut builder.get_descendants(inj));
+                            };
                             // skip to the top of the stack after descendant injection
                             break;
                         }

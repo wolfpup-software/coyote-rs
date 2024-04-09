@@ -37,7 +37,7 @@ impl<'a> StaticHtmlBuilder<'_> {
 
     // injections
     fn add_attr_map() {}
-    fn add_descendants() {}
+    fn get_descendants() {}
 }
 
 // Injections could be entirely external to the "builder"
@@ -61,6 +61,8 @@ pub struct Template<'a, I> {
     pub template_str: &'a str,
 }
 
+// return an array stack bits in html
+// it needs to know test
 pub enum StackBits<'a, I> {
     Template(TemplateBit<'a, I>),
     Text(&'a str),
