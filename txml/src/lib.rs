@@ -18,7 +18,7 @@ pub trait TxmlBuilder<'a, T> {
     // injections
     fn add_attr_map(&self, injection: T) -> ();
     // returns []stack_bit vector
-    fn get_descendants(&self, injection: T) -> Vec<StackBits<'a, T>>;
+    fn get_descendants(&self, injection: T) -> Vec<StackBit<'a, T>>;
 }
 
 #[derive(Debug)]
@@ -28,8 +28,7 @@ pub struct Template<'a, I> {
     pub template_str: &'a str,
 }
 
-// Vec<StackBit<'a, ()>>;
-pub enum StackBits<'a, I> {
+pub enum StackBit<'a, I> {
     Template(TemplateBit<'a, I>),
     Text(&'a str),
 }
@@ -40,12 +39,18 @@ pub struct TemplateBit<'a, I> {
     inj_index: usize,
 }
 
+pub fn get_stack_bit_from_template<'a, T>(template: Template<'a, T>) -> StackBit<'a, T> {
+	StackBit::Template(TemplateBit {
+    iterator: parse::parse_str(template.template_str, "INITIAL").into_iter(),
+    template: template,
+    inj_index: 0,
+  })
+}
+
 pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>) -> () {
-    let mut stack = Vec::<StackBits<T>>::from([StackBits::Template(TemplateBit {
-        iterator: parse::parse_str(template.template_str, "INITIAL").into_iter(),
-        template: template,
-        inj_index: 0,
-    })]);
+    let mut stack = Vec::<StackBit<'a, T>>::from([
+    	get_stack_bit_from_template(template)
+    ]);
 
     while stack.len() != 0 {
         let stack_bit = match stack.pop() {
@@ -54,8 +59,8 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
         };
 
         match stack_bit {
-            StackBits::Text(text) => builder.push_text(text),
-            StackBits::Template(mut stack_bit) => {
+            StackBit::Text(text) => builder.push_text(text),
+            StackBit::Template(mut stack_bit) => {
                 while let Some(node_step) = stack_bit.iterator.next() {
                     match node_step.kind {
                         TAGNAME => {
@@ -106,7 +111,7 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
                         DESCENDANT_INJECTION => {
                             // if parent is SCRIPT or STYLE, skip
                             let injection = stack_bit.template.injections.pop();
-                            stack.push(StackBits::Template(stack_bit));
+                            stack.push(StackBit::Template(stack_bit));
 
                             // descendants must be in reversed order from
                             if let Some(inj) = injection {

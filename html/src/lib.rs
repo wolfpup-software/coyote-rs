@@ -48,31 +48,12 @@ pub enum Injection<'a, E> {
     Text(&'a str),
     Attr(&'a str),
     AttrValue(&'a str, &'a str),
-    Callback(E),
+    Callback(&'a str, E),
     Template(Template<'a, E>),
     List(Vec<Injection<'a, E>>),
 }
 
-#[derive(Debug)]
-// where I is an Injection Enum
-pub struct Template<'a, I> {
-    pub kind: &'a str,
-    pub injections: Vec<I>,
-    pub template_str: &'a str,
-}
 
-// return an array stack bits in html
-// it needs to know test
-pub enum StackBits<'a, I> {
-    Template(TemplateBit<'a, I>),
-    Text(&'a str),
-}
-
-pub struct TemplateBit<'a, I> {
-    template: &'a Template<'a, I>,
-    iterator: vec::IntoIter<Step<'a>>,
-    inj_index: usize,
-}
 // fhtml
 //
 // rules
@@ -247,6 +228,36 @@ pub fn build<'a, T>(template: &'a Template<'a, T>) -> String {
     }
 
     result
+}
+
+fn add_close_tagname(result: &mut String, tab_count: usize, text: &str) -> () {
+    // tab_count -= 1;
+    result.push_str(&"\t".repeat(tab_count));
+    result.push_str("</");
+    result.push_str(parse::get_chunk(
+        &stack_bit.template.template_str,
+        &node_step.vector,
+    ));
+    result.push_str(">\n");
+}
+
+fn add_independent_node(result: &mut String, tab_count: usize, text: &str) -> () {
+    result.push_str("/>\n");
+    // tab_count -= 1;
+}
+
+fn add_node_closed(result: &mut String, tab_count: usize, text: &str) -> () {
+    result.push_str(">\n");
+    // tab_count += 1;
+}
+
+fn add_tag(result: &mut String, tab_count: usize, text: &str) -> () {
+    result.push_str(&"\t".repeat(tab_count));
+    result.push_str("<");
+    result.push_str(parse::get_chunk(
+        &stack_bit.template.template_str,
+        &node_step.vector,
+    ));
 }
 
 fn add_text(result: &mut String, tab_count: usize, text: &str) -> () {
