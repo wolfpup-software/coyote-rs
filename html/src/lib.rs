@@ -56,6 +56,26 @@ impl<'a> TxmlBuilder<'a, Injection<'a, NonCallback>> for StaticHtmlBuilder<'_> {
 
 // where E is for event callbacks
 
+fn is_html_void_element(tag: &str) -> bool {
+    match tag {
+        "area" => true,
+        "base" => true,
+        "br" => true,
+        "col" => true,
+        "embed" => true,
+        "hr" => true,
+        "img" => true,
+        "input" => true,
+        "link" => true,
+        "meta" => true,
+        "param" => true,
+        "source" => true,
+        "track" => true,
+        "wbr" => true,
+        _ => false,
+    }
+}
+
 fn add_close_tagname(result: &mut String, tab_count: usize, text: &str) -> () {
     // tab_count -= 1;
     result.push_str(&"\t".repeat(tab_count));
