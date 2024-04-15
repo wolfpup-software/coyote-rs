@@ -1,11 +1,3 @@
-use parsley::constants::{
-    ATTRIBUTE, ATTRIBUTE_MAP_INJECTION, ATTRIBUTE_VALUE, CLOSE_TAGNAME, DESCENDANT_INJECTION,
-    INDEPENDENT_NODE_CLOSED, NODE_CLOSED, TAGNAME, TEXT,
-};
-use parsley::parse;
-use parsley::type_flyweight::Step;
-use std::vec;
-
 /*
     HTML template requirements:
 
@@ -21,10 +13,24 @@ use std::vec;
     than nothing is built
 */
 
+use txml::{StackBit, Template};
+
+#[derive(Debug)]
+pub enum Injection<'a, E> {
+    Text(&'a str),
+    Attr(&'a str),
+    AttrValue(&'a str, &'a str),
+    Callback(&'a str, E),
+    Template(Template<'a, E>),
+    List(Vec<Injection<'a, E>>),
+}
+
+type NonCallback = ();
+
 struct StaticHtmlBuilder<'a> {
     result: String,
     tab_count: usize,
-    stack: Vec<StackBits<'a, Injection<'a, ()>>>,
+    stack: Vec<StackBit<'a, Injection<'a, NonCallback>>>,
 }
 
 impl<'a> StaticHtmlBuilder<'_> {
@@ -43,25 +49,12 @@ impl<'a> StaticHtmlBuilder<'_> {
 // Injections could be entirely external to the "builder"
 
 // where E is for event callbacks
-#[derive(Debug)]
-pub enum Injection<'a, E> {
-    Text(&'a str),
-    Attr(&'a str),
-    AttrValue(&'a str, &'a str),
-    Callback(&'a str, E),
-    Template(Template<'a, E>),
-    List(Vec<Injection<'a, E>>),
-}
-
 
 fn add_close_tagname(result: &mut String, tab_count: usize, text: &str) -> () {
     // tab_count -= 1;
     result.push_str(&"\t".repeat(tab_count));
     result.push_str("</");
-    result.push_str(parse::get_chunk(
-        &stack_bit.template.template_str,
-        &node_step.vector,
-    ));
+    result.push_str(text);
     result.push_str(">\n");
 }
 
@@ -78,10 +71,7 @@ fn add_node_closed(result: &mut String, tab_count: usize, text: &str) -> () {
 fn add_tag(result: &mut String, tab_count: usize, text: &str) -> () {
     result.push_str(&"\t".repeat(tab_count));
     result.push_str("<");
-    result.push_str(parse::get_chunk(
-        &stack_bit.template.template_str,
-        &node_step.vector,
-    ));
+    result.push_str(text);
 }
 
 fn add_text(result: &mut String, tab_count: usize, text: &str) -> () {

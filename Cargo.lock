@@ -6,13 +6,13 @@ version = 3
 name = "html"
 version = "0.1.0"
 dependencies = [
- "parsley",
+ "txml",
 ]
 
 [[package]]
 name = "parsley"
 version = "0.1.0"
-source = "git+https://github.com/taylor-vann/parsley-rs#7d81971f1ef4e4c785b9d5d133ddcd45885a816e"
+source = "git+https://github.com/taylor-vann/parsley-rs#73cf2627adfa179fd479007dc4d9821a4fd95584"
 
 [[package]]
 name = "txml"

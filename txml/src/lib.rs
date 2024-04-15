@@ -1,9 +1,4 @@
-use parsley::constants::{
-    ATTRIBUTE, ATTRIBUTE_MAP_INJECTION, ATTRIBUTE_VALUE, CLOSE_TAGNAME, DESCENDANT_INJECTION,
-    INDEPENDENT_NODE_CLOSED, NODE_CLOSED, TAGNAME, TEXT,
-};
-use parsley::parse;
-use parsley::type_flyweight::Step;
+use parsley::{get_text_from_step, parse_str, Step, StepKind};
 use std::vec;
 
 pub trait TxmlBuilder<'a, T> {
@@ -35,22 +30,20 @@ pub enum StackBit<'a, I> {
 
 pub struct TemplateBit<'a, I> {
     template: Template<'a, I>,
-    iterator: vec::IntoIter<Step<'a>>,
+    iterator: vec::IntoIter<Step>,
     inj_index: usize,
 }
 
 pub fn get_stack_bit_from_template<'a, T>(template: Template<'a, T>) -> StackBit<'a, T> {
-	StackBit::Template(TemplateBit {
-    iterator: parse::parse_str(template.template_str, "INITIAL").into_iter(),
-    template: template,
-    inj_index: 0,
-  })
+    StackBit::Template(TemplateBit {
+        iterator: parse_str(template.template_str, StepKind::Initial).into_iter(),
+        template: template,
+        inj_index: 0,
+    })
 }
 
 pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>) -> () {
-    let mut stack = Vec::<StackBit<'a, T>>::from([
-    	get_stack_bit_from_template(template)
-    ]);
+    let mut stack = Vec::<StackBit<'a, T>>::from([get_stack_bit_from_template(template)]);
 
     while stack.len() != 0 {
         let stack_bit = match stack.pop() {
@@ -63,52 +56,52 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
             StackBit::Template(mut stack_bit) => {
                 while let Some(node_step) = stack_bit.iterator.next() {
                     match node_step.kind {
-                        TAGNAME => {
-                            builder.push_node(parse::get_chunk(
+                        StepKind::Tagname => {
+                            builder.push_node(get_text_from_step(
                                 &stack_bit.template.template_str,
-                                &node_step.vector,
+                                &node_step,
                             ));
                         }
-                        NODE_CLOSED => {
-                            builder.pop_node(parse::get_chunk(
+                        StepKind::NodeClosed => {
+                            builder.pop_node(get_text_from_step(
                                 &stack_bit.template.template_str,
-                                &node_step.vector,
+                                &node_step,
                             ));
                         }
-                        INDEPENDENT_NODE_CLOSED => {
+                        StepKind::IndependentNodeClosed => {
                             builder.pop_independent_node();
                         }
-                        ATTRIBUTE => {
-                            builder.add_attr(parse::get_chunk(
+                        StepKind::Attr => {
+                            builder.add_attr(get_text_from_step(
                                 &stack_bit.template.template_str,
-                                &node_step.vector,
+                                &node_step,
                             ));
                         }
-                        ATTRIBUTE_VALUE => {
-                            builder.add_attr_value(parse::get_chunk(
+                        StepKind::AttrValue => {
+                            builder.add_attr_value(get_text_from_step(
                                 &stack_bit.template.template_str,
-                                &node_step.vector,
+                                &node_step,
                             ));
                         }
-                        TEXT => {
-                            builder.push_text(parse::get_chunk(
+                        StepKind::Text => {
+                            builder.push_text(get_text_from_step(
                                 &stack_bit.template.template_str,
-                                &node_step.vector,
+                                &node_step,
                             ));
                         }
-                        CLOSE_TAGNAME => {
-                            builder.pop_node(parse::get_chunk(
+                        StepKind::CloseTagname => {
+                            builder.pop_node(get_text_from_step(
                                 &stack_bit.template.template_str,
-                                &node_step.vector,
+                                &node_step,
                             ));
                         }
-                        ATTRIBUTE_MAP_INJECTION => {
+                        StepKind::AttrMapInjection => {
                             let injection = stack_bit.template.injections.pop();
                             if let Some(inj) = injection {
                                 builder.add_attr_map(inj);
                             };
                         }
-                        DESCENDANT_INJECTION => {
+                        StepKind::DescendantInjection => {
                             // if parent is SCRIPT or STYLE, skip
                             let injection = stack_bit.template.injections.pop();
                             stack.push(StackBit::Template(stack_bit));
