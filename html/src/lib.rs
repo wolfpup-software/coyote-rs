@@ -13,7 +13,7 @@
     than nothing is built
 */
 
-use txml::{StackBit, Template};
+use txml::{StackBit, Template, TxmlBuilder};
 
 #[derive(Debug)]
 pub enum Injection<'a, E> {
@@ -33,17 +33,23 @@ struct StaticHtmlBuilder<'a> {
     stack: Vec<StackBit<'a, Injection<'a, NonCallback>>>,
 }
 
-impl<'a> StaticHtmlBuilder<'_> {
+impl<'a> TxmlBuilder<'a, Injection<'a, NonCallback>> for StaticHtmlBuilder<'_> {
     // steps
-    fn push_node() {}
-    fn add_attr() {}
-    fn add_attr_value() {}
-    fn add_text() {}
-    fn pop_node() {}
+    fn push_node(&self, tag: &'a str) {}
+    fn add_attr(&self, attr: &'a str) {}
+    fn add_attr_value(&self, value: &'a str) {}
+    fn push_text(&self, text: &'a str) {}
+    fn pop_node(&self, tag: &'a str) {}
+    fn pop_independent_node(&self) {}
 
     // injections
-    fn add_attr_map() {}
-    fn get_descendants() {}
+    fn add_attr_map(&self, injections: Injection<'a, NonCallback>) {}
+    fn get_descendants(
+        &self,
+        injections: Injection<'a, NonCallback>,
+    ) -> Vec<StackBit<'a, Injection<'a, NonCallback>>> {
+        Vec::new()
+    }
 }
 
 // Injections could be entirely external to the "builder"
