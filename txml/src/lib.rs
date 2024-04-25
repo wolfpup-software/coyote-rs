@@ -9,10 +9,8 @@ pub trait TxmlBuilder<'a, T> {
     fn add_attr_value(&self, value: &'a str) -> ();
     fn pop_node(&self, tag: &'a str) -> ();
     fn pop_independent_node(&self) -> ();
-
     // injections
     fn add_attr_map(&self, injection: T) -> ();
-    // returns []stack_bit vector
     fn get_descendants(&self, injection: T) -> Vec<StackBit<'a, T>>;
 }
 
@@ -56,6 +54,7 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
             StackBit::Template(mut stack_bit) => {
                 while let Some(node_step) = stack_bit.iterator.next() {
                     match node_step.kind {
+                        // steps
                         StepKind::Tagname => {
                             builder.push_node(get_text_from_step(
                                 &stack_bit.template.template_str,
@@ -95,6 +94,7 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
                                 &node_step,
                             ));
                         }
+                        // injections
                         StepKind::AttrMapInjection => {
                             let injection = stack_bit.template.injections.pop();
                             if let Some(inj) = injection {
@@ -102,10 +102,10 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
                             };
                         }
                         StepKind::DescendantInjection => {
-                            // if parent is SCRIPT or STYLE, skip
                             let injection = stack_bit.template.injections.pop();
                             stack.push(StackBit::Template(stack_bit));
 
+                            
                             // descendants must be in reversed order from
                             if let Some(inj) = injection {
                                 stack.append(&mut builder.get_descendants(inj));

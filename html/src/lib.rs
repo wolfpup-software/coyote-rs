@@ -27,10 +27,33 @@ pub enum Injection<'a, E> {
 
 type NonCallback = ();
 
-struct StaticHtmlBuilder<'a> {
+pub struct StaticHtmlBuilder<'a> {
     result: String,
     tab_count: usize,
     stack: Vec<StackBit<'a, Injection<'a, NonCallback>>>,
+}
+
+impl<'a> StaticHtmlBuilder<'_> {
+    // eventually this is the cache step ::new(1024) max build steps
+    pub fn new() -> StaticHtmlBuilder<'a> {
+        StaticHtmlBuilder {
+            result: "".to_string(),
+            tab_count: 0,
+            stack: Vec::new(),
+        }
+    }
+
+    pub fn build(&self) -> String {        
+        self.result.clone()
+    }
+    
+    pub fn reset(mut self) {
+        self = StaticHtmlBuilder {
+            result: "".to_string(),
+            tab_count: 0,
+            stack: Vec::new(),
+        };
+    }
 }
 
 impl<'a> TxmlBuilder<'a, Injection<'a, NonCallback>> for StaticHtmlBuilder<'_> {
@@ -48,6 +71,7 @@ impl<'a> TxmlBuilder<'a, Injection<'a, NonCallback>> for StaticHtmlBuilder<'_> {
         &self,
         injections: Injection<'a, NonCallback>,
     ) -> Vec<StackBit<'a, Injection<'a, NonCallback>>> {
+        //
         Vec::new()
     }
 }
