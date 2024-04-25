@@ -1,5 +1,5 @@
-use html::{html, Injection, StaticHtmlBuilder };
-use txml::{ build, Template };
+use html::{html, Injection, StaticHtmlBuilder};
+use txml::{build, Template};
 
 const template_str_0: &str = "<hello>world</hello>";
 const template_str_1: &str = "<hello mygood=\"sir\">{}</hello>";
@@ -14,7 +14,7 @@ type TestTemplate<'a> = Template<'a, Injection<'a, ()>>;
 
 #[test]
 fn it_works<'a>() {
-    let builder = StaticHtmlBuilder::new();
+    let mut builder = StaticHtmlBuilder::new();
 
     let template1 = TestTemplate {
         kind: "html",
@@ -22,7 +22,7 @@ fn it_works<'a>() {
         injections: Vec::<Injection<'a, ()>>::new(),
     };
 
-    let finished_template = build(builder, template1);
+    build(&mut builder, template1);
 }
 
 /*
@@ -90,11 +90,12 @@ fn it_works_with_multiple_injections() {
 
 #[test]
 fn it_works_with_multiple_injections_returnable() {
-    let builder = StaticHtmlBuilder::new();
+    let mut builder = StaticHtmlBuilder::new();
 
     let template = nested_test_component();
+    build(&mut builder, template);
 
-    let rendered_str = build(builder, template);
+    let rendered_str = builder.build();
     let expected = "<wolf whatup howsit=\"going\">
 	<hello>
 		world
@@ -110,8 +111,8 @@ we should hang out
 with all these dumb tabs
 ";
 
-    // assert_eq!(expected, rendered_str);
-    // println!("{}", rendered_str);
+    assert_eq!(expected, rendered_str);
+    println!("{}", rendered_str);
 }
 
 fn nested_test_component<'a>() -> TestTemplate<'a> {

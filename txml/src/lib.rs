@@ -40,7 +40,7 @@ pub fn get_stack_bit_from_template<'a, T>(template: Template<'a, T>) -> StackBit
     })
 }
 
-pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>) -> () {
+pub fn build<'a, T>(builder: &mut impl TxmlBuilder<'a, T>, template: Template<'a, T>) -> () {
     let mut stack = Vec::<StackBit<'a, T>>::from([get_stack_bit_from_template(template)]);
 
     while stack.len() != 0 {
@@ -52,6 +52,13 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
         match stack_bit {
             StackBit::Text(text) => builder.push_text(text),
             StackBit::Template(mut stack_bit) => {
+                // build template immediately into Vec::<String>;
+                // all steps are performed UP UNTIL a descendant injection
+                // this can be cached and performed
+                //
+                // instead of iterator maybe a vec of descendant indexes
+                // templates
+                //
                 while let Some(node_step) = stack_bit.iterator.next() {
                     match node_step.kind {
                         // steps
@@ -105,7 +112,6 @@ pub fn build<'a, T>(builder: impl TxmlBuilder<'a, T>, template: Template<'a, T>)
                             let injection = stack_bit.template.injections.pop();
                             stack.push(StackBit::Template(stack_bit));
 
-                            
                             // descendants must be in reversed order from
                             if let Some(inj) = injection {
                                 stack.append(&mut builder.get_descendants(inj));

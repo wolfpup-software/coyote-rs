@@ -43,10 +43,10 @@ impl<'a> StaticHtmlBuilder<'_> {
         }
     }
 
-    pub fn build(&self) -> String {        
+    pub fn build(&self) -> String {
         self.result.clone()
     }
-    
+
     pub fn reset(mut self) {
         self = StaticHtmlBuilder {
             result: "".to_string(),
@@ -55,6 +55,10 @@ impl<'a> StaticHtmlBuilder<'_> {
         };
     }
 }
+
+// tale of two builders
+// TemplateBuilder for caching -> { text: Vec(), descendants: [] }
+// StaticHtmlBuilder for the actual page page
 
 impl<'a> TxmlBuilder<'a, Injection<'a, NonCallback>> for StaticHtmlBuilder<'_> {
     // steps
