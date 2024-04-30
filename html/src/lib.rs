@@ -60,62 +60,20 @@ impl TxmlHtmlBuilder {
             inj_kinds: Vec::new(),
         }
     }
+    fn build(&mut self) -> TxmlHtmlBuilder {
+        let mut builder = TxmlHtmlBuilder {
+            tags: Vec::new(),
+            results: Vec::from(["".to_string()]),
+            inj_kinds: Vec::new(),
+        };
+
+        mem::swap(self, &mut builder);
+
+        builder
+    }
 }
 
-/*
-first build everything
-then add option to skip
-
-match tag {
-    "script" => self.current_element.push(tag.to_string()),
-    "style" => self.current_element.push(tag.to_string()),
-    _ => (),
-};
-*/
-
-// pre --> do not to tabs or spaces
-
-/*
-    couple options:
-        no formatting, only "pre" elements, []string returned
-        format, save pieces, split across arrays,
-        no formatting, format the entire document after
-
-        either way two steps, all valid xml-ish stuff
-
-        the main complication: this is unique to a static document
-            otherwise this would be a kind of tree or component structure
-
-        two passes,
-            one gives us a kind of minimal html
-            other process can "prettify" an outputed document
-
-            both can use parsley
-
-    // can be defined as neccessary
-    SafetySieve {
-        is valid element, has hyphens or is apart of list
-        can have descendants ? (tag)
-        is unsafe element (tag)
-        valid attribute (tag, attr)
-    }
-
-    pub enum ElementType {
-        dangerous,
-        no_descendants,
-        void_element,
-        element,
-    }
-
-    pub trait SafetySieve {
-        fn get_element_type(&self, tag: &str) -> ElementType;
-        fn is_void_element(&self, tag: &str) -> bool;
-        fn cannot_have_descendants(&self, tag: &str) -> bool;
-    }
-
-*/
-
-impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
+impl TxmlBuilder for TxmlHtmlBuilder {
     fn push_element(&mut self, tag: &str) {
         self.tags.push(tag.to_string());
         if let Some(last) = self.results.last_mut() {
@@ -184,19 +142,63 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
         self.inj_kinds.push(Some(StepKind::DescendantInjection));
     }
     // utility
-    fn build(&mut self) -> TxmlHtmlBuilder {
-        let mut builder = TxmlHtmlBuilder {
-            tags: Vec::new(),
-            results: Vec::from(["".to_string()]),
-            inj_kinds: Vec::new(),
-        };
-
-        mem::swap(self, &mut builder);
-
-        builder
-    }
 }
 
+/*
+first build everything
+then add option to skip
+
+match tag {
+    "script" => self.current_element.push(tag.to_string()),
+    "style" => self.current_element.push(tag.to_string()),
+    _ => (),
+};
+*/
+
+// pre --> do not to tabs or spaces
+
+/*
+    couple options:
+        no formatting, only "pre" elements, []string returned
+        format, save pieces, split across arrays,
+        no formatting, format the entire document after
+
+        either way two steps, all valid xml-ish stuff
+
+        the main complication: this is unique to a static document
+            otherwise this would be a kind of tree or component structure
+
+        two passes,
+            one gives us a kind of minimal html
+            other process can "prettify" an outputed document
+
+            both can use parsley
+
+    // can be defined as neccessary
+    SafetySieve {
+        is valid element, has hyphens or is apart of list
+        can have descendants ? (tag)
+        is unsafe element (tag)
+        valid attribute (tag, attr)
+    }
+
+    pub enum ElementType {
+        dangerous,
+        no_descendants,
+        void_element,
+        element,
+    }
+
+    pub trait SafetySieve {
+        fn get_element_type(&self, tag: &str) -> ElementType;
+        fn is_void_element(&self, tag: &str) -> bool;
+        fn cannot_have_descendants(&self, tag: &str) -> bool;
+        fn must_preserve_spacew(&self, tag: &str) -> bool;
+    }
+
+*/
+
+// safety builder
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 fn is_html_element(tag: &str) -> bool {
     match tag {
@@ -214,6 +216,7 @@ fn is_html_element(tag: &str) -> bool {
 
 fn is_html_void_element(tag: &str) -> bool {
     match tag {
+        "!DOCTYPE" => true,
         "area" => true,
         "base" => true,
         "br" => true,
@@ -232,6 +235,15 @@ fn is_html_void_element(tag: &str) -> bool {
     }
 }
 
+fn is_element_without_descendants(tag: &str) -> bool {
+    match tag {
+        "!DOCTYPE" => true,
+        "style" => true,
+        "title" => true,
+        _ => false,
+    }
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/Element#events
 fn is_banned_attribute(tag: &str) -> bool {
     match tag {
@@ -240,3 +252,6 @@ fn is_banned_attribute(tag: &str) -> bool {
         _ => false,
     }
 }
+
+// build doc
+// pub fn build_doc(template: Template<K, I, R>)

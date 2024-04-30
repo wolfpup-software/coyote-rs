@@ -14,7 +14,7 @@ pub struct Template<'a, K, I> {
 }
 
 // Intermediate (R)etrun Type, a "chunk" or "node"
-pub trait TxmlBuilder<R> {
+pub trait TxmlBuilder {
     // steps
     fn push_element(&mut self, tag: &str);
     fn push_text(&mut self, text: &str);
@@ -28,10 +28,10 @@ pub trait TxmlBuilder<R> {
     fn push_attr_map_injection(&mut self);
     fn push_descendants_injection(&mut self);
     // utility
-    fn build(&mut self) -> R;
+    // fn build(&mut self) -> R;
 }
 
-fn build_template<R>(builder: &mut impl TxmlBuilder<R>, template_str: &str) {
+fn build_template(builder: &mut impl TxmlBuilder, template_str: &str) {
     for step in parsley::parse_str(template_str, StepKind::Initial) {
         match step.kind {
             // steps
