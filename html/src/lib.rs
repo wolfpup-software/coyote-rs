@@ -13,20 +13,149 @@
     than nothing is built
 */
 
-use txml::{StackBit, Template, TxmlBuilder};
+use parsley::StepKind;
+use txml::{Template, TxmlBuilder};
 
+pub enum TemplateKind {
+    Html,
+    Svg,
+}
+
+// this is a type that is used across other types:
+//  text -> html
+//  nodes -> dom
+// Template (K)ind, (C)allback
 #[derive(Debug)]
-pub enum Injection<'a, E> {
-    Text(&'a str),
-    Attr(&'a str),
-    AttrValue(&'a str, &'a str),
-    Callback(&'a str, E),
-    Template(Template<'a, E>),
-    List(Vec<Injection<'a, E>>),
+pub enum Injection<'a, K, C> {
+    Text(String),
+    Attr(String),
+    AttrValue(String, String),
+    TextStr(&'a str),
+    AttrStr(&'a str),
+    AttrValueStr(&'a str, &'a str),
+    Callback(String, C),
+    Template(Template<'a, K, C>),
+    List(Vec<Injection<'a, K, C>>),
 }
 
 type NonCallback = ();
 
+// Template options
+
+pub struct TxmlHtmlBuilder {
+    current_element: Vec<String>,
+    results: Vec<String>,
+    inj_kinds: Vec<Option<StepKind>>,
+}
+impl TxmlHtmlBuilder {
+    fn new() -> TxmlHtmlBuilder {
+        TxmlHtmlBuilder {
+            current_element: Vec::new(),
+            results: Vec::from(["".to_string()]),
+            inj_kinds: Vec::new(),
+        }
+    }
+}
+
+impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
+    fn push_element(&mut self, tag: &str) {
+        match tag {
+            "script" => self.current_element.push(tag.to_string()),
+            "style" => self.current_element.push(tag.to_string()),
+            _ => (),
+        };
+        self.current_element.push(tag.to_string());
+        if let Some(last) = self.results.last_mut() {
+            last.push('<');
+            last.push_str(tag);
+        }
+    }
+    fn push_text(&mut self, text: &str) {}
+    fn add_attr(&mut self, attr: &str) {
+        if let Some(last) = self.results.last_mut() {
+            last.push(' ');
+            last.push_str(attr);
+        }
+    }
+    fn add_attr_value(&mut self, value: &str) {
+        if let Some(last) = self.results.last_mut() {
+            last.push('=');
+            last.push('"');
+            last.push_str(value);
+            last.push('"');
+        }
+    }
+    fn close_element(&mut self) {
+        if let Some(last) = self.results.last_mut() {
+            last.push('>');
+        }
+        // if void element pop
+        //
+    }
+    fn pop_element(&mut self, tag: &str) {
+        match tag {
+            "script" => self.current_element.pop(),
+            "style" => self.current_element.pop(),
+            _ => None,
+        };
+        if let Some(last) = self.results.last_mut() {
+            last.push_str("</");
+            last.push_str(tag);
+            last.push('>');
+        }
+    }
+    fn pop_void_element(&mut self) {
+        if let Some(last) = self.results.last_mut() {
+            last.push('>');
+        }
+    }
+    // injections
+    fn push_attr_map_injection(&mut self) {
+        self.inj_kinds.push(Some(StepKind::AttrMapInjection))
+    }
+    fn push_descendants_injection(&mut self) {
+        if let Some(last) = self.current_element.last() {
+            match last.as_str() {
+                "script" => self.inj_kinds.push(None),
+                "style" => self.inj_kinds.push(None),
+                _ => self.inj_kinds.push(Some(StepKind::DescendantInjection)),
+            }
+        }
+    }
+    // utility
+    fn build(&mut self) -> TxmlHtmlBuilder {
+        TxmlHtmlBuilder {
+            current_element: Vec::new(),
+            results: Vec::new(),
+            inj_kinds: Vec::new(),
+        }
+    }
+}
+
+fn is_html_void_element(tag: &str) -> bool {
+    match tag {
+        "area" => true,
+        "base" => true,
+        "br" => true,
+        "col" => true,
+        "embed" => true,
+        "hr" => true,
+        "img" => true,
+        "input" => true,
+        "link" => true,
+        "meta" => true,
+        "param" => true,
+        "source" => true,
+        "track" => true,
+        "wbr" => true,
+        _ => false,
+    }
+}
+
+/*
+
+
+// this should be separated. the Injection should be provided by the caller
 pub struct StaticHtmlBuilder<'a> {
     result: String,
     tab_count: usize,
@@ -155,3 +284,4 @@ pub fn html<'a, T>(template_str: &'a str, injections: Vec<T>) -> Template<'a, T>
         injections: injections,
     }
 }
+*/

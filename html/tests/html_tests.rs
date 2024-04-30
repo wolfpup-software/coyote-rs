@@ -90,12 +90,12 @@ fn it_works_with_multiple_injections() {
 
 #[test]
 fn it_works_with_multiple_injections_returnable() {
-    let mut builder = StaticHtmlBuilder::new();
+    let mut doc_builder = StaticHtmlBuilder::new();
 
     let template = nested_test_component();
-    build(&mut builder, template);
+    build(&mut doc_builder, template);
 
-    let rendered_str = builder.build();
+    let rendered_str = doc_builder.build();
     let expected = "<wolf whatup howsit=\"going\">
 	<hello>
 		world
@@ -118,14 +118,15 @@ with all these dumb tabs
 fn nested_test_component<'a>() -> TestTemplate<'a> {
     let descendant_template = html(template_str_0, Vec::new());
 
+    let scoped_attr = "hello".to_string();
     let attributes = Vec::from([
-        Injection::Attr("whatup"),
-        Injection::AttrValue("howsit", "going"),
+        Injection::Attr(scoped_attr),
+        Injection::AttrValue("howsit".to_string(), "going".to_string()),
     ]);
 
     let descendants = Vec::from([
         Injection::Template(descendant_template),
-        Injection::Text(text_injection),
+        Injection::Text(text_injection.to_string()),
     ]);
 
     return html(
@@ -133,7 +134,7 @@ fn nested_test_component<'a>() -> TestTemplate<'a> {
         Vec::from([
             Injection::List(attributes),
             Injection::List(descendants),
-            Injection::Text(text_injection),
+            Injection::Text(text_injection.to_string()),
         ]),
     );
 }
