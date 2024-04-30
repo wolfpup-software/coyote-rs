@@ -57,14 +57,19 @@ impl TxmlHtmlBuilder {
     }
 }
 
+/*
+first build everything
+then add option to skip
+
+match tag {
+    "script" => self.current_element.push(tag.to_string()),
+    "style" => self.current_element.push(tag.to_string()),
+    _ => (),
+};
+*/
+
 impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
     fn push_element(&mut self, tag: &str) {
-        match tag {
-            "script" => self.current_element.push(tag.to_string()),
-            "style" => self.current_element.push(tag.to_string()),
-            _ => (),
-        };
-        self.current_element.push(tag.to_string());
         if let Some(last) = self.results.last_mut() {
             last.push('<');
             last.push_str(tag);
@@ -93,11 +98,6 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
         //
     }
     fn pop_element(&mut self, tag: &str) {
-        match tag {
-            "script" => self.current_element.pop(),
-            "style" => self.current_element.pop(),
-            _ => None,
-        };
         if let Some(last) = self.results.last_mut() {
             last.push_str("</");
             last.push_str(tag);
