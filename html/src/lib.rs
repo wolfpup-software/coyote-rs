@@ -13,6 +13,8 @@
     than nothing is built
 */
 
+use std::mem;
+
 use parsley::StepKind;
 use txml::{Template, TxmlBuilder};
 
@@ -28,10 +30,10 @@ pub enum TemplateKind {
 #[derive(Debug)]
 pub enum Injection<'a, K, C> {
     Text(String),
-    Attr(String),
-    AttrValue(String, String),
     TextStr(&'a str),
+    Attr(String),
     AttrStr(&'a str),
+    AttrValue(String, String),
     AttrValueStr(&'a str, &'a str),
     Callback(String, C),
     Template(Template<'a, K, C>),
@@ -42,15 +44,18 @@ type NonCallback = ();
 
 // Template options
 
+// this is close to a tagged template literal
+// debug clone
 pub struct TxmlHtmlBuilder {
-    current_element: Vec<String>,
-    results: Vec<String>,
-    inj_kinds: Vec<Option<StepKind>>,
+    tags: Vec<String>,
+    pub results: Vec<String>,
+    pub inj_kinds: Vec<Option<StepKind>>,
 }
+
 impl TxmlHtmlBuilder {
     fn new() -> TxmlHtmlBuilder {
         TxmlHtmlBuilder {
-            current_element: Vec::new(),
+            tags: Vec::new(),
             results: Vec::from(["".to_string()]),
             inj_kinds: Vec::new(),
         }
@@ -68,8 +73,51 @@ match tag {
 };
 */
 
+// pre --> do not to tabs or spaces
+
+/*
+    couple options:
+        no formatting, only "pre" elements, []string returned
+        format, save pieces, split across arrays,
+        no formatting, format the entire document after
+
+        either way two steps, all valid xml-ish stuff
+
+        the main complication: this is unique to a static document
+            otherwise this would be a kind of tree or component structure
+
+        two passes,
+            one gives us a kind of minimal html
+            other process can "prettify" an outputed document
+
+            both can use parsley
+
+    // can be defined as neccessary
+    SafetySieve {
+        is valid element, has hyphens or is apart of list
+        can have descendants ? (tag)
+        is unsafe element (tag)
+        valid attribute (tag, attr)
+    }
+
+    pub enum ElementType {
+        dangerous,
+        no_descendants,
+        void_element,
+        element,
+    }
+
+    pub trait SafetySieve {
+        fn get_element_type(&self, tag: &str) -> ElementType;
+        fn is_void_element(&self, tag: &str) -> bool;
+        fn cannot_have_descendants(&self, tag: &str) -> bool;
+    }
+
+*/
+
 impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
     fn push_element(&mut self, tag: &str) {
+        self.tags.push(tag.to_string());
         if let Some(last) = self.results.last_mut() {
             last.push('<');
             last.push_str(tag);
@@ -105,7 +153,10 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
             last.push('>');
         }
     }
+    // out of sync error if tags arent the same
     fn pop_element(&mut self, tag: &str) {
+        // could check if the same
+        self.tags.pop();
         if let Some(last) = self.results.last_mut() {
             last.push_str("</");
             last.push_str(tag);
@@ -113,107 +164,53 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
         }
     }
     fn pop_void_element(&mut self) {
-        if let Some(last) = self.results.last_mut() {
-            last.push('>');
+        // if current element is void element
+        match (self.tags.pop(), self.results.last_mut()) {
+            (Some(tag), Some(last)) => {
+                // check tag if is void
+                last.push('>');
+                // otherwise
+            }
+            _ => (),
         }
     }
     // injections
     fn push_attr_map_injection(&mut self) {
-        self.inj_kinds.push(Some(StepKind::AttrMapInjection))
+        self.results.push("".to_string());
+        self.inj_kinds.push(Some(StepKind::AttrMapInjection));
     }
     fn push_descendants_injection(&mut self) {
-        self.inj_kinds.push(Some(StepKind::DescendantInjection))
+        self.results.push("".to_string());
+        self.inj_kinds.push(Some(StepKind::DescendantInjection));
     }
     // utility
     fn build(&mut self) -> TxmlHtmlBuilder {
-        TxmlHtmlBuilder {
-            current_element: Vec::new(),
-            results: Vec::new(),
+        let mut builder = TxmlHtmlBuilder {
+            tags: Vec::new(),
+            results: Vec::from(["".to_string()]),
             inj_kinds: Vec::new(),
-        }
-    }
-}
-
-fn is_html_void_element(tag: &str) -> bool {
-    match tag {
-        "area" => true,
-        "base" => true,
-        "br" => true,
-        "col" => true,
-        "embed" => true,
-        "hr" => true,
-        "img" => true,
-        "input" => true,
-        "link" => true,
-        "meta" => true,
-        "param" => true,
-        "source" => true,
-        "track" => true,
-        "wbr" => true,
-        _ => false,
-    }
-}
-
-/*
-
-
-// this should be separated. the Injection should be provided by the caller
-pub struct StaticHtmlBuilder<'a> {
-    result: String,
-    tab_count: usize,
-    stack: Vec<StackBit<'a, Injection<'a, NonCallback>>>,
-}
-
-impl<'a> StaticHtmlBuilder<'_> {
-    // eventually this is the cache step ::new(1024) max build steps
-    pub fn new() -> StaticHtmlBuilder<'a> {
-        StaticHtmlBuilder {
-            result: "".to_string(),
-            tab_count: 0,
-            stack: Vec::new(),
-        }
-    }
-
-    pub fn build(&self) -> String {
-        self.result.clone()
-    }
-
-    pub fn reset(mut self) {
-        self = StaticHtmlBuilder {
-            result: "".to_string(),
-            tab_count: 0,
-            stack: Vec::new(),
         };
+
+        mem::swap(self, &mut builder);
+
+        builder
     }
 }
 
-// tale of two builders
-// TemplateBuilder for caching -> { text: Vec(), descendants: [] }
-// StaticHtmlBuilder for the actual page page
-
-impl<'a> TxmlBuilder<'a, Injection<'a, NonCallback>> for StaticHtmlBuilder<'_> {
-    // steps
-    fn push_node(&self, tag: &'a str) {}
-    fn add_attr(&self, attr: &'a str) {}
-    fn add_attr_value(&self, value: &'a str) {}
-    fn push_text(&self, text: &'a str) {}
-    fn pop_node(&self, tag: &'a str) {}
-    fn pop_independent_node(&self) {}
-
-    // injections
-    fn add_attr_map(&self, injections: Injection<'a, NonCallback>) {}
-    fn get_descendants(
-        &self,
-        injections: Injection<'a, NonCallback>,
-    ) -> Vec<StackBit<'a, Injection<'a, NonCallback>>> {
-        //
-        Vec::new()
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+fn is_html_element(tag: &str) -> bool {
+    match tag {
+        "html" => true,
+        "!DOCTYPE" => true,
+        "base" => true,
+        "head" => true,
+        "link" => true,
+        "meta" => true,
+        "style" => true,
+        "title" => true,
+        _ => false,
     }
 }
-
-// Injections could be entirely external to the "builder"
-
-// where E is for event callbacks
 
 fn is_html_void_element(tag: &str) -> bool {
     match tag {
@@ -235,55 +232,11 @@ fn is_html_void_element(tag: &str) -> bool {
     }
 }
 
-fn add_close_tagname(result: &mut String, tab_count: usize, text: &str) -> () {
-    // tab_count -= 1;
-    result.push_str(&"\t".repeat(tab_count));
-    result.push_str("</");
-    result.push_str(text);
-    result.push_str(">\n");
-}
-
-fn add_independent_node(result: &mut String, tab_count: usize, text: &str) -> () {
-    result.push_str("/>\n");
-    // tab_count -= 1;
-}
-
-fn add_node_closed(result: &mut String, tab_count: usize, text: &str) -> () {
-    result.push_str(">\n");
-    // tab_count += 1;
-}
-
-fn add_tag(result: &mut String, tab_count: usize, text: &str) -> () {
-    result.push_str(&"\t".repeat(tab_count));
-    result.push_str("<");
-    result.push_str(text);
-}
-
-fn add_text(result: &mut String, tab_count: usize, text: &str) -> () {
-    result.push_str(&"\t".repeat(tab_count));
-    result.push_str(text.trim());
-    result.push_str("\n");
-}
-
-fn add_attr(result: &mut String, attr: &str) -> () {
-    result.push_str(" ");
-    result.push_str(attr);
-}
-
-fn add_attr_value(result: &mut String, attr: &str, value: &str) -> () {
-    result.push_str(" ");
-    result.push_str(attr);
-    result.push_str("=\"");
-    result.push_str(value);
-    result.push_str("\"");
-}
-
-//
-pub fn html<'a, T>(template_str: &'a str, injections: Vec<T>) -> Template<'a, T> {
-    Template {
-        kind: "html",
-        template_str: template_str,
-        injections: injections,
+// https://developer.mozilla.org/en-US/docs/Web/API/Element#events
+fn is_banned_attribute(tag: &str) -> bool {
+    match tag {
+        "onclick" => true,
+        "onpointerdown" => true,
+        _ => false,
     }
 }
-*/

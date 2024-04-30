@@ -31,6 +31,44 @@ pub trait TxmlBuilder<R> {
     fn build(&mut self) -> R;
 }
 
+fn build_template<R>(builder: &mut impl TxmlBuilder<R>, template_str: &str) {
+    for step in parsley::parse_str(template_str, StepKind::Initial) {
+        match step.kind {
+            // steps
+            StepKind::Tagname => {
+                builder.push_element(get_text_from_step(&template_str, &step));
+            }
+            StepKind::NodeClosed => {
+                builder.close_element();
+            }
+            StepKind::IndependentNodeClosed => {
+                builder.pop_void_element();
+            }
+            StepKind::Attr => {
+                builder.add_attr(get_text_from_step(&template_str, &step));
+            }
+            StepKind::AttrValue => {
+                builder.add_attr_value(get_text_from_step(&template_str, &step));
+            }
+            StepKind::Text => {
+                builder.push_text(get_text_from_step(&template_str, &step));
+            }
+            StepKind::CloseTagname => {
+                builder.pop_element(get_text_from_step(&template_str, &step));
+            }
+            // injections
+            StepKind::AttrMapInjection => {
+                builder.push_attr_map_injection();
+            }
+            StepKind::DescendantInjection => {
+                builder.push_descendants_injection();
+            }
+            // all other steps silently pass through
+            _ => {}
+        }
+    }
+}
+
 // Template (K)ind, (I)njection, (R)eturn type
 pub trait DocBuilder<K, I, R> {
     // steps
