@@ -13,7 +13,15 @@ dependencies = [
 [[package]]
 name = "parsley"
 version = "0.1.0"
-source = "git+https://github.com/taylor-vann/parsley-rs#73cf2627adfa179fd479007dc4d9821a4fd95584"
+source = "git+https://github.com/taylor-vann/parsley-rs#bedcb7f63455cbfa600bed7b7bd490d090e8d720"
+
+[[package]]
+name = "pretty_html"
+version = "0.1.0"
+dependencies = [
+ "parsley",
+ "txml",
+]
 
 [[package]]
 name = "txml"
