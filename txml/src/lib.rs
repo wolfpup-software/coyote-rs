@@ -27,6 +27,9 @@ pub trait TxmlBuilder {
     // injections
     fn push_attr_map_injection(&mut self);
     fn push_descendants_injection(&mut self);
+    fn add_injection_space(&mut self, space: &str);
+    fn confirm_injection(&mut self);
+
     // utility
     // fn build(&mut self) -> R;
 }
@@ -67,10 +70,10 @@ fn build_template(builder: &mut impl TxmlBuilder, template_str: &str) {
                 builder.push_descendants_injection();
             }
             StepKind::InjectionSpace => {
-                // builder.add_injection_space();
+                builder.add_injection_space(get_text_from_step(&template_str, &step));
             }
             StepKind::InjectionConfirmed => {
-                // builder.confirm_injection();
+                builder.confirm_injection();
             }
             // all other steps silently pass through
             _ => {}

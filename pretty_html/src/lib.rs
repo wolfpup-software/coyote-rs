@@ -56,4 +56,10 @@ impl TxmlBuilder for PretyHtmlBuilder {
     fn push_descendants_injection(&mut self) {
         self.results.push('{');
     }
+    fn add_injection_space(&mut self, space: &str) {
+        self.results.push_str(space);
+    }
+    fn confirm_injection(&mut self) {
+        self.results.push('}');
+    }
 }

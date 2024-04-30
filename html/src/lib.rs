@@ -140,6 +140,8 @@ impl TxmlBuilder for TxmlHtmlBuilder {
         self.results.push("".to_string());
         self.inj_kinds.push(Some(StepKind::DescendantInjection));
     }
+    fn add_injection_space(&mut self, _space: &str) {}
+    fn confirm_injection(&mut self) {}
 }
 
 // safety builder
