@@ -20,6 +20,7 @@ pub trait TxmlBuilder<R> {
     fn push_text(&mut self, text: &str);
     fn add_attr(&mut self, attr: &str);
     fn add_attr_value(&mut self, value: &str);
+    fn add_attr_value_unquoted(&mut self, value: &str);
     fn close_element(&mut self);
     fn pop_element(&mut self, tag: &str);
     fn pop_void_element(&mut self);

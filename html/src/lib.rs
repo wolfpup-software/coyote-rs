@@ -75,11 +75,21 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
             last.push_str(tag);
         }
     }
-    fn push_text(&mut self, text: &str) {}
+    fn push_text(&mut self, text: &str) {
+        if let Some(last) = self.results.last_mut() {
+            last.push_str(text);
+        }
+    }
     fn add_attr(&mut self, attr: &str) {
         if let Some(last) = self.results.last_mut() {
             last.push(' ');
             last.push_str(attr);
+        }
+    }
+    fn add_attr_value_unquoted(&mut self, value: &str) {
+        if let Some(last) = self.results.last_mut() {
+            last.push('=');
+            last.push_str(value);
         }
     }
     fn add_attr_value(&mut self, value: &str) {
@@ -94,8 +104,6 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
         if let Some(last) = self.results.last_mut() {
             last.push('>');
         }
-        // if void element pop
-        //
     }
     fn pop_element(&mut self, tag: &str) {
         if let Some(last) = self.results.last_mut() {
@@ -114,13 +122,7 @@ impl TxmlBuilder<TxmlHtmlBuilder> for TxmlHtmlBuilder {
         self.inj_kinds.push(Some(StepKind::AttrMapInjection))
     }
     fn push_descendants_injection(&mut self) {
-        if let Some(last) = self.current_element.last() {
-            match last.as_str() {
-                "script" => self.inj_kinds.push(None),
-                "style" => self.inj_kinds.push(None),
-                _ => self.inj_kinds.push(Some(StepKind::DescendantInjection)),
-            }
-        }
+        self.inj_kinds.push(Some(StepKind::DescendantInjection))
     }
     // utility
     fn build(&mut self) -> TxmlHtmlBuilder {
