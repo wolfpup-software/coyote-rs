@@ -1,13 +1,8 @@
 use parsley::{get_text_from_step, Step, StepKind};
 use txml::{Template, TxmlBuilder};
 
-pub struct PrettyHtmlConfig {
-    max_text_width: usize,
-}
-
 pub struct PretyHtmlBuilder {
     tab_count: usize,
-    text_width: usize,
     results: String,
 }
 
@@ -15,104 +10,124 @@ impl PretyHtmlBuilder {
     fn new() -> PretyHtmlBuilder {
         PretyHtmlBuilder {
             tab_count: 0,
-            text_width: 0,
             results: "".to_string(),
         }
     }
 }
+
+// pre elements must respsect boundaries
+// that's really it use
 
 impl TxmlBuilder for PretyHtmlBuilder {
     fn push_step(&mut self, template_str: &str, step: Step) {
         match step.kind {
             // steps
             StepKind::Tag => {
-                // builder.push_element(get_text_from_step(&template_str, &step));
+                push_element(self, get_text_from_step(template_str, &step));
             }
             StepKind::ElementClosed => {
-                // builder.close_element();
+                close_element(self, get_text_from_step(template_str, &step));
             }
             StepKind::VoidElementClosed => {
-                // builder.pop_void_element();
+                close_void_element(self, get_text_from_step(template_str, &step));
             }
             StepKind::Attr => {
-                // builder.add_attr(get_text_from_step(&template_str, &step));
+                add_attr(self, get_text_from_step(template_str, &step));
             }
             StepKind::AttrValue => {
-                // builder.add_attr_value(get_text_from_step(&template_str, &step));
+                add_attr_value(self, get_text_from_step(template_str, &step));
             }
             StepKind::AttrValueUnquoted => {
-                // builder.add_attr_value_unquoted(get_text_from_step(&template_str, &step));
+                add_attr_value_unquoted(self, get_text_from_step(template_str, &step));
             }
             StepKind::Text => {
-                // builder.push_text(get_text_from_step(&template_str, &step));
+                push_text(self, get_text_from_step(template_str, &step));
             }
             StepKind::TailTag => {
-                // builder.pop_element(get_text_from_step(&template_str, &step));
+                pop_element(self, get_text_from_step(template_str, &step));
             }
             // injections
             StepKind::AttrMapInjection => {
-                // builder.push_attr_map_injection();
+                push_attr_map_injection(self, get_text_from_step(template_str, &step));
             }
             StepKind::DescendantInjection => {
-                // builder.push_descendants_injection();
+                push_descendant_injection(self, get_text_from_step(template_str, &step));
             }
             StepKind::InjectionSpace => {
-                // builder.add_injection_space(get_text_from_step(&template_str, &step));
+                push_injection_space(self, get_text_from_step(template_str, &step));
             }
             StepKind::InjectionConfirmed => {
-                // builder.confirm_injection();
+                push_injection_confirmed(self, get_text_from_step(template_str, &step));
             }
             // all other steps silently pass through
             _ => {}
         }
     }
+}
 
-    // fn push_element(&mut self, tag: &str) {
-    //     self.results.push('<');
-    //     self.results.push_str(tag);
-    // }
-    // fn push_text(&mut self, text: &str) {
-    //     self.results.push_str(text);
-    // }
-    // fn add_attr(&mut self, attr: &str) {
-    //     self.results.push(' ');
-    //     self.results.push_str(attr);
-    // }
-    // fn add_attr_value_unquoted(&mut self, value: &str) {
-    //     self.results.push('=');
-    //     self.results.push_str(value);
-    // }
-    // fn add_attr_value(&mut self, value: &str) {
-    //     self.results.push('=');
-    //     self.results.push('"');
-    //     self.results.push_str(value);
-    //     self.results.push('"');
-    // }
-    // fn close_element(&mut self) {
-    //     self.results.push('>');
-    // }
-    // // out of sync error if tags arent the same
-    // fn pop_element(&mut self, tag: &str) {
-    //     // could check if the same
-    //     self.results.push_str("</");
-    //     self.results.push_str(tag);
-    //     self.results.push('>');
-    // }
-    // fn pop_void_element(&mut self) {
-    //     // if current element is void element
-    //     // check tag if is void
-    //     self.results.push('>');
-    // }
-    // fn push_attr_map_injection(&mut self) {
-    //     self.results.push('{');
-    // }
-    // fn push_descendants_injection(&mut self) {
-    //     self.results.push('{');
-    // }
-    // fn add_injection_space(&mut self, space: &str) {
-    //     self.results.push_str(space);
-    // }
-    // fn confirm_injection(&mut self) {
-    //     self.results.push('}');
-    // }
+fn push_element(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(&"\t".repeat(builder.tab_count));
+    builder.results.push('<');
+    builder.results.push_str(tag);
+}
+
+fn close_element(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(">\n");
+    builder.tab_count += 1;
+}
+
+fn close_void_element(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(">\n");
+}
+
+fn pop_element(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.tab_count -= 1;
+    builder.results.push_str(&"\t".repeat(builder.tab_count));
+    builder.results.push_str("</");
+    builder.results.push_str(tag);
+    builder.results.push_str(">\n");
+}
+
+fn push_text(builder: &mut PretyHtmlBuilder, text: &str) {
+    let space = "\t".repeat(builder.tab_count);
+    let mut split_text = text.split('\n');
+    while let Some(line) = split_text.next() {
+        builder.results.push_str(&space);
+        builder.results.push_str(line);
+    }
+    builder.results.push('\n');
+}
+
+fn add_attr(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push(' ');
+    builder.results.push_str(tag);
+}
+
+fn add_attr_value(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str("=\"");
+    builder.results.push_str(tag);
+    builder.results.push('"');
+}
+
+fn add_attr_value_unquoted(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push('=');
+    builder.results.push_str(tag);
+}
+
+// injections
+// all the same
+fn push_attr_map_injection(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(tag);
+}
+
+fn push_descendant_injection(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(tag);
+}
+
+fn push_injection_space(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(tag);
+}
+
+fn push_injection_confirmed(builder: &mut PretyHtmlBuilder, tag: &str) {
+    builder.results.push_str(tag);
 }

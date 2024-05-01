@@ -20,7 +20,7 @@ pub trait TxmlBuilder {
 
 fn build_template(builder: &mut impl TxmlBuilder, template_str: &str) {
     for step in parsley::parse_str(template_str, StepKind::Initial) {
-        builder.push_step(&template_str, step);
+        builder.push_step(template_str, step);
         // match step.kind {
         //     // steps
         //     StepKind::Tag => {
