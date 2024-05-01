@@ -48,8 +48,8 @@ type NonCallback = ();
 // debug clone
 
 pub struct TxmlHtmlResult {
-    pub strs: Vec<String>,
-    pub inj_kinds: Vec<Option<StepKind>>,
+    strs: Vec<String>,
+    inj_kinds: Vec<Option<StepKind>>,
 }
 
 impl TxmlHtmlResult {

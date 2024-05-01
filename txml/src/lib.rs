@@ -21,48 +21,6 @@ pub trait TxmlBuilder {
 pub fn build_template(builder: &mut impl TxmlBuilder, template_str: &str) {
     for step in parsley::parse_str(template_str, StepKind::Initial) {
         builder.push_step(template_str, step);
-        // match step.kind {
-        //     // steps
-        //     StepKind::Tag => {
-        //         builder.push_element(get_text_from_step(&template_str, &step));
-        //     }
-        //     StepKind::ElementClosed => {
-        //         builder.close_element();
-        //     }
-        //     StepKind::VoidElementClosed => {
-        //         builder.pop_void_element();
-        //     }
-        //     StepKind::Attr => {
-        //         builder.add_attr(get_text_from_step(&template_str, &step));
-        //     }
-        //     StepKind::AttrValue => {
-        //         builder.add_attr_value(get_text_from_step(&template_str, &step));
-        //     }
-        //     StepKind::AttrValueUnquoted => {
-        //         builder.add_attr_value_unquoted(get_text_from_step(&template_str, &step));
-        //     }
-        //     StepKind::Text => {
-        //         builder.push_text(get_text_from_step(&template_str, &step));
-        //     }
-        //     StepKind::TailTag => {
-        //         builder.pop_element(get_text_from_step(&template_str, &step));
-        //     }
-        //     // injections
-        //     StepKind::AttrMapInjection => {
-        //         builder.push_attr_map_injection();
-        //     }
-        //     StepKind::DescendantInjection => {
-        //         builder.push_descendants_injection();
-        //     }
-        //     StepKind::InjectionSpace => {
-        //         builder.add_injection_space(get_text_from_step(&template_str, &step));
-        //     }
-        //     StepKind::InjectionConfirmed => {
-        //         builder.confirm_injection();
-        //     }
-        //     // all other steps silently pass through
-        //     _ => {}
-        // }
     }
 }
 
