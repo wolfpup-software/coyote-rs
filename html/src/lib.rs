@@ -47,36 +47,25 @@ type NonCallback = ();
 // this is close to a tagged template literal
 // debug clone
 
-pub struct TxmlHtmlResult {
-    strs: Vec<String>,
-    inj_kinds: Vec<Option<StepKind>>,
-}
-
-impl TxmlHtmlResult {
-    fn new() -> TxmlHtmlResult {
-        TxmlHtmlResult {
-            strs: Vec::new(),
-            inj_kinds: Vec::new(),
-        }
-    }
-}
-
 pub struct TxmlHtmlBuilder {
     tags: Vec<String>,
-    pub results: TxmlHtmlResult,
+    strs: Vec<String>,
+    inj_kinds: Vec<Option<StepKind>>,
 }
 
 impl TxmlHtmlBuilder {
     fn new() -> TxmlHtmlBuilder {
         TxmlHtmlBuilder {
             tags: Vec::new(),
-            results: TxmlHtmlResult::new(),
+            strs: Vec::new(),
+            inj_kinds: Vec::new(),
         }
     }
     fn build(&mut self) -> TxmlHtmlBuilder {
         let mut builder = TxmlHtmlBuilder {
             tags: Vec::new(),
-            results: TxmlHtmlResult::new(),
+            strs: Vec::new(),
+            inj_kinds: Vec::new(),
         };
 
         mem::swap(self, &mut builder);
@@ -90,115 +79,117 @@ impl TxmlBuilder for TxmlHtmlBuilder {
         match step.kind {
             // steps
             StepKind::Tag => {
-                // builder.push_element(get_text_from_step(&template_str, &step));
+                push_element(self, get_text_from_step(template_str, &step));
             }
             StepKind::ElementClosed => {
-                // builder.close_element();
+                close_element(self, get_text_from_step(template_str, &step));
             }
             StepKind::VoidElementClosed => {
-                // builder.pop_void_element();
+                close_void_element(self, get_text_from_step(template_str, &step));
             }
             StepKind::Attr => {
-                // builder.add_attr(get_text_from_step(&template_str, &step));
+                add_attr(self, get_text_from_step(template_str, &step));
             }
             StepKind::AttrValue => {
-                // builder.add_attr_value(get_text_from_step(&template_str, &step));
+                add_attr_value(self, get_text_from_step(template_str, &step));
             }
             StepKind::AttrValueUnquoted => {
-                // builder.add_attr_value_unquoted(get_text_from_step(&template_str, &step));
+                add_attr_value_unquoted(self, get_text_from_step(template_str, &step));
             }
             StepKind::Text => {
-                // builder.push_text(get_text_from_step(&template_str, &step));
+                push_text(self, get_text_from_step(template_str, &step));
             }
             StepKind::TailTag => {
-                // builder.pop_element(get_text_from_step(&template_str, &step));
+                pop_element(self, get_text_from_step(template_str, &step));
             }
             // injections
             StepKind::AttrMapInjection => {
-                // builder.push_attr_map_injection();
+                push_attr_map_injection(self, get_text_from_step(template_str, &step));
             }
             StepKind::DescendantInjection => {
-                // builder.push_descendants_injection();
+                push_descendant_injection(self, get_text_from_step(template_str, &step));
             }
             StepKind::InjectionSpace => {
-                // builder.add_injection_space(get_text_from_step(&template_str, &step));
+                push_injection_space(self, get_text_from_step(template_str, &step));
             }
             StepKind::InjectionConfirmed => {
-                // builder.confirm_injection();
+                push_injection_confirmed(self, get_text_from_step(template_str, &step));
             }
             // all other steps silently pass through
             _ => {}
         }
     }
+}
 
-    // fn push_element(&mut self, tag: &str) {
-    //     self.tags.push(tag.to_string());
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push('<');
-    //         last.push_str(tag);
-    //     }
+fn push_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    builder.tags.push(tag.to_string());
+
+    // builder.results.push_str(&"\t".repeat(builder.tab_count));
+    // builder.results.push('<');
+    // builder.results.push_str(tag);
+}
+
+fn close_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push_str(">\n");
+}
+
+fn close_void_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    builder.tags.pop();
+
+    // builder.results.push_str(">\n");
+}
+
+fn pop_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    builder.tags.pop();
+
+    // builder.results.push_str(&"\t".repeat(builder.tab_count));
+    // builder.results.push_str("</");
+    // builder.results.push_str(tag);
+    // builder.results.push_str(">\n");
+}
+
+fn push_text(builder: &mut TxmlHtmlBuilder, text: &str) {
+    // let space = "\t".repeat(builder.tab_count);
+    // let mut split_text = text.trim().split('\n');
+    // while let Some(line) = split_text.next() {
+    //     builder.results.push_str(&space);
+    //     builder.results.push_str(line.trim());
     // }
-    // fn push_text(&mut self, text: &str) {
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push_str(text);
-    //     }
-    // }
-    // fn add_attr(&mut self, attr: &str) {
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push(' ');
-    //         last.push_str(attr);
-    //     }
-    // }
-    // fn add_attr_value_unquoted(&mut self, value: &str) {
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push('=');
-    //         last.push_str(value);
-    //     }
-    // }
-    // fn add_attr_value(&mut self, value: &str) {
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push('=');
-    //         last.push('"');
-    //         last.push_str(value);
-    //         last.push('"');
-    //     }
-    // }
-    // fn close_element(&mut self) {
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push('>');
-    //     }
-    // }
-    // // out of sync error if tags arent the same
-    // fn pop_element(&mut self, tag: &str) {
-    //     // could check if the same
-    //     self.tags.pop();
-    //     if let Some(last) = self.results.last_mut() {
-    //         last.push_str("</");
-    //         last.push_str(tag);
-    //         last.push('>');
-    //     }
-    // }
-    // fn pop_void_element(&mut self) {
-    //     // if current element is void element
-    //     match (self.tags.pop(), self.results.last_mut()) {
-    //         (Some(tag), Some(last)) => {
-    //             // check tag if is void
-    //             last.push('>');
-    //             // otherwise
-    //         }
-    //         _ => (),
-    //     }
-    // }
-    // fn push_attr_map_injection(&mut self) {
-    //     self.results.push("".to_string());
-    //     self.inj_kinds.push(Some(StepKind::AttrMapInjection));
-    // }
-    // fn push_descendants_injection(&mut self) {
-    //     self.results.push("".to_string());
-    //     self.inj_kinds.push(Some(StepKind::DescendantInjection));
-    // }
-    // fn add_injection_space(&mut self, _space: &str) {}
-    // fn confirm_injection(&mut self) {}
+    // builder.results.push('\n');
+}
+
+fn add_attr(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push(' ');
+    // builder.results.push_str(tag);
+}
+
+fn add_attr_value(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push_str("=\"");
+    // builder.results.push_str(tag);
+    // builder.results.push('"');
+}
+
+fn add_attr_value_unquoted(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push('=');
+    // builder.results.push_str(tag);
+}
+
+// injections
+// all the same
+fn push_attr_map_injection(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push_str(tag);
+}
+
+fn push_descendant_injection(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push_str(tag);
+}
+
+fn push_injection_space(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push_str(tag);
+}
+
+fn push_injection_confirmed(builder: &mut TxmlHtmlBuilder, tag: &str) {
+    // builder.results.push_str(tag);
 }
 
 // safety builder
