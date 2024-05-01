@@ -7,11 +7,15 @@ pub struct PretyHtmlBuilder {
 }
 
 impl PretyHtmlBuilder {
-    fn new() -> PretyHtmlBuilder {
+    pub fn new() -> PretyHtmlBuilder {
         PretyHtmlBuilder {
             tab_count: 0,
             results: "".to_string(),
         }
+    }
+
+    pub fn build(&mut self) -> String {
+        self.results.clone()
     }
 }
 
