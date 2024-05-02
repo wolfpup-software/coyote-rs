@@ -47,10 +47,11 @@ type NonCallback = ();
 // this is close to a tagged template literal
 // debug clone
 
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TxmlHtmlBuilder {
-    tags: Vec<String>,
-    strs: Vec<String>,
-    inj_kinds: Vec<Option<StepKind>>,
+    pub tags: Vec<String>,
+    pub strs: Vec<String>,
+    pub inj_kinds: Vec<Option<StepKind>>,
 }
 
 impl TxmlHtmlBuilder {

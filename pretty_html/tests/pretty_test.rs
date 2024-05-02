@@ -42,3 +42,24 @@ fn basic_nested_elements_with_attributes<'a>() {
 
     assert_eq!(expected, results);
 }
+
+// #[test]
+fn injection_syntax_copied_as_text<'a>() {
+    let lil_template: &str = "<article><header>{boop}</header><p>{hai :3}</p></article>";
+    let expected: &str = "<article>
+	<header>
+		{boop}
+	</header>
+	<p>
+		{hai :3}
+	</p>
+</article>
+";
+
+    let mut builder = PretyHtmlBuilder::new();
+    build_template(&mut builder, lil_template);
+
+    let results = builder.build();
+
+    assert_eq!(expected, results);
+}

@@ -1,4 +1,5 @@
 use html::{Injection, TemplateKind, TxmlHtmlBuilder};
+use parsley::StepKind::{AttrMapInjection, DescendantInjection};
 use txml::{build_template, Template};
 
 const template_str_1: &str = "<hello mygood=\"sir\">{}</hello>";
@@ -13,13 +14,42 @@ type TestInjections<'a> = Injection<'a, TemplateKind, ()>;
 type TestTemplate<'a> = Template<'a, TemplateKind, TestInjections<'a>>;
 
 #[test]
-fn it_works<'a>() {
+fn basic_template<'a>() {
     let template_str = "<hello>world</hello>";
+    let expected = TxmlHtmlBuilder {
+        tags: Vec::new(),
+        strs: Vec::from(["<hello>world</hello>".to_string()]),
+        inj_kinds: Vec::new(),
+    };
 
     let mut builder = TxmlHtmlBuilder::new();
     build_template(&mut builder, template_str);
 
     let result = builder.build();
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn basic_template_with_injections<'a>() {
+    let template_str = "<hello {}>{}</hello>";
+    let expected = TxmlHtmlBuilder {
+        tags: Vec::new(),
+        strs: Vec::from([
+            "<hello".to_string(),
+            ">".to_string(),
+            "</hello>".to_string(),
+        ]),
+        inj_kinds: Vec::from([Some(AttrMapInjection), Some(DescendantInjection)]),
+    };
+
+    let mut builder = TxmlHtmlBuilder::new();
+    build_template(&mut builder, template_str);
+
+    let result = builder.build();
+    println!("{:?}", result);
+
+    assert_eq!(expected, result);
 }
 
 /*
