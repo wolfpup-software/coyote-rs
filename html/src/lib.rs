@@ -54,14 +54,14 @@ pub struct TxmlHtmlBuilder {
 }
 
 impl TxmlHtmlBuilder {
-    fn new() -> TxmlHtmlBuilder {
+    pub fn new() -> TxmlHtmlBuilder {
         TxmlHtmlBuilder {
             tags: Vec::new(),
             strs: Vec::from(["".to_string()]),
             inj_kinds: Vec::new(),
         }
     }
-    fn build(&mut self) -> TxmlHtmlBuilder {
+    pub fn build(&mut self) -> TxmlHtmlBuilder {
         let mut builder = TxmlHtmlBuilder {
             tags: Vec::new(),
             strs: Vec::from(["".to_string()]),

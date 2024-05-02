@@ -1,7 +1,6 @@
-use html::Injection;
-use txml::Template;
+use html::{Injection, TemplateKind, TxmlHtmlBuilder};
+use txml::{build_template, Template};
 
-const template_str_0: &str = "<hello>world</hello>";
 const template_str_1: &str = "<hello mygood=\"sir\">{}</hello>";
 const injection_template_0: &str = "<howdy>{}</howdy>";
 const text_injection: &str = "pardner!
@@ -10,22 +9,23 @@ what's good
 	with all these dumb tabs
 ";
 
-/*
-
-type TestTemplate<'a> = Template<'a, Injection<'a, ()>>;
+type TestInjections<'a> = Injection<'a, TemplateKind, ()>;
+type TestTemplate<'a> = Template<'a, TemplateKind, TestInjections<'a>>;
 
 #[test]
 fn it_works<'a>() {
-    let mut builder = StaticHtmlBuilder::new();
+    let template_str = "<hello>world</hello>";
 
-    let template1 = TestTemplate {
-        kind: "html",
-        template_str: template_str_0,
-        injections: Vec::<Injection<'a, ()>>::new(),
-    };
+    let mut builder = TxmlHtmlBuilder::new();
+    build_template(&mut builder, template_str);
 
-    build(&mut builder, template1);
+    let result = builder.build();
 }
+
+/*
+
+
+
 
 /*
 #[test]
