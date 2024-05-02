@@ -57,14 +57,14 @@ impl TxmlHtmlBuilder {
     fn new() -> TxmlHtmlBuilder {
         TxmlHtmlBuilder {
             tags: Vec::new(),
-            strs: Vec::new(),
+            strs: Vec::from(["".to_string()]),
             inj_kinds: Vec::new(),
         }
     }
     fn build(&mut self) -> TxmlHtmlBuilder {
         let mut builder = TxmlHtmlBuilder {
             tags: Vec::new(),
-            strs: Vec::new(),
+            strs: Vec::from(["".to_string()]),
             inj_kinds: Vec::new(),
         };
 
@@ -109,12 +109,6 @@ impl TxmlBuilder for TxmlHtmlBuilder {
             StepKind::DescendantInjection => {
                 push_descendant_injection(self, get_text_from_step(template_str, &step));
             }
-            StepKind::InjectionSpace => {
-                push_injection_space(self, get_text_from_step(template_str, &step));
-            }
-            StepKind::InjectionConfirmed => {
-                push_injection_confirmed(self, get_text_from_step(template_str, &step));
-            }
             // all other steps silently pass through
             _ => {}
         }
@@ -123,77 +117,69 @@ impl TxmlBuilder for TxmlHtmlBuilder {
 
 fn push_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
     builder.tags.push(tag.to_string());
-
-    // builder.results.push_str(&"\t".repeat(builder.tab_count));
-    // builder.results.push('<');
-    // builder.results.push_str(tag);
+    if let Some(last) = builder.strs.last_mut() {
+        last.push('<');
+        last.push_str(tag);
+    }
 }
 
 fn close_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push_str(">\n");
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str(">");
+    }
 }
 
 fn close_void_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
     builder.tags.pop();
-
-    // builder.results.push_str(">\n");
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str(">");
+    }
 }
 
 fn pop_element(builder: &mut TxmlHtmlBuilder, tag: &str) {
     builder.tags.pop();
-
-    // builder.results.push_str(&"\t".repeat(builder.tab_count));
-    // builder.results.push_str("</");
-    // builder.results.push_str(tag);
-    // builder.results.push_str(">\n");
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str("</");
+        last.push_str(tag);
+        last.push_str(">");
+    }
 }
 
 fn push_text(builder: &mut TxmlHtmlBuilder, text: &str) {
-    // let space = "\t".repeat(builder.tab_count);
-    // let mut split_text = text.trim().split('\n');
-    // while let Some(line) = split_text.next() {
-    //     builder.results.push_str(&space);
-    //     builder.results.push_str(line.trim());
-    // }
-    // builder.results.push('\n');
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str(text);
+    }
 }
 
 fn add_attr(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push(' ');
-    // builder.results.push_str(tag);
+    if let Some(last) = builder.strs.last_mut() {
+        last.push(' ');
+        last.push_str(tag);
+    }
 }
 
 fn add_attr_value(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push_str("=\"");
-    // builder.results.push_str(tag);
-    // builder.results.push('"');
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str("=\"");
+        last.push_str(tag);
+        last.push('"');
+    }
 }
 
 fn add_attr_value_unquoted(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push('=');
-    // builder.results.push_str(tag);
+    if let Some(last) = builder.strs.last_mut() {
+        last.push('=');
+        last.push_str(tag);
+    }
 }
 
 // injections
-// all the same
 fn push_attr_map_injection(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push_str(tag);
+    builder.strs.push("".to_string());
+    builder.inj_kinds.push(Some(StepKind::AttrMapInjection));
 }
 
 fn push_descendant_injection(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push_str(tag);
+    builder.strs.push("".to_string());
+    builder.inj_kinds.push(Some(StepKind::DescendantInjection));
 }
-
-fn push_injection_space(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push_str(tag);
-}
-
-fn push_injection_confirmed(builder: &mut TxmlHtmlBuilder, tag: &str) {
-    // builder.results.push_str(tag);
-}
-
-// safety builder
-// https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-
-// build doc
-// pub fn build_doc(template: Template<K, I, R>)

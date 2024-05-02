@@ -2,6 +2,8 @@
 
 // just lists html saftey sieve options and return valuse
 
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Element
+
 pub enum ElementType {
     dangerous,
     no_descendants,
