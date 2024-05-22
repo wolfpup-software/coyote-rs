@@ -11,14 +11,6 @@ pub enum TemplateKind {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Template {
-    // or just a &str?
-    pub kind: TemplateKind,
-    pub template_str: String,
-    pub injections: Vec<Injection>,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Injection {
     Text(String),
     Attr(String),
@@ -26,6 +18,14 @@ pub enum Injection {
     Tmpl(Template),
     List(Vec<Injection>),
     None,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Template {
+    // or just a &str?
+    pub kind: TemplateKind,
+    pub template_str: String,
+    pub injections: Vec<Injection>,
 }
 
 pub trait TxmlBuilder {
