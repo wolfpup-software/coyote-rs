@@ -1,20 +1,13 @@
 use std::collections::HashMap;
 use std::vec;
 
-use parsley::{get_text_from_step, parse_str, Step, StepKind};
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum TemplateKind {
-    Html,
-    Svg,
-    MathML,
-}
+use parsley::{parse_str, Step, StepKind};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Injection {
     Text(String),
     Attr(String),
-    AttrValue(String, String),
+    AttrVal(String, String),
     Tmpl(Template),
     List(Vec<Injection>),
     None,
@@ -22,14 +15,19 @@ pub enum Injection {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Template {
-    // or just a &str?
-    pub kind: TemplateKind,
     pub template_str: String,
     pub injections: Vec<Injection>,
 }
 
 pub trait TxmlBuilder {
     fn push_step(&mut self, template_str: &str, step: Step);
+}
+
+pub fn txml(template_str: String, injections: Vec<Injection>) -> Template {
+    Template {
+        template_str: template_str,
+        injections: injections,
+    }
 }
 
 pub fn build_template(builder: &mut impl TxmlBuilder, template_str: &str) {
