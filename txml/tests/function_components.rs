@@ -1,11 +1,8 @@
 use txml::{attrVal, list, text, tmpl};
-use txml::{Injection, Template, txml};
+use txml::{txml, Template};
 
 fn woof() -> Template {
-    txml(
-        "<input type=submit value=\"yus -_-\">",
-        [],
-    )
+    txml("<input type=submit value=\"yus -_-\">", [])
 }
 
 fn woof_woof() -> Template {

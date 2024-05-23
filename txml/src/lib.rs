@@ -12,14 +12,13 @@ pub enum Injection {
     None,
 }
 
-
-
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Template {
     pub template_str: String,
     pub injections: Vec<Injection>,
 }
 
+// defacto template function 
 pub fn txml<const N: usize>(template_str: &str, injections: [Injection; N]) -> Template {
     Template {
         template_str: template_str.to_string(),
@@ -27,6 +26,8 @@ pub fn txml<const N: usize>(template_str: &str, injections: [Injection; N]) -> T
     }
 }
 
+// ergonomic functions to quickly create Injection Enums
+// (makes component code considerably more readable)
 pub fn text(txt: &str) -> Injection {
     Injection::Text(txt.to_string())
 }
@@ -46,3 +47,4 @@ pub fn tmpl(template: Template) -> Injection {
 pub fn list<const N: usize>(list: [Injection; N]) -> Injection {
     Injection::List(Vec::from(list))
 }
+
