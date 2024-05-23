@@ -1,4 +1,5 @@
-use html::{Injection, TemplateKind, TxmlHtmlBuilder};
+use html::{Injection, TemplateKind};
+use html::txml_builder::{TxmlHtmlBuilder};
 use parsley::StepKind::{AttrMapInjection, DescendantInjection};
 use txml::{build_template, Template};
 
@@ -53,9 +54,6 @@ fn basic_template_with_injections<'a>() {
 }
 
 /*
-
-
-
 
 /*
 #[test]
@@ -161,14 +159,14 @@ fn nested_test_component<'a>() -> TestTemplate<'a> {
         Injection::Text(text_injection.to_string()),
     ]);
 
-    return html(
+    html(
         "<wolf {}>{}</wolf>{}",
         Vec::from([
             Injection::List(attributes),
             Injection::List(descendants),
             Injection::Text(text_injection.to_string()),
         ]),
-    );
+    )
 }
 
 */

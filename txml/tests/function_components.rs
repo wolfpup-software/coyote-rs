@@ -1,26 +1,26 @@
-use txml::Injection::{AttrVal, List, Text, Tmpl};
+use txml::{attrVal, list, text, tmpl};
 use txml::{Injection, Template, txml};
 
 fn woof() -> Template {
     txml(
-        "<input type=submit value=\"yus -_-\">".to_string(),
-        Vec::new(),
+        "<input type=submit value=\"yus -_-\">",
+        [],
     )
 }
 
 fn woof_woof() -> Template {
-    let descendants = List(Vec::from([
-        Text("you're a boy kisser aren't you >:3".to_string()),
-        Tmpl(woof()),
-    ]));
+    let descendants = list([
+        text("you're a boy kisser aren't you >:3"),
+        tmpl(woof()),
+    ]);
 
-    let attributes = List(Vec::from([
-        AttrVal("action".to_string(), "/uwu".to_string()),
-        AttrVal("method".to_string(), "post".to_string()),
-    ]));
+    let attributes = list([
+        attrVal("action", "/uwu"),
+        attrVal("method", "post"),
+    ]);
 
     txml(
-        "<form {}>{}</form>".to_string(),
-        Vec::from([attributes, descendants]),
+        "<form {}>{}</form>",
+        [attributes, descendants],
     )
 }

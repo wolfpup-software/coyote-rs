@@ -1,6 +1,11 @@
 use parsley::{get_text_from_step, Step, StepKind};
 use txml::{Template, TxmlBuilder};
 
+/*
+    This is meant to "pretty" an html document output by `html`.
+    it is not used by a "doc" builder
+*/
+
 pub struct PretyHtmlBuilder {
     tags: Vec<String>,
     tab_count: usize,
@@ -74,13 +79,14 @@ impl TxmlBuilder for PretyHtmlBuilder {
 fn push_element(builder: &mut PretyHtmlBuilder, tag: &str) {
     builder.tags.push(tag.to_string());
 
+    builder.results.push('\n');
     builder.results.push_str(&"\t".repeat(builder.tab_count));
-    builder.results.push('<');
+    builder.results.push_str("<");
     builder.results.push_str(tag);
 }
 
 fn close_element(builder: &mut PretyHtmlBuilder, tag: &str) {
-    builder.results.push_str(">\n");
+    builder.results.push_str(">");
 
     builder.tab_count += 1;
 }
@@ -88,27 +94,22 @@ fn close_element(builder: &mut PretyHtmlBuilder, tag: &str) {
 fn close_void_element(builder: &mut PretyHtmlBuilder, tag: &str) {
     builder.tags.pop();
 
-    builder.results.push_str(">\n");
+    builder.results.push_str(">");
 }
 
 fn pop_element(builder: &mut PretyHtmlBuilder, tag: &str) {
     builder.tags.pop();
     builder.tab_count -= 1;
 
+    builder.results.push('\n');
     builder.results.push_str(&"\t".repeat(builder.tab_count));
     builder.results.push_str("</");
     builder.results.push_str(tag);
-    builder.results.push_str(">\n");
+    builder.results.push_str(">");
 }
 
 fn push_text(builder: &mut PretyHtmlBuilder, text: &str) {
-    let space = "\t".repeat(builder.tab_count);
-    let mut split_text = text.trim().split('\n');
-    while let Some(line) = split_text.next() {
-        builder.results.push_str(&space);
-        builder.results.push_str(line.trim());
-    }
-    builder.results.push('\n');
+    builder.results.push_str(text);
 }
 
 fn add_attr(builder: &mut PretyHtmlBuilder, tag: &str) {
@@ -128,19 +129,18 @@ fn add_attr_value_unquoted(builder: &mut PretyHtmlBuilder, tag: &str) {
 }
 
 // injections
-// all the same
-fn push_attr_map_injection(builder: &mut PretyHtmlBuilder, tag: &str) {
-    builder.results.push_str(tag);
+fn push_attr_map_injection(builder: &mut PretyHtmlBuilder, glyph: &str) {
+    builder.results.push_str(glyph);
 }
 
-fn push_descendant_injection(builder: &mut PretyHtmlBuilder, tag: &str) {
-    builder.results.push_str(tag);
+fn push_descendant_injection(builder: &mut PretyHtmlBuilder, glyph: &str) {
+    builder.results.push_str(glyph);
 }
 
-fn push_injection_space(builder: &mut PretyHtmlBuilder, tag: &str) {
-    builder.results.push_str(tag);
+fn push_injection_space(builder: &mut PretyHtmlBuilder, text: &str) {
+    builder.results.push_str(text);
 }
 
-fn push_injection_confirmed(builder: &mut PretyHtmlBuilder, tag: &str) {
-    builder.results.push_str(tag);
+fn push_injection_confirmed(builder: &mut PretyHtmlBuilder, glyph: &str) {
+    builder.results.push_str(glyph);
 }

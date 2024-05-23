@@ -1,5 +1,5 @@
 [workspace]
-members = ["html", "pretty_html", "txml"]
+members = ["txml"]
 
 [workspace.dependencies]
 parsley = { git = "https://github.com/taylor-vann/parsley-rs" }

@@ -2,16 +2,54 @@
 
 Create HTML from component functions in Rust!
 
+## Hello, world
 
-## Why
+```rust
+use html::Template;
 
-XML is historically aligned with document structures.
+fn my_component() -> Template {
+    html(
+        "<p>hai :3</p>",
+        Vec::new(),
+    )
+}
+```
 
-But there a lot of kinds of documents. And XML has elements like `<!-- comments -->` and `<![CDATA[some stuff]]>` that don't describe semantic structures.
+## More interesting 
 
-So I wrote a library called [parsely](sdfsdf) for this reason. It's a parser for a subset of XML focused on _structure_ rather than data.
+```rust
+use txml::{txml, Template};
+use txml::Injection::{Attr, AttrVal, Templ, Text, List};
 
+fn my_submit_button() -> Template {
+    txml(
+        "<input type=submit value=\"yus :3\">".to_string(),
+        Vec::new(),
+    )
+}
 
-## Txml
+fn my_form() -> Template {
+    let attributes = Vec::from([
+        AttrVal("action".to_string(), "/uwu".to_string()),
+        AttrVal("method".to_string(), "post".to_string()),
+    ]);
 
-`Tmxl-rs` builds off of parsley and provides a library agnostic way of building UIs in rust.
+    let descendants = Vec::from([
+        Text("you're a boy kisser, aren't you >:3".to_string()),
+        Templ(my_submit_button()),
+    ]);
+
+    txml("<form {}>{}</form>".to_string(),
+        Vec::from([
+            List(attributes),
+            List(descendants),
+        ]),
+    )
+}
+```
+
+## safety
+
+Only templates are allowed html characters
+
+Text will be escaped, all `<a>` becomes `&srb;a&srb;`

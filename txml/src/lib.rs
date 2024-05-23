@@ -6,12 +6,13 @@ use parsley::{parse_str, Step, StepKind};
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Injection {
     Text(String),
-    Attr(String),
     AttrVal(String, String),
     Tmpl(Template),
     List(Vec<Injection>),
     None,
 }
+
+
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Template {
@@ -19,13 +20,29 @@ pub struct Template {
     pub injections: Vec<Injection>,
 }
 
-pub trait TxmlBuilder {
-    fn push_step(&mut self, template_str: &str, step: Step);
+pub fn txml<const N: usize>(template_str: &str, injections: [Injection; N]) -> Template {
+    Template {
+        template_str: template_str.to_string(),
+        injections: Vec::from(injections),
+    }
 }
 
-pub fn txml(template_str: String, injections: Vec<Injection>) -> Template {
-    Template {
-        template_str: template_str,
-        injections: injections,
-    }
+pub fn text(txt: &str) -> Injection {
+    Injection::Text(txt.to_string())
+}
+
+pub fn attr(txt: &str) -> Injection {
+    Injection::Text(txt.to_string())
+}
+
+pub fn attrVal(txt: &str, text: &str) -> Injection {
+    Injection::Text(txt.to_string())
+}
+
+pub fn tmpl(template: Template) -> Injection {
+    Injection::Tmpl(template)
+}
+
+pub fn list<const N: usize>(list: [Injection; N]) -> Injection {
+    Injection::List(Vec::from(list))
 }
