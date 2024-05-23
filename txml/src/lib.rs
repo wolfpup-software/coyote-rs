@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::vec;
-
 // Components are injected into templates
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Component {
