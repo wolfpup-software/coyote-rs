@@ -27,27 +27,49 @@ pub fn txml<const N: usize>(template_str: &str, injections: [Component; N]) -> C
 
 // ergonomic functions to quickly create Injection Enums
 // (makes component code considerably more readable)
+// (great spot to escape characters)
 
 pub fn text(txt: &str) -> Component {
+    let escaped = txt.replace("<", "&lt;").replace("&", "&amp;");
+
+    Component::Text(escaped)
+}
+
+pub fn unescaped_text(txt: &str) -> Component {
     Component::Text(txt.to_string())
 }
 
 pub fn attr(txt: &str) -> Component {
-    Component::Text(txt.to_string())
+    let escaped_attr = txt
+        .replace("<", "")
+        .replace(">", "")
+        .replace("&", "")
+        .replace("\"", "")
+        .replace("'", "");
+
+    Component::Text(escaped_attr)
 }
 
 pub fn attrVal(txt: &str, text: &str) -> Component {
-    Component::Text(txt.to_string())
+    let escaped_attr = txt
+        .replace("<", "")
+        .replace(">", "")
+        .replace("&", "")
+        .replace("\"", "")
+        .replace("'", "");
+
+    let escaped_value = text.replace("\"", "&quot;").replace("&", "&amp;");
+    Component::AttrVal(escaped_attr, escaped_value)
 }
 
 pub fn tmpl(template: Template) -> Component {
     Component::Tmpl(template)
 }
 
-pub fn list<const N: usize>(list: [Component; N]) -> Component {
-    Component::List(Vec::from(list))
+pub fn list<const N: usize>(components: [Component; N]) -> Component {
+    Component::List(Vec::from(components))
 }
 
-pub fn vecList<const N: usize>(list: Vec<Component>) -> Component {
-    Component::List(list)
+pub fn vecList<const N: usize>(components: Vec<Component>) -> Component {
+    Component::List(components)
 }
