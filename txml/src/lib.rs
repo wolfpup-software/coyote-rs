@@ -35,8 +35,8 @@ pub fn text(txt: &str) -> Component {
     Component::Text(escaped)
 }
 
-pub fn unescaped_text(txt: &str) -> Component {
-    Component::Text(txt.to_string())
+pub fn unescaped_text(txt: String) -> Component {
+    Component::Text(txt)
 }
 
 pub fn attr(txt: &str) -> Component {
@@ -70,6 +70,6 @@ pub fn list<const N: usize>(components: [Component; N]) -> Component {
     Component::List(Vec::from(components))
 }
 
-pub fn vecList<const N: usize>(components: Vec<Component>) -> Component {
+pub fn vlist<const N: usize>(components: Vec<Component>) -> Component {
     Component::List(components)
 }
