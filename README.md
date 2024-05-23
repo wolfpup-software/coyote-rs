@@ -2,30 +2,32 @@
 
 Create HTML from component functions in Rust!
 
-## Hai :3
+## Components
+
+### Hai :3
 
 ```rust
-use txml::{txml, Template};
+use txml::{txml, Component};
 
-fn hai() -> Template {
+fn hai() -> Component {
     txml("<p>omgawsh hai :3</p>", []);
 }
 ```
 
-## More interesting 
+### More interesting hai :3
 
 ```rust
 use txml::{attrVal, list, text, tmpl};
-use txml::{txml, Template};
+use txml::{txml, Component};
 
-fn woof() -> Template {
+fn woof() -> Component {
     txml("<input type=submit value=\"yus -_-\">", [])
 }
 
-fn woof_woof() -> Template {
+fn woof_woof() -> Component {
     let descendants = list([
         text("you're a boy kisser aren't you >:3"),
-        tmpl(woof()),
+        woof(),
     ]);
 
     let attributes = list([
@@ -39,3 +41,6 @@ fn woof_woof() -> Template {
     )
 }
 ```
+
+## Build HTML
+
