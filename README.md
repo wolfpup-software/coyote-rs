@@ -1,6 +1,6 @@
 # html-rs
 
-Create HTML from component functions in Rust!
+Create `XML | HTML | FRAGMENTS` from component functions in Rust!
 
 ## Components
 

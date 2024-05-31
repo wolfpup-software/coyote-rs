@@ -2,6 +2,7 @@
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Component {
     Text(String),
+    Attr(String),
     AttrVal(String, String),
     Tmpl(Template),
     List(Vec<Component>),
@@ -23,12 +24,11 @@ pub fn txml<const N: usize>(template_str: &str, injections: [Component; N]) -> C
 }
 
 // ergonomic functions to quickly create Injection Enums
-// (makes component code considerably more readable)
-// (great spot to escape characters)
+// (considerably improves readability of component code)
+// (also great spot to escape characters)
 
 pub fn text(txt: &str) -> Component {
     let escaped = txt.replace("<", "&lt;").replace("&", "&amp;");
-
     Component::Text(escaped)
 }
 
@@ -36,26 +36,26 @@ pub fn unescaped_text(txt: String) -> Component {
     Component::Text(txt)
 }
 
-pub fn attr(txt: &str) -> Component {
-    let escaped_attr = txt
+pub fn attr(attr_str: &str) -> Component {
+    let escaped_attr = attr_str
         .replace("<", "")
         .replace(">", "")
         .replace("&", "")
         .replace("\"", "")
         .replace("'", "");
 
-    Component::Text(escaped_attr)
+    Component::Attr(escaped_attr)
 }
 
-pub fn attrVal(txt: &str, text: &str) -> Component {
-    let escaped_attr = txt
+pub fn attr_val(attr_str: &str, value_txt: &str) -> Component {
+    let escaped_attr = attr_str
         .replace("<", "")
         .replace(">", "")
         .replace("&", "")
         .replace("\"", "")
         .replace("'", "");
 
-    let escaped_value = text.replace("\"", "&quot;").replace("&", "&amp;");
+    let escaped_value = value_txt.replace("\"", "&quot;").replace("&", "&amp;");
     Component::AttrVal(escaped_attr, escaped_value)
 }
 
