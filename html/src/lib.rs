@@ -2,6 +2,9 @@ use txml::Component;
 
 mod txml_builder;
 
+// need to render the template
+// then iterate through the built chunks
+
 struct StackBit<'a> {
     pub component: &'a Component,
     pub inj_index: usize,
@@ -22,11 +25,11 @@ fn getStackable(component: &Component) -> Option<StackBit> {
 }
 
 fn build_template(component: Component) -> String {
-    let templ_str = "".to_string();
+    let mut templ_str = "".to_string();
 
     let mut stack: Vec<Option<StackBit>> = Vec::from([getStackable(&component)]);
     while let Some(frame_opt) = stack.pop() {
-        let frame = match frame_opt {
+        let mut frame = match frame_opt {
             Some(frame) => frame,
             _ => continue,
         };
@@ -38,7 +41,8 @@ fn build_template(component: Component) -> String {
                     stack.push(getStackable(cmpnt));
                 }
                 continue;
-            }
+            },
+            Component::Text(text) => templ_str.push_str(text),
             // if template
             _ => {}
         }
@@ -61,5 +65,5 @@ fn add_attr_val(templ: &mut String, attr: &str, value: &str) {
     templ.push_str(attr);
     templ.push_str("=\"");
     templ.push_str(value);
-    templ.push_str("\"")
+    templ.push_str("\"");
 }
