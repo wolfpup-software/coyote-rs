@@ -39,15 +39,10 @@ fn build_template(component: Component) -> String {
     
     while let Some(stack_bit) = stack.pop() {
         match stack_bit {
-            StackBit::Tmpl(tmpl, mut bit) => {
-                // 
-                // figure out injection strategy
-                //
-                // 
-                // add current template text
-                // 
-                // if list add reverse like below
-                // 
+            StackBit::Tmpl(results, mut bit) => {
+                let tmpl_str = results.strs.get(bit.inj_index);
+                let inj_kind = results.injs.get(bit.inj_index);
+
                 bit.inj_index += 1;
             },
             StackBit::Cmpnt(cmpnt) => {
