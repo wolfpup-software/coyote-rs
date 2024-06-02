@@ -6,42 +6,41 @@ use parsley::{get_text_from_step, parse_str, Step, StepKind};
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct HtmlBuilderResults {
     pub strs: Vec<String>,
-    pub inj_details: Vec<StepKind>,
+    pub injs: Vec<StepKind>,
+}
+
+impl HtmlBuilderResults {
+    pub fn new() -> HtmlBuilderResults {
+        HtmlBuilderResults {
+            strs: Vec::from(["".to_string()]),
+            injs: Vec::new(),
+        }
+    }
 }
 
 pub struct HtmlBuilder {
     results: HtmlBuilderResults,
 }
 
-// impl HtmlBuilderResults {
-//     pub fn new() -> HtmlBuilderResults {
-//         HtmlBuilderResults{
-//             strs: Vec::from(["".to_string()]),
-//             inj_details: Vec::new(),
-//         }
-//     }
-// }
+impl HtmlBuilder {
+    pub fn new() -> HtmlBuilder {
+        HtmlBuilder {
+            results: HtmlBuilderResults::new(),
+        }
+    }
 
-// impl HtmlBuilder {
-//     pub fn new() -> HtmlBuilder {
-//         HtmlBuilder {
-//             curr_tag_step: None,
-//             results: HtmlBuilderResults::new(),
-//         }
-//     }
+    // pub fn build(&mut self, template: Template) -> HtmlBuilderResults {
+    //     let mut results = HtmlBuilderResults::new();
+    //     let steps = parse_str(&template.template_str);
+    //     for step in steps {
+    //         push_step(results, &template.template_str, step);
+    //     }
 
-//     pub fn build(&mut self, template: Template) -> HtmlBuilderResults {
-//         let mut results = HtmlBuilderResults::new();
-//         let steps = parse_str(&template.template_str);
-//         for step in steps {
-//             push_step(results, &template.template_str, step);
-//         }
+    //     // pass template and results and step
 
-//         // pass template and results and step
-
-//         results
-//     }
-// }
+    //     results
+    // }
+}
 
 // fn push_step(&mut self, template_str: &str, step: Step) {
 //     match step.kind {
