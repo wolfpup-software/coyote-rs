@@ -31,7 +31,7 @@ impl HtmlBuilder {
         }
     }
 
-    pub fn build(&mut self, template: Template) -> HtmlBuilderResults {
+    pub fn build(&mut self, template: &Template) -> HtmlBuilderResults {
         let mut results = HtmlBuilderResults::new();
 
         for step in parse_str(&template.template_str, StepKind::Initial) {
