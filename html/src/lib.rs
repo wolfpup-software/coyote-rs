@@ -29,19 +29,19 @@ fn build_template(component: Component) -> String {
 
     let mut stack: Vec<Option<StackBit>> = Vec::from([getStackable(&component)]);
     while let Some(frame_opt) = stack.pop() {
-        let mut frame = match frame_opt {
+        let mut stack_bit = match frame_opt {
             Some(frame) => frame,
             _ => continue,
         };
 
-        match frame.component {
+        match stack_bit.component {
             // break lists into smaller chuncks
             Component::List(list) => {
                 for cmpnt in list.iter().rev() {
                     stack.push(getStackable(cmpnt));
                 }
                 continue;
-            },
+            }
             Component::Text(text) => templ_str.push_str(text),
             // if template
             _ => {}
