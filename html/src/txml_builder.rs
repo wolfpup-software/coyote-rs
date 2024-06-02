@@ -1,19 +1,17 @@
-// use parsley::{get_text_from_step, parse_str, Step, StepKind};
+use parsley::{get_text_from_step, parse_str, Step, StepKind};
 
 // // use these injection details
 // // for static html, we at least need to know the last tag element
-// type InjDetails = (Step, StepKind)
 
-// pub struct HtmlBuilderResults {
-//     pub strs: Vec<String>,
-//     pub inj_details: Vec<Option<StepKind>>,
-// }
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct HtmlBuilderResults {
+    pub strs: Vec<String>,
+    pub inj_details: Vec<StepKind>,
+}
 
-// #[derive(Debug, Clone, Eq, PartialEq)]
-// pub struct HtmlBuilder {
-//     curr_tag_step: Option<Step>,
-//     results: HtmlBuilderResults,
-// }
+pub struct HtmlBuilder {
+    results: HtmlBuilderResults,
+}
 
 // impl HtmlBuilderResults {
 //     pub fn new() -> HtmlBuilderResults {
