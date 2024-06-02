@@ -23,10 +23,8 @@ pub fn txml<const N: usize>(template_str: &str, injections: [Component; N]) -> C
     })
 }
 
-// ergonomic functions to quickly create Injection Enums
+// ergonomic functions to quickly create Component Enums
 // (considerably improves readability of component code)
-// (also great spot to escape characters)
-
 pub fn text(txt: &str) -> Component {
     let escaped = txt.replace("<", "&lt;").replace("&", "&amp;");
     Component::Text(escaped)
@@ -67,6 +65,6 @@ pub fn list<const N: usize>(components: [Component; N]) -> Component {
     Component::List(Vec::from(components))
 }
 
-pub fn vlist<const N: usize>(components: Vec<Component>) -> Component {
+pub fn vlist(components: Vec<Component>) -> Component {
     Component::List(components)
 }

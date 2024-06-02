@@ -2,48 +2,62 @@ use txml::Component;
 
 mod txml_builder;
 
-// define stack
+struct StackBit<'a> {
+    pub component: &'a Component,
+    pub inj_index: usize,
+}
 
-// template_bit
-//  -> compoment template
-//  -> injection index
+fn getStackable(component: &Component) -> Option<StackBit> {
+    let stackable = match component {
+        Component::Tmpl(tmpl) => component,
+        Component::Text(text) => component,
+        Component::List(list) => component,
+        _ => return None,
+    };
 
+    Some(StackBit {
+        component: stackable,
+        inj_index: 0,
+    })
+}
 
 fn build_template(component: Component) -> String {
     let templ_str = "".to_string();
 
-    // stack across template
-    // templates -> template builds
+    let mut stack: Vec<Option<StackBit>> = Vec::from([getStackable(&component)]);
+    while let Some(frame_opt) = stack.pop() {
+        let frame = match frame_opt {
+            Some(frame) => frame,
+            _ => continue,
+        };
 
-    // list -> 
-    match sdf {
-        Component::Template(tmpl) => {},
-        Component::Text(text) => add_text(&mut templ_str, &text),
-        Component::Attr(attr) => add_attr(&mut templ_str, &text),
-        Component::AttrVal(attr, val) => add_attr(&mut templ_str, &text),
-        Component::List(list) => {
-            // get a list of stackable elements
-            // reverse them
-            // add +1 to injection index
-            // add  to stack
-            
-        },
+        match frame.component {
+            // break lists into smaller chuncks
+            Component::List(list) => {
+                for cmpnt in list.iter().rev() {
+                    stack.push(getStackable(cmpnt));
+                }
+                continue;
+            }
+            // if template
+            _ => {}
+        }
     }
 
-    templ
+    templ_str
 }
 
-fn add_text(&mut templ: String, text: &str) {
+fn add_text(templ: &mut String, text: &str) {
     templ.push_str(text);
 }
 
-fn add_attr(&mut templ: String, attr: &str) {
-    templ.push_str();
+fn add_attr(templ: &mut String, attr: &str) {
+    templ.push_str(" ");
     templ.push_str(attr);
 }
 
-fn add_attr_val(&mut templ: String, attr: &str, value: &str) {
-    templ.push_str();
+fn add_attr_val(templ: &mut String, attr: &str, value: &str) {
+    templ.push_str(" ");
     templ.push_str(attr);
     templ.push_str("=\"");
     templ.push_str(value);

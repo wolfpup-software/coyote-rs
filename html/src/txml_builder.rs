@@ -1,50 +1,49 @@
-use parsley::{get_text_from_step, parse_str, Step, StepKind};
+// use parsley::{get_text_from_step, parse_str, Step, StepKind};
 
-// use these injection details
-// for static html, we at least need to know the last tag element
-type InjDetails = (Step, StepKind)
+// // use these injection details
+// // for static html, we at least need to know the last tag element
+// type InjDetails = (Step, StepKind)
 
-pub struct HtmlBuilderResults {
-    pub strs: Vec<String>,
-    pub inj_details: Vec<Option<StepKind>>,
-}
+// pub struct HtmlBuilderResults {
+//     pub strs: Vec<String>,
+//     pub inj_details: Vec<Option<StepKind>>,
+// }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct HtmlBuilder {
-    curr_tag_step: Option<Step>,
-    results: HtmlBuilderResults,
-}
+// #[derive(Debug, Clone, Eq, PartialEq)]
+// pub struct HtmlBuilder {
+//     curr_tag_step: Option<Step>,
+//     results: HtmlBuilderResults,
+// }
 
-impl HtmlBuilderResults {
-    pub fn new() -> HtmlBuilderResults {
-        HtmlBuilderResults{
-            strs: Vec::from(["".to_string()]),
-            inj_details: Vec::new(),
-        }
-    }
-}
+// impl HtmlBuilderResults {
+//     pub fn new() -> HtmlBuilderResults {
+//         HtmlBuilderResults{
+//             strs: Vec::from(["".to_string()]),
+//             inj_details: Vec::new(),
+//         }
+//     }
+// }
 
-impl HtmlBuilder {
-    pub fn new() -> HtmlBuilder {
-        HtmlBuilder {
-            curr_tag_step: None,
-            results: HtmlBuilderResults::new(),
-        }
-    }
+// impl HtmlBuilder {
+//     pub fn new() -> HtmlBuilder {
+//         HtmlBuilder {
+//             curr_tag_step: None,
+//             results: HtmlBuilderResults::new(),
+//         }
+//     }
 
-    pub fn build(&mut self, template: Template) -> HtmlBuilderResults {
-        let mut results = HtmlBuilderResults::new();
-        let steps = parse_str(&template.template_str);
-        for step in steps {
-            push_step(results, &template.template_str, step);
-        }
+//     pub fn build(&mut self, template: Template) -> HtmlBuilderResults {
+//         let mut results = HtmlBuilderResults::new();
+//         let steps = parse_str(&template.template_str);
+//         for step in steps {
+//             push_step(results, &template.template_str, step);
+//         }
 
-        // pass template and results and step
+//         // pass template and results and step
 
-        results
-    }
-}
-
+//         results
+//     }
+// }
 
 // fn push_step(&mut self, template_str: &str, step: Step) {
 //     match step.kind {
@@ -156,7 +155,7 @@ impl HtmlBuilder {
 // //  as in, will style and script text injections preserve "<"
 // //  else replace <
 // //
-// //  
+// //
 // fn push_descendant_injection(builder: &mut HtmlBuilder, tag: &str) {
 //     builder.strs.push("".to_string());
 //     builder.inj_details.push(Some(StepKind::DescendantInjection));

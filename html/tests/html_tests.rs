@@ -1,5 +1,5 @@
+use html::txml_builder::TxmlHtmlBuilder;
 use html::{Injection, TemplateKind};
-use html::txml_builder::{TxmlHtmlBuilder};
 use parsley::StepKind::{AttrMapInjection, DescendantInjection};
 use txml::{build_template, Template};
 
