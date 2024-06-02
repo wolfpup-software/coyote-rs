@@ -55,15 +55,15 @@ fn add_text(templ: &mut String, text: &str) {
     templ.push_str(text);
 }
 
-fn add_attr(templ: &mut String, attr: &str) {
-    templ.push_str(" ");
-    templ.push_str(attr);
-}
+// fn add_attr(templ: &mut String, attr: &str) {
+//     templ.push_str(" ");
+//     templ.push_str(attr);
+// }
 
-fn add_attr_val(templ: &mut String, attr: &str, value: &str) {
-    templ.push_str(" ");
-    templ.push_str(attr);
-    templ.push_str("=\"");
-    templ.push_str(value);
-    templ.push_str("\"");
-}
+// fn add_attr_val(templ: &mut String, attr: &str, value: &str) {
+//     templ.push_str(" ");
+//     templ.push_str(attr);
+//     templ.push_str("=\"");
+//     templ.push_str(value);
+//     templ.push_str("\"");
+// }
