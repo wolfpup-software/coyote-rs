@@ -19,6 +19,7 @@ impl HtmlBuilderResults {
     }
 }
 
+// a place to cache template renders?
 pub struct HtmlBuilder {
     results: HtmlBuilderResults,
 }
@@ -43,116 +44,108 @@ impl HtmlBuilder {
 
 fn push_step(results: &mut HtmlBuilderResults, template_str: &str, step: Step) {
     match step.kind {
-        // // steps
-        // StepKind::Tag => {
-        //     push_element(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::ElementClosed => {
-        //     close_element(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::VoidElementClosed => {
-        //     close_void_element(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::Attr => {
-        //     add_attr(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::AttrValue => {
-        //     add_attr_value(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::AttrValueUnquoted => {
-        //     add_attr_value_unquoted(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::Text => {
-        //     push_text(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::TailTag => {
-        //     pop_element(self, get_text_from_step(template_str, &step));
-        // }
-        // // injections
-        // StepKind::AttrMapInjection => {
-        //     push_attr_map_injection(self, get_text_from_step(template_str, &step));
-        // }
-        // StepKind::DescendantInjection => {
-        //     push_descendant_injection(self, get_text_from_step(template_str, &step));
-        // }
-        // all other steps silently pass through
+        // steps
+        StepKind::Tag => {
+            push_element(results, get_text_from_step(template_str, &step));
+        }
+        StepKind::Attr => {
+            add_attr(results, get_text_from_step(template_str, &step));
+        }
+        StepKind::AttrValueUnquoted => {
+            add_attr_value_unquoted(results, get_text_from_step(template_str, &step));
+        }
+        StepKind::AttrValue => {
+            add_attr_value(results, get_text_from_step(template_str, &step));
+        }
+        StepKind::ElementClosed => {
+            close_element(results);
+        }
+        StepKind::VoidElementClosed => {
+            close_void_element(results);
+        }
+        StepKind::VoidElementClosed => {
+            close_void_element(results);
+        }
+        StepKind::TailTag => {
+            pop_element(results, get_text_from_step(template_str, &step));
+        }
+        StepKind::Text => {
+            push_text(results, get_text_from_step(template_str, &step));
+        }
+        // injections
+        StepKind::AttrMapInjection => {
+            push_attr_map_injection(results);
+        }
+        StepKind::DescendantInjection => {
+            push_descendant_injection(results);
+        }
         _ => {}
     }
 }
 
-// push step
-// then get string
-// fn push_element(builder: &mut HtmlBuilder, tag: &str) {
-//     builder.tags.push(tag.to_string());
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push('<');
-//         last.push_str(tag);
-//     }
-// }
+// template strs
+fn push_element(builder: &mut HtmlBuilderResults, tag: &str) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push('<');
+        last.push_str(tag);
+    }
+}
 
-// fn close_element(builder: &mut HtmlBuilder, tag: &str) {
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push_str(">");
-//     }
-// }
+fn add_attr(builder: &mut HtmlBuilderResults, attr: &str) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push(' ');
+        last.push_str(attr);
+    }
+}
 
-// fn close_void_element(builder: &mut HtmlBuilder, tag: &str) {
-//     builder.tags.pop();
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push_str(">");
-//     }
-// }
+fn add_attr_value_unquoted(builder: &mut HtmlBuilderResults, attr_val: &str) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push('=');
+        last.push_str(attr_val);
+    }
+}
 
-// fn pop_element(builder: &mut HtmlBuilder, tag: &str) {
-//     builder.tags.pop();
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push_str("</");
-//         last.push_str(tag);
-//         last.push_str(">");
-//     }
-// }
+fn add_attr_value(builder: &mut HtmlBuilderResults, attr_val: &str) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str("=\"");
+        last.push_str(attr_val);
+        last.push('"');
+    }
+}
 
-// fn push_text(builder: &mut HtmlBuilder, text: &str) {
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push_str(text);
-//     }
-// }
+fn close_element(builder: &mut HtmlBuilderResults) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str(">");
+    }
+}
 
-// fn add_attr(builder: &mut HtmlBuilder, tag: &str) {
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push(' ');
-//         last.push_str(tag);
-//     }
-// }
+fn close_void_element(builder: &mut HtmlBuilderResults) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str("/>");
+    }
+}
 
-// fn add_attr_value(builder: &mut HtmlBuilder, tag: &str) {
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push_str("=\"");
-//         last.push_str(tag);
-//         last.push('"');
-//     }
-// }
+fn pop_element(builder: &mut HtmlBuilderResults, tag: &str) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str("</");
+        last.push_str(tag);
+        last.push_str(">");
+    }
+}
 
-// fn add_attr_value_unquoted(builder: &mut HtmlBuilder, tag: &str) {
-//     if let Some(last) = builder.strs.last_mut() {
-//         last.push('=');
-//         last.push_str(tag);
-//     }
-// }
+fn push_text(builder: &mut HtmlBuilderResults, text: &str) {
+    if let Some(last) = builder.strs.last_mut() {
+        last.push_str(text);
+    }
+}
 
-// // injections
-// // keep track of tag step to understand if attribute needs to be sanitized
-// fn push_attr_map_injection(builder: &mut HtmlBuilder, tag: &str) {
-//     builder.strs.push("".to_string());
-//     builder.inj_details.push(Some(StepKind::AttrMapInjection));
-// }
+// injections
+fn push_attr_map_injection(builder: &mut HtmlBuilderResults) {
+    builder.strs.push("".to_string());
+    builder.injs.push(StepKind::AttrMapInjection);
+}
 
-// // keep track of tag step to decide if attribute needs to be sanitized later
-// //  as in, will style and script text injections preserve "<"
-// //  else replace <
-// //
-// //
-// fn push_descendant_injection(builder: &mut HtmlBuilder, tag: &str) {
-//     builder.strs.push("".to_string());
-//     builder.inj_details.push(Some(StepKind::DescendantInjection));
-// }
+fn push_descendant_injection(builder: &mut HtmlBuilderResults) {
+    builder.strs.push("".to_string());
+    builder.injs.push(StepKind::DescendantInjection);
+}
