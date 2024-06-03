@@ -1,5 +1,4 @@
 use parsley::StepKind;
-
 use txml::{Component, Template};
 
 mod txml_builder;
@@ -16,10 +15,7 @@ pub enum StackBit<'a> {
     None,
 }
 
-fn get_stackable<'a>(
-    mut builder: HtmlBuilder,
-    component: &'a Component,
-) -> (HtmlBuilder, StackBit<'a>) {
+fn get_stackable(mut builder: HtmlBuilder, component: &Component) -> (HtmlBuilder, StackBit) {
     let stack_bit = match component {
         Component::Text(text) => StackBit::Cmpnt(component),
         Component::List(list) => StackBit::Cmpnt(component),
@@ -36,26 +32,29 @@ fn build_template(component: Component) -> String {
     let mut builder = HtmlBuilder::new();
     let mut templ_str = "".to_string();
 
-    let stack_bit;
-    (builder, stack_bit) = get_stackable(builder, &component);
+    let sbit;
+    (builder, sbit) = get_stackable(builder, &component);
 
-    let mut stack: Vec<StackBit> = Vec::from([stack_bit]);
-    while let Some(stack_bit) = stack.pop() {
+    let mut stack: Vec<StackBit> = Vec::from([sbit]);
+    while let Some(mut stack_bit) = stack.pop() {
         match stack_bit {
-            StackBit::Tmpl(component, results, mut bit) => {
+            // akin to (&componet, &results, &mut bit)
+            StackBit::Tmpl(component, ref results, ref mut bit) => {
                 // injections will be length N
                 // templates will be N + 1
 
+                let index = bit.inj_index;
+                bit.inj_index += 1;
+
                 // add template
-                if let Some(chunk) = results.strs.get(bit.inj_index) {
+                if let Some(chunk) = results.strs.get(index) {
                     templ_str.push_str(chunk);
                 }
                 // add injection
                 if let Component::Tmpl(template) = component {
-                    if let (Some(inj_kind), Some(inj)) = (
-                        results.injs.get(bit.inj_index),
-                        template.injections.get(bit.inj_index),
-                    ) {
+                    if let (Some(inj_kind), Some(inj)) =
+                        (results.injs.get(index), template.injections.get(index))
+                    {
                         // inj_kind, and injection
 
                         // is it an attribute?
@@ -66,21 +65,20 @@ fn build_template(component: Component) -> String {
                             (StepKind::AttrMapInjection, Component::AttrVal(attr, val)) => {
                                 templ_str = add_attr_val(templ_str, attr, val);
                             }
-                            (StepKind::AttrMapInjection, Component::List(attrList)) => {}
-                            (StepKind::DescendantInjection, Component::Tmpl(tmpl)) => {}
-                            (StepKind::DescendantInjection, Component::List(cmpntList)) => {
-                                for cmpnt in cmpntList.iter().rev() {
-                                    let bit;
-                                    (builder, bit) = get_stackable(builder, cmpnt);
-                                    stack.push(bit);
-                                }
+                            (StepKind::AttrMapInjection, _) => {
+                                templ_str = add_attr_list(templ_str, inj);
+                            }
+                            (StepKind::DescendantInjection, _) => {
+                                // push previous
+                                stack.push(stack_bit);
+                                let bit;
+                                (builder, bit) = get_stackable(builder, inj);
+                                stack.push(bit);
                             }
                             _ => {}
                         }
                     };
                 }
-
-                bit.inj_index += 1;
             }
             StackBit::Cmpnt(cmpnt) => {
                 match cmpnt {
@@ -122,7 +120,7 @@ fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
     templ_str
 }
 
-fn add_attr_list(mut template_str: String, component: Component) -> String {
+fn add_attr_list(mut template_str: String, component: &Component) -> String {
     if let Component::List(attrList) = component {
         for cmpnt in attrList {
             match cmpnt {
@@ -139,3 +137,5 @@ fn add_attr_list(mut template_str: String, component: Component) -> String {
 
     template_str
 }
+
+// fn queue_component_list()
