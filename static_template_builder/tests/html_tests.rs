@@ -1,6 +1,8 @@
-use html::{build, html, Injection, Template};
+use html::txml_builder::TxmlHtmlBuilder;
+use html::{Injection, TemplateKind};
+use parsley::StepKind::{AttrMapInjection, DescendantInjection};
+use txml::{build_template, Template};
 
-const template_str_0: &str = "<hello>world</hello>";
 const template_str_1: &str = "<hello mygood=\"sir\">{}</hello>";
 const injection_template_0: &str = "<howdy>{}</howdy>";
 const text_injection: &str = "pardner!
@@ -9,16 +11,49 @@ what's good
 	with all these dumb tabs
 ";
 
+type TestInjections<'a> = Injection<'a, TemplateKind, ()>;
+type TestTemplate<'a> = Template<'a, TemplateKind, TestInjections<'a>>;
+
 #[test]
-fn it_works<'a>() {
-    let template1 = Template {
-        kind: "html",
-        template_str: template_str_0,
-        injections: Vec::<Injection<'a, ()>>::new(),
+fn basic_template<'a>() {
+    let template_str = "<hello>world</hello>";
+    let expected = TxmlHtmlBuilder {
+        tags: Vec::new(),
+        strs: Vec::from(["<hello>world</hello>".to_string()]),
+        inj_kinds: Vec::new(),
     };
 
-    let finished_template = build(&template1);
+    let mut builder = TxmlHtmlBuilder::new();
+    build_template(&mut builder, template_str);
+
+    let result = builder.build();
+
+    assert_eq!(expected, result);
 }
+
+#[test]
+fn basic_template_with_injections<'a>() {
+    let template_str = "<hello {}>{}</hello>";
+    let expected = TxmlHtmlBuilder {
+        tags: Vec::new(),
+        strs: Vec::from([
+            "<hello".to_string(),
+            ">".to_string(),
+            "</hello>".to_string(),
+        ]),
+        inj_kinds: Vec::from([Some(AttrMapInjection), Some(DescendantInjection)]),
+    };
+
+    let mut builder = TxmlHtmlBuilder::new();
+    build_template(&mut builder, template_str);
+
+    let result = builder.build();
+    println!("{:?}", result);
+
+    assert_eq!(expected, result);
+}
+
+/*
 
 /*
 #[test]
@@ -85,18 +120,21 @@ fn it_works_with_multiple_injections() {
 
 #[test]
 fn it_works_with_multiple_injections_returnable() {
-    let template = nested_test_component();
+    let mut doc_builder = StaticHtmlBuilder::new();
 
-    let rendered_str = build(&template);
-    let expected = "<howdy whatup howsit=\"going\">
-	<hello>
-		world
-	</hello>
-	pardner!
-	what's good
-	we should hang out
-	with all these dumb tabs
-</howdy>
+    let template = nested_test_component();
+    build(&mut doc_builder, template);
+
+    let rendered_str = doc_builder.build();
+    let expected = "<wolf whatup howsit=\"going\">
+    <hello>
+        world
+    </hello>
+    pardner!
+    what's good
+    we should hang out
+    with all these dumb tabs
+</wolf>
 pardner!
 what's good
 we should hang out
@@ -107,25 +145,28 @@ with all these dumb tabs
     println!("{}", rendered_str);
 }
 
-fn nested_test_component<'a>() -> Template<'a, ()> {
+fn nested_test_component<'a>() -> TestTemplate<'a> {
     let descendant_template = html(template_str_0, Vec::new());
 
+    let scoped_attr = "hello".to_string();
     let attributes = Vec::from([
-        Injection::Attr("whatup"),
-        Injection::AttrValue("howsit", "going"),
+        Injection::Attr(scoped_attr),
+        Injection::AttrValue("howsit".to_string(), "going".to_string()),
     ]);
 
     let descendants = Vec::from([
         Injection::Template(descendant_template),
-        Injection::Text(text_injection),
+        Injection::Text(text_injection.to_string()),
     ]);
 
-    return html(
-        "<howdy {}>{}</howdy>{}",
+    html(
+        "<wolf {}>{}</wolf>{}",
         Vec::from([
             Injection::List(attributes),
             Injection::List(descendants),
-            Injection::Text(text_injection),
+            Injection::Text(text_injection.to_string()),
         ]),
-    );
+    )
 }
+
+*/

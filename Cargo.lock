@@ -3,13 +3,27 @@
 version = 3
 
 [[package]]
-name = "html"
+name = "parsley"
+version = "0.1.0"
+source = "git+https://github.com/taylor-vann/parsley-rs#d7cf220e93f2063eaa7ffd5a81e97d4873f9b634"
+
+[[package]]
+name = "static_template_builder"
 version = "0.1.0"
 dependencies = [
  "parsley",
+ "static_txml_builder",
+ "txml",
 ]
 
 [[package]]
-name = "parsley"
+name = "static_txml_builder"
 version = "0.1.0"
-source = "git+https://github.com/taylor-vann/parsley-rs#940fc145b671e0d1c9650c66e5be5c09268aac6f"
+dependencies = [
+ "parsley",
+ "txml",
+]
+
+[[package]]
+name = "txml"
+version = "0.1.0"
