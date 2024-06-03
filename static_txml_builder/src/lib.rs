@@ -37,67 +37,53 @@ impl HtmlBuilder {
 fn push_step(results: &mut HtmlBuilderResults, template_str: &str, step: Step) {
     match step.kind {
         // steps
-        StepKind::Tag => {
-            push_element(results, get_text_from_step(template_str, &step));
-        }
-        StepKind::Attr => {
-            add_attr(results, get_text_from_step(template_str, &step));
-        }
-        StepKind::AttrValueUnquoted => {
-            add_attr_value_unquoted(results, get_text_from_step(template_str, &step));
-        }
-        StepKind::AttrValue => {
-            add_attr_value(results, get_text_from_step(template_str, &step));
-        }
-        StepKind::ElementClosed => {
-            close_element(results);
-        }
-        StepKind::VoidElementClosed => {
-            close_void_element(results);
-        }
-        StepKind::VoidElementClosed => {
-            close_void_element(results);
-        }
-        StepKind::TailTag => {
-            pop_element(results, get_text_from_step(template_str, &step));
-        }
-        StepKind::Text => {
-            push_text(results, get_text_from_step(template_str, &step));
-        }
+        StepKind::Tag => push_element(results, template_str, step),
+        StepKind::Attr => add_attr(results, template_str, step),
+        StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
+        StepKind::AttrValue => add_attr_value(results, template_str, step),
+        StepKind::ElementClosed => close_element(results),
+        StepKind::VoidElementClosed => close_void_element(results),
+        StepKind::VoidElementClosed => close_void_element(results),
+        StepKind::TailTag => pop_element(results, template_str, step),
+        StepKind::Text => push_text(results, template_str, step),
         // injections
-        StepKind::AttrMapInjection => {
-            push_attr_map_injection(results);
-        }
-        StepKind::DescendantInjection => {
-            push_descendant_injection(results);
-        }
+        StepKind::AttrMapInjection => push_attr_map_injection(results),
+        StepKind::DescendantInjection => push_descendant_injection(results),
         _ => {}
     }
 }
 
 // template strs
-fn push_element(builder: &mut HtmlBuilderResults, tag: &str) {
+fn push_element(builder: &mut HtmlBuilderResults, template_str: &str, step: Step) {
+    let tag = get_text_from_step(template_str, &step);
+
     if let Some(last) = builder.strs.last_mut() {
         last.push('<');
         last.push_str(tag);
     }
 }
 
-fn add_attr(builder: &mut HtmlBuilderResults, attr: &str) {
+fn add_attr(builder: &mut HtmlBuilderResults, template_str: &str, step: Step) {
+    let attr = get_text_from_step(template_str, &step);
+
     if let Some(last) = builder.strs.last_mut() {
         last.push(' ');
         last.push_str(attr);
     }
 }
 
-fn add_attr_value_unquoted(builder: &mut HtmlBuilderResults, attr_val: &str) {
+fn add_attr_value_unquoted(builder: &mut HtmlBuilderResults, template_str: &str, step: Step) {
+    let attr_val = get_text_from_step(template_str, &step);
+
     if let Some(last) = builder.strs.last_mut() {
         last.push('=');
         last.push_str(attr_val);
     }
 }
 
-fn add_attr_value(builder: &mut HtmlBuilderResults, attr_val: &str) {
+fn add_attr_value(builder: &mut HtmlBuilderResults, template_str: &str, step: Step) {
+    let attr_val = get_text_from_step(template_str, &step);
+
     if let Some(last) = builder.strs.last_mut() {
         last.push_str("=\"");
         last.push_str(attr_val);
@@ -117,7 +103,8 @@ fn close_void_element(builder: &mut HtmlBuilderResults) {
     }
 }
 
-fn pop_element(builder: &mut HtmlBuilderResults, tag: &str) {
+fn pop_element(builder: &mut HtmlBuilderResults, template_str: &str, step: Step) {
+    let tag = get_text_from_step(template_str, &step);
     if let Some(last) = builder.strs.last_mut() {
         last.push_str("</");
         last.push_str(tag);
@@ -125,7 +112,8 @@ fn pop_element(builder: &mut HtmlBuilderResults, tag: &str) {
     }
 }
 
-fn push_text(builder: &mut HtmlBuilderResults, text: &str) {
+fn push_text(builder: &mut HtmlBuilderResults, template_str: &str, step: Step) {
+    let text = get_text_from_step(template_str, &step);
     if let Some(last) = builder.strs.last_mut() {
         last.push_str(text);
     }
