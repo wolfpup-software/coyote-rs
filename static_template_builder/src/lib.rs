@@ -1,9 +1,6 @@
 use parsley::StepKind;
+use static_txml_builder::{HtmlBuilder, HtmlBuilderResults};
 use txml::{Component, Template};
-
-mod txml_builder;
-
-use txml_builder::{HtmlBuilder, HtmlBuilderResults};
 
 struct TemplateBit {
     pub inj_index: usize,
@@ -28,12 +25,11 @@ fn get_stackable(mut builder: HtmlBuilder, component: &Component) -> (HtmlBuilde
     (builder, stack_bit)
 }
 
-fn build_template(component: Component) -> String {
-    let mut builder = HtmlBuilder::new();
+fn build_template(mut builder: HtmlBuilder, component: &Component) -> String {
     let mut templ_str = "".to_string();
 
     let sbit;
-    (builder, sbit) = get_stackable(builder, &component);
+    (builder, sbit) = get_stackable(builder, component);
 
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
@@ -50,15 +46,13 @@ fn build_template(component: Component) -> String {
                 if let Some(chunk) = results.strs.get(index) {
                     templ_str.push_str(chunk);
                 }
-                // add injection
+                // get injection
                 if let Component::Tmpl(template) = component {
                     if let (Some(inj_kind), Some(inj)) =
                         (results.injs.get(index), template.injections.get(index))
                     {
-                        // inj_kind, and injection
-
-                        // is it an attribute?
                         match (inj_kind, inj) {
+                            // add attribute injections to template
                             (StepKind::AttrMapInjection, Component::Attr(attr)) => {
                                 templ_str = add_attr(templ_str, attr);
                             }
@@ -68,6 +62,7 @@ fn build_template(component: Component) -> String {
                             (StepKind::AttrMapInjection, _) => {
                                 templ_str = add_attr_list(templ_str, inj);
                             }
+                            // queue descendant injections to queue
                             (StepKind::DescendantInjection, _) => {
                                 // push previous
                                 stack.push(stack_bit);
@@ -137,5 +132,3 @@ fn add_attr_list(mut template_str: String, component: &Component) -> String {
 
     template_str
 }
-
-// fn queue_component_list()

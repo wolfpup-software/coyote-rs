@@ -1,9 +1,6 @@
 use parsley::{get_text_from_step, parse_str, Step, StepKind};
 use txml::Template;
 
-// // use these injection details
-// // for static html, we at least need to know the last tag element
-
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct HtmlBuilderResults {
     pub strs: Vec<String>,
@@ -19,16 +16,11 @@ impl HtmlBuilderResults {
     }
 }
 
-// a place to cache template renders?
-pub struct HtmlBuilder {
-    results: HtmlBuilderResults,
-}
+pub struct HtmlBuilder {}
 
 impl HtmlBuilder {
     pub fn new() -> HtmlBuilder {
-        HtmlBuilder {
-            results: HtmlBuilderResults::new(),
-        }
+        HtmlBuilder {}
     }
 
     pub fn build(&mut self, template: &Template) -> HtmlBuilderResults {
