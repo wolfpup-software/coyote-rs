@@ -1,3 +1,5 @@
+use parsley::StepKind;
+
 use txml::{Component, Template};
 
 mod txml_builder;
@@ -9,24 +11,25 @@ struct TemplateBit {
 }
 
 pub enum StackBit<'a> {
-    Tmpl(HtmlBuilderResults, TemplateBit),
+    Tmpl(&'a Component, HtmlBuilderResults, TemplateBit),
     Cmpnt(&'a Component),
     None,
 }
 
-fn getStackable<'a>(
+fn get_stackable<'a>(
     mut builder: HtmlBuilder,
     component: &'a Component,
 ) -> (HtmlBuilder, StackBit<'a>) {
-    match component {
-        Component::Text(text) => (builder, StackBit::Cmpnt(component)),
-        Component::List(list) => (builder, StackBit::Cmpnt(component)),
+    let stack_bit = match component {
+        Component::Text(text) => StackBit::Cmpnt(component),
+        Component::List(list) => StackBit::Cmpnt(component),
         Component::Tmpl(tmpl) => {
-            let results = builder.build(tmpl);
-            return (builder, StackBit::Tmpl(results, TemplateBit{inj_index: 0}));
+            StackBit::Tmpl(component, builder.build(tmpl), TemplateBit { inj_index: 0 })
         }
-        _ => return (builder, StackBit::None),
-    }
+        _ => StackBit::None,
+    };
+
+    (builder, stack_bit)
 }
 
 fn build_template(component: Component) -> String {
@@ -34,34 +37,105 @@ fn build_template(component: Component) -> String {
     let mut templ_str = "".to_string();
 
     let stack_bit;
-    (builder, stack_bit) = getStackable(builder, &component);
+    (builder, stack_bit) = get_stackable(builder, &component);
+
     let mut stack: Vec<StackBit> = Vec::from([stack_bit]);
-    
     while let Some(stack_bit) = stack.pop() {
         match stack_bit {
-            StackBit::Tmpl(results, mut bit) => {
-                let tmpl_str = results.strs.get(bit.inj_index);
-                let inj_kind = results.injs.get(bit.inj_index);
+            StackBit::Tmpl(component, results, mut bit) => {
+                // injections will be length N
+                // templates will be N + 1
+
+                // add template
+                if let Some(chunk) = results.strs.get(bit.inj_index) {
+                    templ_str.push_str(chunk);
+                }
+                // add injection
+                if let Component::Tmpl(template) = component {
+                    if let (Some(inj_kind), Some(inj)) = (
+                        results.injs.get(bit.inj_index),
+                        template.injections.get(bit.inj_index),
+                    ) {
+                        // inj_kind, and injection
+
+                        // is it an attribute?
+                        match (inj_kind, inj) {
+                            (StepKind::AttrMapInjection, Component::Attr(attr)) => {
+                                templ_str = add_attr(templ_str, attr);
+                            }
+                            (StepKind::AttrMapInjection, Component::AttrVal(attr, val)) => {
+                                templ_str = add_attr_val(templ_str, attr, val);
+                            }
+                            (StepKind::AttrMapInjection, Component::List(attrList)) => {}
+                            (StepKind::DescendantInjection, Component::Tmpl(tmpl)) => {}
+                            (StepKind::DescendantInjection, Component::List(cmpntList)) => {
+                                for cmpnt in cmpntList.iter().rev() {
+                                    let bit;
+                                    (builder, bit) = get_stackable(builder, cmpnt);
+                                    stack.push(bit);
+                                }
+                            }
+                            _ => {}
+                        }
+                    };
+                }
 
                 bit.inj_index += 1;
-            },
+            }
             StackBit::Cmpnt(cmpnt) => {
                 match cmpnt {
                     // break lists into smaller chuncks
                     Component::List(list) => {
+                        // add chunks in reverse order
                         for cmpnt in list.iter().rev() {
                             let bit;
-                            (builder, bit) = getStackable(builder, cmpnt);
+                            (builder, bit) = get_stackable(builder, cmpnt);
                             stack.push(bit);
                         }
-                    },
+                    }
                     Component::Text(text) => templ_str.push_str(text),
-                    _ => {},
+                    _ => {}
                 }
-            },
+            }
             _ => {}
         }
     }
 
     templ_str
+}
+
+fn add_attr(mut templ_str: String, attr: &str) -> String {
+    templ_str.push_str(" ");
+    templ_str.push_str(attr);
+    templ_str.push_str(" ");
+
+    templ_str
+}
+
+fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
+    templ_str.push_str(" ");
+    templ_str.push_str(attr);
+    templ_str.push_str("=\"");
+    templ_str.push_str(val);
+    templ_str.push_str("\" ");
+
+    templ_str
+}
+
+fn add_attr_list(mut template_str: String, component: Component) -> String {
+    if let Component::List(attrList) = component {
+        for cmpnt in attrList {
+            match cmpnt {
+                Component::Attr(attr) => {
+                    template_str = add_attr(template_str, &attr);
+                }
+                Component::AttrVal(attr, val) => {
+                    template_str = add_attr_val(template_str, &attr, &val);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    template_str
 }

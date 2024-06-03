@@ -24,7 +24,7 @@ pub fn txml<const N: usize>(template_str: &str, injections: [Component; N]) -> C
 }
 
 // ergonomic functions to quickly create Component Enums
-// (considerably improves readability of component code)
+//  (considerably improves readability of component code)
 pub fn text(txt: &str) -> Component {
     let escaped = txt.replace("<", "&lt;").replace("&", "&amp;");
     Component::Text(escaped)
@@ -55,10 +55,6 @@ pub fn attr_val(attr_str: &str, value_txt: &str) -> Component {
 
     let escaped_value = value_txt.replace("\"", "&quot;").replace("&", "&amp;");
     Component::AttrVal(escaped_attr, escaped_value)
-}
-
-pub fn tmpl(template: Template) -> Component {
-    Component::Tmpl(template)
 }
 
 pub fn list<const N: usize>(components: [Component; N]) -> Component {

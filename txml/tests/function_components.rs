@@ -1,4 +1,4 @@
-use txml::{attrVal, list, text, tmpl, txml, Component};
+use txml::{attrVal, list, text, txml, Component};
 
 // Test will not build if Function Components do not build
 
