@@ -32,7 +32,7 @@ pub enum StepKind {
 }
 
 pub trait ParsleySieve {
-    fn text_only(&self, tag: &str) -> bool;
+    fn alt_text(&self, tag: &str) -> bool;
 }
 
 #[derive(Debug, Eq, Clone, PartialEq)]
@@ -88,7 +88,7 @@ pub fn parse_str(template_str: &str, intial_kind: StepKind) -> Results {
 }
 
 pub fn parse_str_with_reserved_tags(
-    sieve: impl ParsleySieve,
+    sieve: &impl ParsleySieve,
     template_str: &str,
     intial_kind: StepKind,
 ) -> Results {
@@ -143,7 +143,7 @@ pub fn parse_str_with_reserved_tags(
         }
 
         // create sliding_window on reserved tags
-        if front_step.kind == StepKind::ElementClosed && sieve.text_only(tag_step) {
+        if front_step.kind == StepKind::ElementClosed && sieve.alt_text(tag_step) {
             let mut slider = SlidingWindow::new(tag_step);
             slider.slide(glyph);
             sliding_window = Some(slider);

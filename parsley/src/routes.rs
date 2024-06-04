@@ -5,27 +5,27 @@ use crate::StepKind;
 
 pub fn route(glyph: char, prev_kind: &StepKind) -> StepKind {
     match prev_kind {
-        StepKind::Element => get_state_from_element(glyph),
-        StepKind::TailElementSolidus => get_state_from_tail_element_slash(glyph),
-        StepKind::Tag => get_state_from_tagname(glyph),
-        StepKind::TailTag => get_state_from_close_tagname(glyph),
-        StepKind::TailElementSpace => get_state_from_tail_element_space(glyph),
-        StepKind::EmptyElement => get_state_from_void_element(glyph),
-        StepKind::ElementSpace => get_state_from_element_space(glyph),
-        StepKind::Attr => get_state_from_attribute(glyph),
-        StepKind::AttrSetter => get_state_from_attribute_setter(glyph),
-        StepKind::AttrQuote => get_state_from_attribute_quote(glyph),
-        StepKind::AttrValue => get_state_from_attribute_quote(glyph),
-        StepKind::AttrValueUnquoted => get_state_from_attribute_value_unquoted(glyph),
-        StepKind::AttrQuoteClosed => get_state_from_attribute_quote_closed(glyph),
-        StepKind::AttrMapInjection => get_state_from_injection_found(glyph),
-        StepKind::DescendantInjection => get_state_from_injection_found(glyph),
-        StepKind::InjectionSpace => get_state_from_injection_found(glyph),
-        _ => get_state_from_initial(glyph),
+        StepKind::Element => get_kind_from_element(glyph),
+        StepKind::TailElementSolidus => get_kind_from_tail_element_slash(glyph),
+        StepKind::Tag => get_kind_from_tagname(glyph),
+        StepKind::TailTag => get_kind_from_close_tagname(glyph),
+        StepKind::TailElementSpace => get_kind_from_tail_element_space(glyph),
+        StepKind::EmptyElement => get_kind_from_void_element(glyph),
+        StepKind::ElementSpace => get_kind_from_element_space(glyph),
+        StepKind::Attr => get_kind_from_attribute(glyph),
+        StepKind::AttrSetter => get_kind_from_attribute_setter(glyph),
+        StepKind::AttrQuote => get_kind_from_attribute_quote(glyph),
+        StepKind::AttrValue => get_kind_from_attribute_quote(glyph),
+        StepKind::AttrValueUnquoted => get_kind_from_attribute_value_unquoted(glyph),
+        StepKind::AttrQuoteClosed => get_kind_from_attribute_quote_closed(glyph),
+        StepKind::AttrMapInjection => get_kind_from_injection_found(glyph),
+        StepKind::DescendantInjection => get_kind_from_injection_found(glyph),
+        StepKind::InjectionSpace => get_kind_from_injection_found(glyph),
+        _ => get_kind_from_initial(glyph),
     }
 }
 
-fn get_state_from_initial(glyph: char) -> StepKind {
+fn get_kind_from_initial(glyph: char) -> StepKind {
     match glyph {
         '<' => StepKind::Element,
         '{' => StepKind::DescendantInjection,
@@ -33,7 +33,7 @@ fn get_state_from_initial(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_element(glyph: char) -> StepKind {
+fn get_kind_from_element(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::Element;
     }
@@ -45,7 +45,7 @@ fn get_state_from_element(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_tagname(glyph: char) -> StepKind {
+fn get_kind_from_tagname(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::ElementSpace;
     }
@@ -57,7 +57,7 @@ fn get_state_from_tagname(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_tail_element_slash(glyph: char) -> StepKind {
+fn get_kind_from_tail_element_slash(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::TailElementSolidus;
     }
@@ -68,7 +68,7 @@ fn get_state_from_tail_element_slash(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_close_tagname(glyph: char) -> StepKind {
+fn get_kind_from_close_tagname(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::TailElementSpace;
     }
@@ -79,21 +79,21 @@ fn get_state_from_close_tagname(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_tail_element_space(glyph: char) -> StepKind {
+fn get_kind_from_tail_element_space(glyph: char) -> StepKind {
     match glyph {
         '>' => StepKind::TailElementClosed,
         _ => StepKind::TailElementSpace,
     }
 }
 
-pub fn get_state_from_void_element(glyph: char) -> StepKind {
+pub fn get_kind_from_void_element(glyph: char) -> StepKind {
     match glyph {
         '>' => StepKind::EmptyElementClosed,
         _ => StepKind::EmptyElement,
     }
 }
 
-fn get_state_from_element_space(glyph: char) -> StepKind {
+fn get_kind_from_element_space(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::ElementSpace;
     }
@@ -106,7 +106,7 @@ fn get_state_from_element_space(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_attribute(glyph: char) -> StepKind {
+fn get_kind_from_attribute(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::ElementSpace;
     }
@@ -120,7 +120,7 @@ fn get_state_from_attribute(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_attribute_setter(glyph: char) -> StepKind {
+fn get_kind_from_attribute_setter(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::AttrSetter;
     }
@@ -131,7 +131,7 @@ fn get_state_from_attribute_setter(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_attribute_value_unquoted(glyph: char) -> StepKind {
+fn get_kind_from_attribute_value_unquoted(glyph: char) -> StepKind {
     if glyph.is_whitespace() {
         return StepKind::ElementSpace;
     }
@@ -142,14 +142,14 @@ fn get_state_from_attribute_value_unquoted(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_attribute_quote(glyph: char) -> StepKind {
+fn get_kind_from_attribute_quote(glyph: char) -> StepKind {
     match glyph {
         '"' => StepKind::AttrQuoteClosed,
         _ => StepKind::AttrValue,
     }
 }
 
-fn get_state_from_attribute_quote_closed(glyph: char) -> StepKind {
+fn get_kind_from_attribute_quote_closed(glyph: char) -> StepKind {
     match glyph {
         '>' => StepKind::ElementClosed,
         '/' => StepKind::EmptyElement,
@@ -157,7 +157,7 @@ fn get_state_from_attribute_quote_closed(glyph: char) -> StepKind {
     }
 }
 
-fn get_state_from_injection_found(glyph: char) -> StepKind {
+fn get_kind_from_injection_found(glyph: char) -> StepKind {
     match glyph {
         '}' => StepKind::InjectionConfirmed,
         _ => StepKind::InjectionSpace,

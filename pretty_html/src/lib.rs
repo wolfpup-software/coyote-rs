@@ -1,9 +1,11 @@
 use parsley::{get_text_from_step, parse_str_with_reserved_tags, ParsleySieve, Step, StepKind};
 use txml::Template;
 
-mod safe_html;
+mod tag_info;
+use tag_info::TagInfo;
 
-use safe_html::{SafetySieve, TagInfo};
+mod sieves;
+use sieves::SafetySieve;
 
 /*
     This is meant to "pretty" an html document output by `html`.
@@ -20,7 +22,7 @@ impl PretyHtmlBuilder {
     // add decision sieve here:
     //
     // self, html_str, sieve
-    pub fn build(&self, sieve: impl SafetySieve + ParsleySieve, html_str: &str) -> String {
+    pub fn build(&self, sieve: &(impl SafetySieve + ParsleySieve), html_str: &str) -> String {
         // check for already built results
         let mut results = "".to_string();
 
@@ -36,12 +38,13 @@ impl PretyHtmlBuilder {
 // pre elements must respsect boundaries
 // that's really it use
 
-fn push_step(results: &mut String, sieve: impl SafetySieve, template_str: &str, step: Step) {
+fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str, step: Step) {
     match step.kind {
         // steps
         // StepKind::Tag => push_element(results, step)
         // StepKind::ElementClosed => close_element(results, step)
         // StepKind::VoidElementClosed => close_void_element(results, step)
+
         // StepKind::Attr => add_attr(results, step)
         // StepKind::AttrValue => add_attr_value(results, step)
         // StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, step)
