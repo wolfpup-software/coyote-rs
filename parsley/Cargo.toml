@@ -1,12 +1,8 @@
 [package]
-name = "static_template_builder"
+name = "parsley"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-parsley = { path = "../parsley" }
-txml = { path = "../txml" }
-static_txml_builder = { path = "../static_txml_builder" }
-
