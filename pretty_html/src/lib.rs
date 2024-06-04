@@ -37,16 +37,16 @@ fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str,
         // StepKind::ElementClosed => close_element(results, step)
         // StepKind::VoidElementClosed => close_void_element(results, step)
 
-        // StepKind::Attr => add_attr(results, step)
-        // StepKind::AttrValue => add_attr_value(results, step)
-        // StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, step)
+        StepKind::Attr => add_attr(results, template_str, step),
+        StepKind::AttrValue => add_attr_value(results, template_str, step),
+        StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
         // StepKind::Text => push_text(results, step)
         // StepKind::TailTag => pop_element(results, step)
 
         // injections
-        StepKind::DescendantInjection => push_descendant_injection(results, template_str, step),
-        StepKind::InjectionSpace => push_injection_space(results, template_str, step),
-        StepKind::InjectionConfirmed => push_injection_confirmed(results, template_str, step),
+        StepKind::DescendantInjection => push_injection(results, template_str, step),
+        StepKind::InjectionSpace => push_injection(results, template_str, step),
+        StepKind::InjectionConfirmed => push_injection(results, template_str, step),
         // all other steps silently pass through
         _ => {}
     }
@@ -82,34 +82,27 @@ fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str,
 //     results.push_str(text);
 // }
 
-// fn add_attr(&mut results: String, step: Step) {
-//     results.push(' ');
-//     results.push_str(tag);
-// }
+fn add_attr(results: &mut String, template_str: &str, step: Step) {
+    let attr = get_text_from_step(template_str, &step);
+    results.push(' ');
+    results.push_str(attr);
+}
 
-// fn add_attr_value(&mut results: String, step: Step) {
-//     results.push_str("=\"");
-//     results.push_str(tag);
-//     results.push('"');
-// }
+fn add_attr_value(results: &mut String, template_str: &str, step: Step) {
+    let val = get_text_from_step(template_str, &step);
+    results.push_str("=\"");
+    results.push_str(val);
+    results.push('"');
+}
 
-// fn add_attr_value_unquoted(&mut results: String, step: Step) {
-//     results.push('=');
-//     results.push_str(tag);
-// }
+fn add_attr_value_unquoted(results: &mut String, template_str: &str, step: Step) {
+    let val = get_text_from_step(template_str, &step);
+    results.push('=');
+    results.push_str(val);
+}
 
 // // injections
-fn push_descendant_injection(results: &mut String, template_str: &str, step: Step) {
-    let glyph = get_text_from_step(template_str, &step);
-    results.push_str(glyph);
-}
-
-fn push_injection_space(results: &mut String, template_str: &str, step: Step) {
-    let text = get_text_from_step(template_str, &step);
-    results.push_str(text);
-}
-
-fn push_injection_confirmed(results: &mut String, template_str: &str, step: Step) {
+fn push_injection(results: &mut String, template_str: &str, step: Step) {
     let glyph = get_text_from_step(template_str, &step);
     results.push_str(glyph);
 }
