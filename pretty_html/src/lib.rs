@@ -36,7 +36,6 @@ fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str,
         // StepKind::Tag => push_element(results, step)
         // StepKind::ElementClosed => close_element(results, step)
         // StepKind::VoidElementClosed => close_void_element(results, step)
-
         StepKind::Attr => add_attr(results, template_str, step),
         StepKind::AttrValue => add_attr_value(results, template_str, step),
         StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
