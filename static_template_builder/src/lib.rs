@@ -91,24 +91,6 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     templ_str
 }
 
-fn add_attr(mut templ_str: String, attr: &str) -> String {
-    templ_str.push_str(" ");
-    templ_str.push_str(attr);
-    templ_str.push_str(" ");
-
-    templ_str
-}
-
-fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
-    templ_str.push_str(" ");
-    templ_str.push_str(attr);
-    templ_str.push_str("=\"");
-    templ_str.push_str(val);
-    templ_str.push_str("\" ");
-
-    templ_str
-}
-
 fn add_attr_list(mut template_str: String, component: &Component) -> String {
     match component {
         Component::Attr(attr) => add_attr(template_str, attr),
@@ -129,4 +111,22 @@ fn add_attr_list(mut template_str: String, component: &Component) -> String {
         }
         _ => template_str,
     }
+}
+
+fn add_attr(mut templ_str: String, attr: &str) -> String {
+    templ_str.push_str(" ");
+    templ_str.push_str(attr);
+    templ_str.push_str(" ");
+
+    templ_str
+}
+
+fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
+    templ_str.push_str(" ");
+    templ_str.push_str(attr);
+    templ_str.push_str("=\"");
+    templ_str.push_str(val);
+    templ_str.push_str("\" ");
+
+    templ_str
 }
