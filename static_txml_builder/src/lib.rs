@@ -43,8 +43,7 @@ fn push_step(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
         StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
         StepKind::AttrValue => add_attr_value(results, template_str, step),
         StepKind::ElementClosed => close_element(results),
-        StepKind::VoidElementClosed => close_void_element(results),
-        StepKind::VoidElementClosed => close_void_element(results),
+        StepKind::EmptyElementClosed => empty_void_element(results),
         StepKind::TailTag => pop_element(results, template_str, step),
         StepKind::Text => push_text(results, template_str, step),
         // injections
@@ -98,7 +97,7 @@ fn close_element(results: &mut TxmlBuilderResults) {
     }
 }
 
-fn close_void_element(results: &mut TxmlBuilderResults) {
+fn empty_void_element(results: &mut TxmlBuilderResults) {
     if let Some(last) = results.strs.last_mut() {
         last.push_str("/>");
     }

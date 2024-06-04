@@ -1,112 +1,172 @@
-// own module
-
-// just lists html saftey sieve options and return valuse
-
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
-use txml::{DocBuilder, Template, TxmlBuilder};
-// can have match selection
-pub struct SettingsBuff {}
-impl SafetySieve {
-    fn deprecated_element() {}
-    fn namesapce_custom_element() {}
-    fn namespace_element() {}
-    fn preserved_text_element() {}
-    fn void_element() {}
-    fn without_descendants() {}
+use parsley::ParsleySieve;
+
+pub trait SafetySieve {
+    fn banned_path(&self, tag: &str) -> bool;
+    fn no_descendants(&self, tag: &str) -> bool;
+    // fn text_only(&self, tag: &str) -> bool;
 }
 
-struct ServerSieve {}
-impl SafetySieve for ServerSieve {
-    fn banned_element(tag: &str) -> bool {
-        return false;
-    }
-    fn deprecated_element(tag: &str) -> bool {
-        deprecated_el(tag)
-    }
-    fn namespace_element(tag: &str) -> bool {
-        namespace_el(tag)
-    }
-    fn void_element(tag: &str) -> bool {
-        void_el(tag)
-    }
-    fn comment_element(tag: &str) -> bool {
-        comment_el(tag)
-    }
-    fn element_with_alt_text_only(tag: &str) -> bool {
+pub struct HtmlServerSieve {}
+
+impl ParsleySieve for HtmlServerSieve {
+    fn text_only(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
-            "style" => true,
+            "sylte" => true,
             _ => false,
         }
-    }
-    fn element_with_preserved_space(tag: &str) {
-        preserve_space_el(tag)
     }
 }
 
-struct ClientSieve {}
-impl SafetySieve for ClientSieve {
-    fn banned_element(tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
+impl SafetySieve for HtmlServerSieve {
+    fn banned_path(&self, tag: &str) -> bool {
+        false
+    }
+    fn no_descendants(&self, tag: &str) -> bool {
+        false
+    }
+    // fn text_only(&self, tag: &str) -> bool {
+    //     match tag {
+    //         "style" => true,
+    //         "script" => true,
+    //         _ => false,
+    //     }
+    // }
+}
+
+pub struct TagInfo {
+    pub namespace: String,
+    pub tag: String,
+    pub void_element_path: bool,
+    pub preserved_text_path: bool,
+    // banned path
+    // no descendants path
+    // text descendants only path
+}
+
+// tag needs to be aware of sieve
+impl TagInfo {
+    fn new(tag: &str) -> TagInfo {
+        let mut namespace = "".to_string();
+        if namespace_el(tag) {
+            namespace = tag.to_string()
+        }
+
+        TagInfo {
+            namespace: namespace,
+            tag: tag.to_string(),
+            void_element_path: void_el(tag),
+            preserved_text_path: preserve_space_el(tag),
         }
     }
-    fn deprecated_element(tag: &str) -> bool {
-        deprecated_el(tag)
-    }
-    fn namespace_element(tag: &str) -> bool {
-        namespace_el(tag)
-    }
-    fn void_element(tag: &str) -> bool {
-        void_el(tag)
-    }
-    fn comment_element(tag: &str) -> bool {
-        comment_el(tag)
-    }
-    fn element_with_alt_text_only(tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
+
+    fn from(prevTagInfo: &TagInfo, tag: &str) -> TagInfo {
+        let mut namespace = prevTagInfo.namespace.clone();
+        if namespace_el(tag) {
+            namespace = tag.to_string();
         }
-    }
-    fn element_with_preserved_space(tag: &str) {
-        preserve_space_el(tag)
+
+        let mut void_element_path = void_el(tag);
+        if prevTagInfo.void_element_path {
+            void_element_path = true;
+        }
+
+        let mut preserved_text_path = void_el(tag);
+        if prevTagInfo.preserved_text_path {
+            preserved_text_path = true;
+        }
+
+        TagInfo {
+            namespace: namespace,
+            tag: tag.to_string(),
+            void_element_path: void_element_path,
+            preserved_text_path: preserved_text_path,
+            // banned path
+            // no descendants path
+            // text descendants only path
+        }
     }
 }
 
-struct WebComponentSieve {}
-impl SafetySieve for WebComponentSieve {
-    fn banned_element(tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            _ => false,
-        }
-    }
-    fn deprecated_element(tag: &str) -> bool {
-        deprecated_el(tag)
-    }
-    fn namespace_element(tag: &str) -> bool {
-        namespace_el(tag)
-    }
-    fn void_element(tag: &str) -> bool {
-        void_el(tag)
-    }
-    fn comment_element(tag: &str) -> bool {
-        comment_el(tag)
-    }
-    fn element_with_alt_text_only(tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
-        }
-    }
-    fn element_with_preserved_space(tag: &str) {
-        preserve_space_el(tag)
+// struct ServerSieve {}
+// impl SafetySieve for ServerSieve {
+//     fn banned_element(tag: &str) -> bool {
+//         return false;
+//     }
+//      no descendants
+//      text descendants only
+//      banned
+//      ?? tabs? yes for readable no for filesize
+// }
+
+// struct ClientSieve {}
+// impl SafetySieve for ClientSieve {
+//     fn banned_element(tag: &str) -> bool {
+//         match tag {
+//             "script" => true,
+//             "style" => true,
+//             _ => false,
+//         }
+//     }
+//     fn deprecated_element(tag: &str) -> bool {
+//         deprecated_el(tag)
+//     }
+//     fn namespace_element(tag: &str) -> bool {
+//         namespace_el(tag)
+//     }
+//     fn void_element(tag: &str) -> bool {
+//         void_el(tag)
+//     }
+//     fn comment_element(tag: &str) -> bool {
+//         comment_el(tag)
+//     }
+//     fn el_with_alt_text(tag: &str) -> bool {
+//         match tag {
+//             "script" => true,
+//             "style" => true,
+//             _ => false,
+//         }
+//     }
+//     fn element_with_preserved_space(tag: &str) {
+//         preserve_space_el(tag)
+//     }
+// }
+
+// struct WebComponentSieve {}
+// impl SafetySieve for WebComponentSieve {
+//     fn banned_element(tag: &str) -> bool {
+//         match tag {
+//             "script" => true,
+//             _ => false,
+//         }
+//     }
+//     fn deprecated_element(tag: &str) -> bool {
+//         deprecated_el(tag)
+//     }
+//     fn namespace_element(tag: &str) -> bool {
+//         namespace_el(tag)
+//     }
+//     fn void_element(tag: &str) -> bool {
+//         void_el(tag)
+//     }
+//     fn comment_element(tag: &str) -> bool {
+//         comment_el(tag)
+//     }
+//     fn el_with_alt_text(tag: &str) -> bool {
+//         el_with_alt_text(tag)
+//     }
+//     fn element_with_preserved_space(tag: &str) {
+//         preserve_space_el(tag)
+//     }
+// }
+
+fn el_with_alt_text(tag: &str) -> bool {
+    match tag {
+        "script" => true,
+        "style" => true,
+        _ => false,
     }
 }
 
@@ -114,16 +174,7 @@ fn valid_el(tag: &str) -> bool {
     // len greater than 0
     // starts with alpha numberic
     // no spaces
-    if let Some(index) = tag.find(" ") {
-        return false
-    }
-    // has a hyphen after the first character
-
-    
-    // custom element
-    if let Some(index) = tag.find("-") {
-        if index === 0 { return false }
-    }
+    true
 }
 
 fn comment_el(tag: &str) -> bool {
@@ -191,9 +242,57 @@ fn void_el(tag: &str) -> bool {
     }
 }
 
-fn preserve_space_el(tag: &str) {
+fn preserve_space_el(tag: &str) -> bool {
     match tag {
         "pre" => true,
+        _ => false,
+    }
+}
+
+fn block_el(tag: &str) -> bool {
+    match tag {
+        "!DOCTYPE" => true,
+        "base" => true,
+        "link" => true,
+        "meta" => true,
+        "noscript" => true,
+        "script" => true,
+        "style" => true,
+        "title" => true,
+        "header" => true,
+        "footer" => true,
+        "article" => true,
+        "aside" => true,
+        "nav" => true,
+        "section" => true,
+        "div" => true,
+        "h1" => true,
+        "h2" => true,
+        "h3" => true,
+        "h4" => true,
+        "h5" => true,
+        "h6" => true,
+        "hgroup" => true,
+        "p" => true,
+        "form" => true,
+        "fieldset" => true,
+        "button" => true,
+        "input" => true,
+        "label" => true,
+        "meter" => true,
+        "object" => true,
+        "output" => true,
+        "progress" => true,
+        "select" => true,
+        "textarea" => true,
+        "ul" => true,
+        "ol" => true,
+        "li" => true,
+        "img" => true,
+        "video" => true,
+        "audio" => true,
+        "template" => true,
+        "iframe" => true,
         _ => false,
     }
 }

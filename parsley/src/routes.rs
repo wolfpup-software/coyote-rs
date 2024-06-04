@@ -10,7 +10,7 @@ pub fn route(glyph: char, prev_kind: &StepKind) -> StepKind {
         StepKind::Tag => get_state_from_tagname(glyph),
         StepKind::TailTag => get_state_from_close_tagname(glyph),
         StepKind::TailElementSpace => get_state_from_tail_element_space(glyph),
-        StepKind::VoidElement => get_state_from_void_element(glyph),
+        StepKind::EmptyElement => get_state_from_void_element(glyph),
         StepKind::ElementSpace => get_state_from_element_space(glyph),
         StepKind::Attr => get_state_from_attribute(glyph),
         StepKind::AttrSetter => get_state_from_attribute_setter(glyph),
@@ -52,7 +52,7 @@ fn get_state_from_tagname(glyph: char) -> StepKind {
 
     match glyph {
         '>' => StepKind::ElementClosed,
-        '/' => StepKind::VoidElement,
+        '/' => StepKind::EmptyElement,
         _ => StepKind::Tag,
     }
 }
@@ -88,8 +88,8 @@ fn get_state_from_tail_element_space(glyph: char) -> StepKind {
 
 pub fn get_state_from_void_element(glyph: char) -> StepKind {
     match glyph {
-        '>' => StepKind::VoidElementClosed,
-        _ => StepKind::VoidElement,
+        '>' => StepKind::EmptyElementClosed,
+        _ => StepKind::EmptyElement,
     }
 }
 
@@ -100,7 +100,7 @@ fn get_state_from_element_space(glyph: char) -> StepKind {
 
     match glyph {
         '>' => StepKind::ElementClosed,
-        '/' => StepKind::VoidElement,
+        '/' => StepKind::EmptyElement,
         '{' => StepKind::AttrMapInjection,
         _ => StepKind::Attr,
     }
@@ -114,7 +114,7 @@ fn get_state_from_attribute(glyph: char) -> StepKind {
     match glyph {
         '=' => StepKind::AttrSetter,
         '>' => StepKind::ElementClosed,
-        '/' => StepKind::VoidElement,
+        '/' => StepKind::EmptyElement,
         '{' => StepKind::AttrMapInjection,
         _ => StepKind::Attr,
     }
@@ -152,7 +152,7 @@ fn get_state_from_attribute_quote(glyph: char) -> StepKind {
 fn get_state_from_attribute_quote_closed(glyph: char) -> StepKind {
     match glyph {
         '>' => StepKind::ElementClosed,
-        '/' => StepKind::VoidElement,
+        '/' => StepKind::EmptyElement,
         _ => StepKind::ElementSpace,
     }
 }

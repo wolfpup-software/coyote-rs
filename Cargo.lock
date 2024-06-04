@@ -7,6 +7,14 @@ name = "parsley"
 version = "0.1.0"
 
 [[package]]
+name = "pretty_html"
+version = "0.1.0"
+dependencies = [
+ "parsley",
+ "txml",
+]
+
+[[package]]
 name = "static_template_builder"
 version = "0.1.0"
 dependencies = [

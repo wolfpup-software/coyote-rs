@@ -34,7 +34,22 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
         match stack_bit {
-            // akin to (&componet, &results, &mut bit)
+            // text or list
+            StackBit::Cmpnt(cmpnt) => {
+                match cmpnt {
+                    Component::Text(text) => templ_str.push_str(text),
+                    // break lists into smaller chuncks
+                    Component::List(list) => {
+                        for cmpnt in list.iter().rev() {
+                            let bit;
+                            (builder, bit) = get_stackable(builder, cmpnt);
+                            stack.push(bit);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            // template    akin to (&componet, &results, &mut bit)
             StackBit::Tmpl(component, ref results, ref mut bit) => {
                 // templates will be N + 1
                 // injections will be length N
@@ -54,7 +69,7 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
                         match inj_kind {
                             // add attribute injections to template
                             StepKind::AttrMapInjection => {
-                                templ_str = add_attr_list(templ_str, inj);
+                                templ_str = add_attr_inj(templ_str, inj);
                             }
                             // queue descendant injections to queue
                             StepKind::DescendantInjection => {
@@ -66,22 +81,7 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
                             }
                             _ => {}
                         }
-                    };
-                }
-            }
-            StackBit::Cmpnt(cmpnt) => {
-                match cmpnt {
-                    // break lists into smaller chuncks
-                    Component::List(list) => {
-                        // add chunks in reverse order
-                        for cmpnt in list.iter().rev() {
-                            let bit;
-                            (builder, bit) = get_stackable(builder, cmpnt);
-                            stack.push(bit);
-                        }
                     }
-                    Component::Text(text) => templ_str.push_str(text),
-                    _ => {}
                 }
             }
             _ => {}
@@ -91,7 +91,7 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     templ_str
 }
 
-fn add_attr_list(mut template_str: String, component: &Component) -> String {
+fn add_attr_inj(mut template_str: String, component: &Component) -> String {
     match component {
         Component::Attr(attr) => add_attr(template_str, attr),
         Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),

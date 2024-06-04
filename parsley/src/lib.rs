@@ -1,4 +1,7 @@
 mod routes;
+mod sliding_window;
+
+use sliding_window::SlidingWindow;
 
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub enum StepKind {
@@ -16,8 +19,8 @@ pub enum StepKind {
     DescendantInjection,
     FragmentClosed,
     Fragment,
-    VoidElementClosed,
-    VoidElement,
+    EmptyElementClosed,
+    EmptyElement,
     Initial,
     InjectionConfirmed,
     InjectionSpace,
@@ -28,6 +31,10 @@ pub enum StepKind {
     Text,
 }
 
+pub trait ParsleySieve {
+    fn text_only(&self, tag: &str) -> bool;
+}
+
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub struct Step {
     pub kind: StepKind,
@@ -36,10 +43,6 @@ pub struct Step {
 }
 
 pub type Results = Vec<Step>;
-
-pub fn get_text_from_step<'a>(template_str: &'a str, step: &Step) -> &'a str {
-    &template_str[step.origin..step.target]
-}
 
 pub fn parse_str(template_str: &str, intial_kind: StepKind) -> Results {
     let mut steps = Vec::from([Step {
@@ -84,60 +87,9 @@ pub fn parse_str(template_str: &str, intial_kind: StepKind) -> Results {
     steps
 }
 
-fn is_injection_kind<'a>(step_kind: &'a StepKind) -> bool {
-    match step_kind {
-        StepKind::AttrMapInjection => true,
-        StepKind::DescendantInjection => true,
-        _ => false,
-    }
-}
-
-/*
-Common enough to have elements with specialized text.
-In html. script style tags
-*/
-
-struct SlidingWindow {
-    target: Vec<char>,
-    index: usize,
-}
-
-impl SlidingWindow {
-    fn new(target_str: &str) -> SlidingWindow {
-        let mut glyphs = Vec::from(['<', '/']);
-        glyphs.append(&mut target_str.chars().collect());
-        SlidingWindow {
-            target: glyphs,
-            index: 1,
-        }
-    }
-
-    fn slide(&mut self, glyph: char) -> bool {
-        if self.index > self.target.len() {
-            self.index = 0;
-        }
-
-        if self.target[self.index - 1] != glyph {
-            self.index = 0;
-        }
-
-        self.index += 1;
-        self.index > self.target.len()
-    }
-}
-
-fn is_reserved_tag(reserved_tags: &Vec<String>, tag: &str) -> bool {
-    for word in reserved_tags {
-        if tag == word {
-            return true;
-        }
-    }
-    false
-}
-
 pub fn parse_str_with_reserved_tags(
+    sieve: impl ParsleySieve,
     template_str: &str,
-    reserved_tags: &Vec<String>,
     intial_kind: StepKind,
 ) -> Results {
     let mut steps = Vec::from([Step {
@@ -191,7 +143,7 @@ pub fn parse_str_with_reserved_tags(
         }
 
         // create sliding_window on reserved tags
-        if front_step.kind == StepKind::ElementClosed && is_reserved_tag(reserved_tags, tag_step) {
+        if front_step.kind == StepKind::ElementClosed && sieve.text_only(tag_step) {
             let mut slider = SlidingWindow::new(tag_step);
             slider.slide(glyph);
             sliding_window = Some(slider);
@@ -213,7 +165,19 @@ pub fn parse_str_with_reserved_tags(
     steps
 }
 
-pub fn add_reserved_element_text(
+pub fn get_text_from_step<'a>(template_str: &'a str, step: &Step) -> &'a str {
+    &template_str[step.origin..step.target]
+}
+
+fn is_injection_kind<'a>(step_kind: &'a StepKind) -> bool {
+    match step_kind {
+        StepKind::AttrMapInjection => true,
+        StepKind::DescendantInjection => true,
+        _ => false,
+    }
+}
+
+fn add_reserved_element_text(
     steps: &mut Vec<Step>,
     tag_step: &str,
     index: usize,
