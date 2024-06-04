@@ -7,11 +7,6 @@ use tag_info::TagInfo;
 mod sieves;
 use sieves::SafetySieve;
 
-/*
-    This is meant to "pretty" an html document output by `html`.
-    it is not used by a "doc" builder
-*/
-
 struct PretyHtmlBuilder {}
 
 impl PretyHtmlBuilder {
@@ -35,9 +30,6 @@ impl PretyHtmlBuilder {
     }
 }
 
-// pre elements must respsect boundaries
-// that's really it use
-
 fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str, step: Step) {
     match step.kind {
         // steps
@@ -50,11 +42,11 @@ fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str,
         // StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, step)
         // StepKind::Text => push_text(results, step)
         // StepKind::TailTag => pop_element(results, step)
-        // // injections
-        // StepKind::AttrMapInjection => push_attr_map_injection(results, step)
-        // StepKind::DescendantInjection => push_descendant_injection(results, step)
-        // StepKind::InjectionSpace => push_injection_space(results, step)
-        // StepKind::InjectionConfirmed => push_injection_confirmed(results, step)
+
+        // injections
+        StepKind::DescendantInjection => push_descendant_injection(results, template_str, step),
+        StepKind::InjectionSpace => push_injection_space(results, template_str, step),
+        StepKind::InjectionConfirmed => push_injection_confirmed(results, template_str, step),
         // all other steps silently pass through
         _ => {}
     }
@@ -107,18 +99,17 @@ fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str,
 // }
 
 // // injections
-// fn push_attr_map_injection(&mut results: String, glyph: &str) {
-//     results.push_str(glyph);
-// }
+fn push_descendant_injection(results: &mut String, template_str: &str, step: Step) {
+    let glyph = get_text_from_step(template_str, &step);
+    results.push_str(glyph);
+}
 
-// fn push_descendant_injection(&mut results: String, glyph: &str) {
-//     results.push_str(glyph);
-// }
+fn push_injection_space(results: &mut String, template_str: &str, step: Step) {
+    let text = get_text_from_step(template_str, &step);
+    results.push_str(text);
+}
 
-// fn push_injection_space(&mut results: String, text: &str) {
-//     results.push_str(text);
-// }
-
-// fn push_injection_confirmed(&mut results: String, glyph: &str) {
-//     results.push_str(glyph);
-// }
+fn push_injection_confirmed(results: &mut String, template_str: &str, step: Step) {
+    let glyph = get_text_from_step(template_str, &step);
+    results.push_str(glyph);
+}
