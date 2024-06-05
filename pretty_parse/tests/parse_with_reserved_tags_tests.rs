@@ -1,4 +1,5 @@
-use parsley::{parse_str_with_reserved_tags, Results, Step, StepKind};
+use parsley::{Results, Step, StepKind};
+use pretty_parse::{parse_str_with_reserved_tags};
 
 #[test]
 fn confirm_clone_and_debug() {
