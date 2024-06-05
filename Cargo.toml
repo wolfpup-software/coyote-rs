@@ -1,7 +1,6 @@
 [workspace]
-members = ["txml", "static_template_builder", "static_txml_builder"]
+members = ["parsley", "txml", "pretty_html", "static_txml_builder", "static_template_builder", "pretty_parse",]
 resolver = "2"
 
 [workspace.dependencies]
-parsley = { git = "https://github.com/taylor-vann/parsley-rs" }
 

@@ -5,7 +5,23 @@ version = 3
 [[package]]
 name = "parsley"
 version = "0.1.0"
-source = "git+https://github.com/taylor-vann/parsley-rs#d7cf220e93f2063eaa7ffd5a81e97d4873f9b634"
+
+[[package]]
+name = "pretty_html"
+version = "0.1.0"
+dependencies = [
+ "parsley",
+ "pretty_parse",
+ "txml",
+]
+
+[[package]]
+name = "pretty_parse"
+version = "0.1.0"
+dependencies = [
+ "parsley",
+ "txml",
+]
 
 [[package]]
 name = "static_template_builder"
