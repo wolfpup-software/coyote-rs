@@ -6,7 +6,8 @@ use parsley::ParsleySieve;
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
-    pub void_element_path: bool,
+    pub indent_count: usize,
+    pub void_path: bool,
     pub preserved_text_path: bool,
     pub banned_path: bool,
 }
@@ -22,7 +23,8 @@ impl TagInfo {
         TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
-            void_element_path: void_el(tag),
+            indent_count: 0,
+            void_path: void_el(tag),
             preserved_text_path: preserve_space_el(tag),
             banned_path: sieve.banned(tag),
         }
@@ -39,29 +41,33 @@ impl TagInfo {
             namespace = tag.to_string();
         }
 
-        let mut void_element_path = void_el(tag);
-        if prevTagInfo.void_element_path {
-            void_element_path = true;
+        let mut void_path = prevTagInfo.void_path;
+        if void_el(tag) {
+            void_path = true;
         }
 
-        let mut preserved_text_path = preserve_space_el(tag);
-        if prevTagInfo.preserved_text_path {
+        let mut preserved_text_path = prevTagInfo.preserved_text_path;
+        if preserve_space_el(tag) {
             preserved_text_path = true;
         }
 
-        let mut banned_path = sieve.banned(tag);
-        if prevTagInfo.banned_path {
+        let mut banned_path = prevTagInfo.banned_path;
+        if sieve.banned(tag) {
             banned_path = true;
         }
+
+        let mut indent_count = prevTagInfo.indent_count;
+        // if tabable_el(tag) {
+        //     indent_count += 1;
+        // }
 
         TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
-            void_element_path: void_element_path,
+            indent_count: indent_count, // find out if tabable do a +1 effort here
+            void_path: void_path,
             preserved_text_path: preserved_text_path,
             banned_path: banned_path,
-            // no descendants path
-            // text descendants only path
         }
     }
 }
@@ -82,6 +88,7 @@ fn namespace_el(tag: &str) -> bool {
 fn void_el(tag: &str) -> bool {
     match tag {
         "!DOCTYPE" => true,
+        "!--" => true,
         "area" => true,
         "base" => true,
         "br" => true,

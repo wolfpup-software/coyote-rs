@@ -8,6 +8,8 @@ pub trait SafetySieve {
 // make a "true false"
 // true -> creating readable static files
 // false -> creating server generated files
+pub trait Sieve: ParsleySieve + SafetySieve {}
+
 pub struct HtmlServerSieve {}
 
 impl ParsleySieve for HtmlServerSieve {
@@ -228,6 +230,7 @@ fn is_html_element(tag: &str) -> bool {
         // web components
         "slot" => true,
         "template" => true,
+        // do checks for valid web component name
         _ => false,
     }
 }
@@ -335,78 +338,78 @@ fn is_math_element(tag: &str) -> bool {
     }
 }
 
-fn deprecated_el(tag: &str) -> bool {
-    match tag {
-        "acronym" => true,
-        "big" => true,
-        "center" => true,
-        "content" => true,
-        "dir" => true,
-        "font" => true,
-        "frame" => true,
-        "frameset" => true,
-        "image" => true,
-        "marquee" => true,
-        "menuitem" => true,
-        "nobr" => true,
-        "noembed" => true,
-        "noframes" => true,
-        "param" => true,
-        "plaintext" => true,
-        "rb" => true,
-        "rtc" => true,
-        "shadow" => true,
-        "strike" => true,
-        "tt" => true,
-        "xmp" => true,
-        _ => false,
-    }
-}
+// fn deprecated_el(tag: &str) -> bool {
+//     match tag {
+//         "acronym" => true,
+//         "big" => true,
+//         "center" => true,
+//         "content" => true,
+//         "dir" => true,
+//         "font" => true,
+//         "frame" => true,
+//         "frameset" => true,
+//         "image" => true,
+//         "marquee" => true,
+//         "menuitem" => true,
+//         "nobr" => true,
+//         "noembed" => true,
+//         "noframes" => true,
+//         "param" => true,
+//         "plaintext" => true,
+//         "rb" => true,
+//         "rtc" => true,
+//         "shadow" => true,
+//         "strike" => true,
+//         "tt" => true,
+//         "xmp" => true,
+//         _ => false,
+//     }
+// }
 
-fn block_el(tag: &str) -> bool {
-    match tag {
-        "!DOCTYPE" => true,
-        "base" => true,
-        "link" => true,
-        "meta" => true,
-        "noscript" => true,
-        "script" => true,
-        "style" => true,
-        "title" => true,
-        "header" => true,
-        "footer" => true,
-        "article" => true,
-        "aside" => true,
-        "nav" => true,
-        "section" => true,
-        "div" => true,
-        "h1" => true,
-        "h2" => true,
-        "h3" => true,
-        "h4" => true,
-        "h5" => true,
-        "h6" => true,
-        "hgroup" => true,
-        "p" => true,
-        "form" => true,
-        "fieldset" => true,
-        "button" => true,
-        "input" => true,
-        "label" => true,
-        "meter" => true,
-        "object" => true,
-        "output" => true,
-        "progress" => true,
-        "select" => true,
-        "textarea" => true,
-        "ul" => true,
-        "ol" => true,
-        "li" => true,
-        "img" => true,
-        "video" => true,
-        "audio" => true,
-        "template" => true,
-        "iframe" => true,
-        _ => false,
-    }
-}
+// fn block_el(tag: &str) -> bool {
+//     match tag {
+//         "!DOCTYPE" => true,
+//         "base" => true,
+//         "link" => true,
+//         "meta" => true,
+//         "noscript" => true,
+//         "script" => true,
+//         "style" => true,
+//         "title" => true,
+//         "header" => true,
+//         "footer" => true,
+//         "article" => true,
+//         "aside" => true,
+//         "nav" => true,
+//         "section" => true,
+//         "div" => true,
+//         "h1" => true,
+//         "h2" => true,
+//         "h3" => true,
+//         "h4" => true,
+//         "h5" => true,
+//         "h6" => true,
+//         "hgroup" => true,
+//         "p" => true,
+//         "form" => true,
+//         "fieldset" => true,
+//         "button" => true,
+//         "input" => true,
+//         "label" => true,
+//         "meter" => true,
+//         "object" => true,
+//         "output" => true,
+//         "progress" => true,
+//         "select" => true,
+//         "textarea" => true,
+//         "ul" => true,
+//         "ol" => true,
+//         "li" => true,
+//         "img" => true,
+//         "video" => true,
+//         "audio" => true,
+//         "template" => true,
+//         "iframe" => true,
+//         _ => false,
+//     }
+// }
