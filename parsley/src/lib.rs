@@ -96,7 +96,7 @@ pub fn parse_str(sieve: &impl ParsleySieve, template_str: &str, intial_kind: Ste
     }]);
 
     let mut tag_step: &str = "";
-    let mut sliding_window: SlidingWindow = None;
+    let mut sliding_window: Option<SlidingWindow> = None;
 
     for (index, glyph) in template_str.char_indices() {
         // slide through reserved tag

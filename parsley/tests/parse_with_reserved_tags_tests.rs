@@ -1,12 +1,29 @@
-use parsley::{Results, Step, StepKind};
-use pretty_parse::parse_str_with_reserved_tags;
+use parsley::{parse_str, ParsleySieve, Results, Step, StepKind};
+
+pub struct TestSieve {}
+
+impl TestSieve {
+    fn new() -> TestSieve {
+        TestSieve {}
+    }
+}
+
+impl ParsleySieve for TestSieve {
+    fn alt_text(&self, tag: &str) -> bool {
+        match tag {
+            "script" => true,
+            "style" => true,
+            _ => false,
+        }
+    }
+}
 
 #[test]
 fn confirm_clone_and_debug() {
     const template_str: &str = "<fox>{}</fox>";
-    let reserved_tags = Vec::from(["style".to_string(), "script".to_string()]);
+    let sieve = TestSieve {};
 
-    let steps = parse_str_with_reserved_tags(template_str, &reserved_tags, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let cloned = steps.clone();
     let debugged = format!("{:?}", cloned);
 }
@@ -15,9 +32,9 @@ fn confirm_clone_and_debug() {
 #[test]
 fn parse_text() {
     const template_str: &str = "hai :3";
-    let reserved_tags = Vec::from(["style".to_string(), "script".to_string()]);
+    let sieve = TestSieve {};
 
-    let steps = parse_str_with_reserved_tags(template_str, &reserved_tags, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -38,9 +55,9 @@ fn parse_text() {
 #[test]
 fn parse_reserved_tag() {
     const template_str: &str = "<style>.fox{color: auburn;}</style>";
-    let reserved_tags = Vec::from(["style".to_string(), "script".to_string()]);
+    let sieve = TestSieve {};
 
-    let steps = parse_str_with_reserved_tags(template_str, &reserved_tags, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -95,9 +112,9 @@ fn parse_reserved_tag() {
 #[test]
 fn parse_nested_reserved_tag() {
     const template_str: &str = "<fox><style>.fox{color: auburn;}</style></fox>";
-    let reserved_tags = Vec::from(["style".to_string(), "script".to_string()]);
+    let sieve = TestSieve {};
 
-    let steps = parse_str_with_reserved_tags(template_str, &reserved_tags, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -185,12 +202,12 @@ fn parse_nested_reserved_tag() {
 }
 
 #[test]
-fn parse_multiple_reserved_tags() {
+fn parse_multiple_sieve() {
     const template_str: &str =
         "<style>.fox{color: auburn;}</style><script>console.log('hai :3')</script>";
-    let reserved_tags = Vec::from(["style".to_string(), "script".to_string()]);
+    let sieve = TestSieve {};
 
-    let steps = parse_str_with_reserved_tags(template_str, &reserved_tags, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -283,12 +300,12 @@ fn parse_multiple_reserved_tags() {
 }
 
 #[test]
-fn cannot_parse_nested_reserved_tags() {
+fn cannot_parse_nested_sieve() {
     const template_str: &str =
         "<script><style>.fox{color: auburn;}</style>console.log('hai :3')</script>";
-    let reserved_tags = Vec::from(["style".to_string(), "script".to_string()]);
+    let sieve = TestSieve {};
 
-    let steps = parse_str_with_reserved_tags(template_str, &reserved_tags, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
