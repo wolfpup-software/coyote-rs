@@ -1,4 +1,4 @@
-use parsley::{get_text_from_step, parse_str, Step, StepKind};
+use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
 use txml::Template;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -27,7 +27,7 @@ impl TxmlBuilder {
         // check for already built results
         let mut results = TxmlBuilderResults::new();
 
-        for step in parse_str(&template.template_str, StepKind::Initial) {
+        for step in parse_template_str(&template.template_str, StepKind::Initial) {
             push_step(&mut results, &template.template_str, step);
         }
 

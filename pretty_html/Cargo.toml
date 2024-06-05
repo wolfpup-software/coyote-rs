@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 parsley = { path = "../parsley" }
 txml = { path = "../txml" }
-pretty_parse = { path = "../pretty_parse" }

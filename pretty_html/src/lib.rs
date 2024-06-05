@@ -46,18 +46,17 @@ fn push_step(
     step: Step,
 ) {
     match step.kind {
-        // steps
+        // tags
         StepKind::Tag => push_element(results, template_str, step),
         StepKind::ElementClosed => close_element(results, template_str, step),
         StepKind::EmptyElementClosed => close_empty_element(results, template_str, step),
-        StepKind::Text => push_text(results, template_str, step),
         StepKind::TailTag => pop_element(results, template_str, step),
-
+        // text
+        StepKind::Text => push_text(results, template_str, step),
         // attributes
         StepKind::Attr => add_attr(results, template_str, step),
         StepKind::AttrValue => add_attr_value(results, template_str, step),
         StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
-
         // injections
         StepKind::DescendantInjection => push_injection_kind(results, template_str, step),
         StepKind::InjectionSpace => push_injection_kind(results, template_str, step),

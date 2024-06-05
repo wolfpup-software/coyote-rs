@@ -1,5 +1,5 @@
 [workspace]
-members = ["parsley", "txml", "pretty_html", "static_txml_builder", "static_template_builder", "pretty_parse",]
+members = ["parsley", "txml", "pretty_html", "static_txml_builder", "static_template_builder",]
 resolver = "2"
 
 [workspace.dependencies]
