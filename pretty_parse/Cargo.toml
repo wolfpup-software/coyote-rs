@@ -1,5 +1,5 @@
 [package]
-name = "pretty_html"
+name = "pretty_parse"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 parsley = { path = "../parsley" }
 txml = { path = "../txml" }
-pretty_parse = { path = "../pretty_parse" }

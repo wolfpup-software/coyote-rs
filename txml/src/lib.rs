@@ -35,26 +35,12 @@ pub fn unescaped_text(txt: String) -> Component {
 }
 
 pub fn attr(attr_str: &str) -> Component {
-    let escaped_attr = attr_str
-        .replace("<", "")
-        .replace(">", "")
-        .replace("&", "")
-        .replace("\"", "")
-        .replace("'", "");
-
-    Component::Attr(escaped_attr)
+    Component::Attr(attr_str.to_string())
 }
 
 pub fn attr_val(attr_str: &str, value_txt: &str) -> Component {
-    let escaped_attr = attr_str
-        .replace("<", "")
-        .replace(">", "")
-        .replace("&", "")
-        .replace("\"", "")
-        .replace("'", "");
-
     let escaped_value = value_txt.replace("\"", "&quot;").replace("&", "&amp;");
-    Component::AttrVal(escaped_attr, escaped_value)
+    Component::AttrVal(attr_str.to_string(), escaped_value)
 }
 
 pub fn list<const N: usize>(components: [Component; N]) -> Component {

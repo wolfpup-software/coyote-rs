@@ -1,8 +1,3 @@
-/*
-Common enough to have elements with specialized text.
-In html. script style tags
-*/
-
 pub struct SlidingWindow {
     target: Vec<char>,
     index: usize,

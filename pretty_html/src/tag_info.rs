@@ -1,7 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
 use crate::sieves::SafetySieve;
-use parsley::ParsleySieve;
 
 pub struct TagInfo {
     pub namespace: String,
@@ -14,7 +13,7 @@ pub struct TagInfo {
 
 // tag needs to be aware of sieve
 impl TagInfo {
-    fn new(&self, sieve: &(impl ParsleySieve + SafetySieve), tag: &str) -> TagInfo {
+    fn new(&self, sieve: &impl SafetySieve, tag: &str) -> TagInfo {
         let mut namespace = "".to_string();
         if namespace_el(tag) {
             namespace = tag.to_string()
@@ -30,12 +29,7 @@ impl TagInfo {
         }
     }
 
-    fn from(
-        &self,
-        sieve: &(impl ParsleySieve + SafetySieve),
-        prevTagInfo: &TagInfo,
-        tag: &str,
-    ) -> TagInfo {
+    fn from(&self, sieve: &impl SafetySieve, prevTagInfo: &TagInfo, tag: &str) -> TagInfo {
         let mut namespace = prevTagInfo.namespace.clone();
         if namespace_el(tag) {
             namespace = tag.to_string();

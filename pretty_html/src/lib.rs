@@ -1,4 +1,6 @@
-use parsley::{get_text_from_step, parse_str_with_reserved_tags, ParsleySieve, Step, StepKind};
+use parsley::{get_text_from_step, Step, StepKind};
+use pretty_parse::parse_str_with_reserved_tags;
+
 use txml::Template;
 
 mod tag_info;
@@ -117,7 +119,7 @@ fn add_attr_value_unquoted(results: &mut String, template_str: &str, step: Step)
     results.push_str(val);
 }
 
-// // injections
+// injections
 fn push_injection_kind(results: &mut String, template_str: &str, step: Step) {
     let glyph = get_text_from_step(template_str, &step);
     results.push_str(glyph);

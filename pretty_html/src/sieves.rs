@@ -1,4 +1,4 @@
-use parsley::ParsleySieve;
+use pretty_parse::ParsleySieve;
 
 pub trait SafetySieve {
     fn banned(&self, tag: &str) -> bool;
