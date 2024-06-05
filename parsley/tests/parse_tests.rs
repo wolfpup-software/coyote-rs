@@ -234,12 +234,12 @@ fn parse_void_node() {
             target: 5,
         },
         Step {
-            kind: StepKind::VoidElement,
+            kind: StepKind::EmptyElement,
             origin: 5,
             target: 6,
         },
         Step {
-            kind: StepKind::VoidElementClosed,
+            kind: StepKind::EmptyElementClosed,
             origin: 6,
             target: 7,
         },
@@ -304,12 +304,12 @@ fn parse_all_nodes() {
             target: 32,
         },
         Step {
-            kind: StepKind::VoidElement,
+            kind: StepKind::EmptyElement,
             origin: 32,
             target: 33,
         },
         Step {
-            kind: StepKind::VoidElementClosed,
+            kind: StepKind::EmptyElementClosed,
             origin: 33,
             target: 34,
         },
@@ -1441,12 +1441,12 @@ clouds           big            opacity=\"0.9\"
             target: 87,
         },
         Step {
-            kind: StepKind::VoidElement,
+            kind: StepKind::EmptyElement,
             origin: 87,
             target: 93,
         },
         Step {
-            kind: StepKind::VoidElementClosed,
+            kind: StepKind::EmptyElementClosed,
             origin: 93,
             target: 94,
         },
