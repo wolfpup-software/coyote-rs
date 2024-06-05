@@ -2,9 +2,12 @@ use parsley::ParsleySieve;
 
 pub trait SafetySieve {
     fn banned(&self, tag: &str) -> bool;
-    // fn text_only(&self, tag: &str) -> bool;
+    fn respect_indentation(&self) -> bool;
 }
 
+// make a "true false"
+// true -> creating readable static files
+// false -> creating server generated files
 pub struct HtmlServerSieve {}
 
 impl ParsleySieve for HtmlServerSieve {
@@ -18,6 +21,9 @@ impl ParsleySieve for HtmlServerSieve {
 }
 
 impl SafetySieve for HtmlServerSieve {
+    fn respect_indentation(&self) -> bool {
+        true
+    }
     fn banned(&self, tag: &str) -> bool {
         false
     }
@@ -36,6 +42,9 @@ impl ParsleySieve for HtmlClientSieve {
 }
 
 impl SafetySieve for HtmlClientSieve {
+    fn respect_indentation(&self) -> bool {
+        false
+    }
     fn banned(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -58,6 +67,9 @@ impl ParsleySieve for HtmlWebComponentSieve {
 }
 
 impl SafetySieve for HtmlWebComponentSieve {
+    fn respect_indentation(&self) -> bool {
+        false
+    }
     fn banned(&self, tag: &str) -> bool {
         match tag {
             "script" => true,

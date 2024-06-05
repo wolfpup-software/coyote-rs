@@ -59,7 +59,6 @@ impl TagInfo {
             tag: tag.to_string(),
             void_element_path: void_element_path,
             preserved_text_path: preserved_text_path,
-            // banned path
             banned_path: banned_path,
             // no descendants path
             // text descendants only path

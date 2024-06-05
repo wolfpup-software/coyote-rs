@@ -23,7 +23,7 @@ impl PretyHtmlBuilder {
 
         // parse string with reserved words
         for step in parse_str_with_reserved_tags(sieve, &html_str, StepKind::Initial) {
-            // push_step(&mut results, &html_str, step);
+            push_step(&mut results, sieve, &html_str, step);
         }
 
         results
@@ -36,11 +36,13 @@ fn push_step(results: &mut String, sieve: &impl SafetySieve, template_str: &str,
         // StepKind::Tag => push_element(results, step)
         // StepKind::ElementClosed => close_element(results, step)
         // StepKind::VoidElementClosed => close_void_element(results, step)
+        // StepKind::Text => push_text(results, step)
+        // StepKind::TailTag => pop_element(results, step)
+
+        // attributes
         StepKind::Attr => add_attr(results, template_str, step),
         StepKind::AttrValue => add_attr_value(results, template_str, step),
         StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
-        // StepKind::Text => push_text(results, step)
-        // StepKind::TailTag => pop_element(results, step)
 
         // injections
         StepKind::DescendantInjection => push_injection(results, template_str, step),
