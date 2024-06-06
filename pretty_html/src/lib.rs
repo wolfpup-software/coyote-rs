@@ -180,17 +180,25 @@ fn push_text(
     // add text if no stack
     let tag_info = match stack.last() {
         Some(curr) => curr,
-        _ => return results.push_str(text),
+        _ => {
+            return {
+                for line in text.trim().split("\n") {
+                    results.push_str(line.trim());
+                    results.push('\n');
+                }
+            }
+        }
     };
 
     if !(tag_info.banned_path || tag_info.void_path) {
         if !sieve.respect_indentation() || tag_info.preserved_text_path {
             results.push_str(text);
         } else {
+            results.push('\n');
             for line in text.trim().split("\n") {
-                results.push('\n');
                 results.push_str(&" ".repeat(tag_info.indent_count));
                 results.push_str(line.trim());
+                results.push('\n');
             }
         }
     }
