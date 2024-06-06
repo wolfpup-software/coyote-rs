@@ -103,7 +103,7 @@ fn preserve_space_el(tag: &str) -> bool {
     return tag == "pre";
 }
 
-fn indented_el(tag: &str) -> bool {
+pub fn indented_el(tag: &str) -> bool {
     match tag {
         "a" => false,
         "abbr" => false,

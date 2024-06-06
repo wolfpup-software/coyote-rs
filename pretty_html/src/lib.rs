@@ -2,61 +2,51 @@ use parsley::{get_text_from_step, parse_str, Step, StepKind};
 use txml::Template;
 
 mod tag_info;
-use tag_info::{void_el, TagInfo};
+use tag_info::{indented_el, void_el, TagInfo};
 
-mod sieves;
+pub mod sieves;
 use sieves::Sieve;
 
-struct PrettyHtmlBuilder {}
+pub fn compose(sieve: &impl Sieve, template_str: &str) -> String {
+    // check for already built results
+    let mut results = "".to_string();
+    let mut stack: Vec<TagInfo> = Vec::new();
 
-impl PrettyHtmlBuilder {
-    pub fn new() -> PrettyHtmlBuilder {
-        PrettyHtmlBuilder {}
-    }
-
-    pub fn build(&self, sieve: &impl Sieve, template_str: &str) -> String {
-        // check for already built results
-        let mut results = "".to_string();
-        let mut stack: Vec<TagInfo> = Vec::new();
-
-        for step in parse_str(sieve, &template_str, StepKind::Initial) {
-            match step.kind {
-                // tags
-                StepKind::Tag => push_element(&mut results, &mut stack, sieve, template_str, step),
-                StepKind::ElementClosed => {
-                    close_element(&mut results, &mut stack, sieve, template_str, step)
-                }
-                StepKind::EmptyElementClosed => {
-                    close_empty_element(&mut results, &mut stack, sieve, template_str, step)
-                }
-                StepKind::TailTag => {
-                    pop_element(&mut results, &mut stack, sieve, template_str, step)
-                }
-                // text
-                StepKind::Text => push_text(&mut results, &mut stack, sieve, template_str, step),
-                // attributes
-                StepKind::Attr => add_attr(&mut results, &mut stack, template_str, step),
-                StepKind::AttrValue => add_attr_value(&mut results, &mut stack, template_str, step),
-                StepKind::AttrValueUnquoted => {
-                    add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
-                }
-                // injections
-                StepKind::DescendantInjection => {
-                    push_injection_kind(&mut results, &mut stack, template_str, step)
-                }
-                StepKind::InjectionSpace => {
-                    push_injection_kind(&mut results, &mut stack, template_str, step)
-                }
-                StepKind::InjectionConfirmed => {
-                    push_injection_kind(&mut results, &mut stack, template_str, step)
-                }
-                // all other steps silently pass through
-                _ => {}
+    for step in parse_str(sieve, &template_str, StepKind::Initial) {
+        match step.kind {
+            // tags
+            StepKind::Tag => push_element(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::ElementClosed => {
+                close_element(&mut results, &mut stack, sieve, template_str, step)
             }
+            StepKind::EmptyElementClosed => {
+                close_empty_element(&mut results, &mut stack, sieve, template_str, step)
+            }
+            StepKind::TailTag => pop_element(&mut results, &mut stack, sieve, template_str, step),
+            // text
+            StepKind::Text => push_text(&mut results, &mut stack, sieve, template_str, step),
+            // attributes
+            StepKind::Attr => add_attr(&mut results, &mut stack, template_str, step),
+            StepKind::AttrValue => add_attr_value(&mut results, &mut stack, template_str, step),
+            StepKind::AttrValueUnquoted => {
+                add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
+            }
+            // injections
+            StepKind::DescendantInjection => {
+                push_injection_kind(&mut results, &mut stack, template_str, step)
+            }
+            StepKind::InjectionSpace => {
+                push_injection_kind(&mut results, &mut stack, template_str, step)
+            }
+            StepKind::InjectionConfirmed => {
+                push_injection_kind(&mut results, &mut stack, template_str, step)
+            }
+            // all other steps silently pass through
+            _ => {}
         }
-
-        results
     }
+
+    results
 }
 
 fn push_element(
@@ -73,10 +63,16 @@ fn push_element(
     };
 
     if !(tag_info.banned_path || tag_info.void_path) {
+        // default
         if sieve.respect_indentation() && !tag_info.preserved_text_path {
-            results.push('\n');
-            results.push_str(&" ".repeat(tag_info.indent_count))
+            if stack.len() > 0 && indented_el(tag) {
+                results.push('\n');
+            }
+            if tag_info.indent_count > 0 {
+                // results.push_str(&"\t".repeat(tag_info.indent_count - 1));
+            }
         }
+
         results.push('<');
         results.push_str(tag);
     }
@@ -156,9 +152,11 @@ fn pop_element(
             results.push('>');
         } else {
             if sieve.respect_indentation() && !tag_info.preserved_text_path {
-                results.push('\n');
-                results.push_str(&" ".repeat(tag_info.indent_count))
+                if tag_info.indent_count > 0 {
+                    // results.push_str(&"\t".repeat(tag_info.indent_count - 1))
+                }
             }
+
             results.push_str("</");
             results.push_str(tag);
             results.push('>')
@@ -181,12 +179,14 @@ fn push_text(
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => {
-            return {
-                for line in text.trim().split("\n") {
-                    results.push_str(line.trim());
-                    results.push('\n');
+            for line in text.split("\n") {
+                let trimmed = line.trim();
+                if trimmed.len() == 0 {
+                    continue;
                 }
+                results.push_str(trimmed);
             }
+            return;
         }
     };
 
@@ -194,11 +194,12 @@ fn push_text(
         if !sieve.respect_indentation() || tag_info.preserved_text_path {
             results.push_str(text);
         } else {
-            results.push('\n');
             for line in text.trim().split("\n") {
+                if line.len() == 0 {
+                    continue;
+                }
                 results.push_str(&" ".repeat(tag_info.indent_count));
                 results.push_str(line.trim());
-                results.push('\n');
             }
         }
     }

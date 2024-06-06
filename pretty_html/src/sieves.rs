@@ -12,6 +12,14 @@ pub trait Sieve: ParsleySieve + SafetySieve {}
 
 pub struct HtmlServerSieve {}
 
+impl HtmlServerSieve {
+    pub fn new() -> HtmlServerSieve {
+        HtmlServerSieve {}
+    }
+}
+
+impl Sieve for HtmlServerSieve {}
+
 impl ParsleySieve for HtmlServerSieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
@@ -32,6 +40,14 @@ impl SafetySieve for HtmlServerSieve {
 }
 
 pub struct HtmlClientSieve {}
+
+impl HtmlClientSieve {
+    pub fn new() -> HtmlClientSieve {
+        HtmlClientSieve {}
+    }
+}
+
+impl Sieve for HtmlClientSieve {}
 
 impl ParsleySieve for HtmlClientSieve {
     fn alt_text(&self, tag: &str) -> bool {
@@ -57,6 +73,14 @@ impl SafetySieve for HtmlClientSieve {
 }
 
 pub struct HtmlWebComponentSieve {}
+
+impl HtmlWebComponentSieve {
+    pub fn new() -> HtmlWebComponentSieve {
+        HtmlWebComponentSieve {}
+    }
+}
+
+impl Sieve for HtmlWebComponentSieve {}
 
 impl ParsleySieve for HtmlWebComponentSieve {
     fn alt_text(&self, tag: &str) -> bool {
