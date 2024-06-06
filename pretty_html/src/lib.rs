@@ -178,22 +178,25 @@ fn push_text(
     template_str: &str,
     step: Step,
 ) {
-    // // base case, no stack, just add text
-    // let text = get_text_from_step(template_str, &step);
+    let text = get_text_from_step(template_str, &step);
 
-    // let tag_info = match stack.last() {
-    //     Some(curr) => curr,
-    //     _ => {
-    //         return results.push_str(text);
-    //     }, // dont actually retun rthough
-    // };
+    // add text if no stack
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return results.push_str(text),
+    };
 
-    // if sieve.respect_indentation() && !tag_info.preserved_text_path {
-    //     // add indendation
-    // }
-
-    // let text = get_text_from_step(template_str, &step);
-    // results.push_str(text);
+    if !(tag_info.banned_path || tag_info.void_path) {
+        if !sieve.respect_indentation() || tag_info.preserved_text_path {
+            results.push_str(text);
+        } else {
+            for line in text.trim().split("\n") {
+                results.push('\n');
+                results.push_str(&" ".repeat(tag_info.indent_count));
+                results.push_str(line.trim());
+            }
+        }
+    }
 }
 
 fn add_attr(results: &mut String, template_str: &str, step: Step) {
