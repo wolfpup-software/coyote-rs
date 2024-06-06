@@ -1,5 +1,4 @@
 use parsley::{get_text_from_step, parse_str, Step, StepKind};
-
 use txml::Template;
 
 mod tag_info;
@@ -15,50 +14,48 @@ impl PrettyHtmlBuilder {
         PrettyHtmlBuilder {}
     }
 
-    // add decision sieve here:
-    //
-    // self, html_str, sieve
-    pub fn build(&self, sieve: &impl Sieve, html_str: &str) -> String {
+    pub fn build(&self, sieve: &impl Sieve, template_str: &str) -> String {
         // check for already built results
         let mut results = "".to_string();
         let mut stack: Vec<TagInfo> = Vec::new();
 
-        // parse string with reserved words
-        for step in parse_str(sieve, &html_str, StepKind::Initial) {
-            push_step(&mut results, &mut stack, sieve, &html_str, step);
+        for step in parse_str(sieve, &template_str, StepKind::Initial) {
+            match step.kind {
+                // tags
+                StepKind::Tag => push_element(&mut results, &mut stack, sieve, template_str, step),
+                StepKind::ElementClosed => {
+                    close_element(&mut results, &mut stack, sieve, template_str, step)
+                }
+                StepKind::EmptyElementClosed => {
+                    close_empty_element(&mut results, &mut stack, sieve, template_str, step)
+                }
+                StepKind::TailTag => {
+                    pop_element(&mut results, &mut stack, sieve, template_str, step)
+                }
+                // text
+                StepKind::Text => push_text(&mut results, &mut stack, sieve, template_str, step),
+                // attributes
+                StepKind::Attr => add_attr(&mut results, &mut stack, template_str, step),
+                StepKind::AttrValue => add_attr_value(&mut results, &mut stack, template_str, step),
+                StepKind::AttrValueUnquoted => {
+                    add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
+                }
+                // injections
+                StepKind::DescendantInjection => {
+                    push_injection_kind(&mut results, &mut stack, template_str, step)
+                }
+                StepKind::InjectionSpace => {
+                    push_injection_kind(&mut results, &mut stack, template_str, step)
+                }
+                StepKind::InjectionConfirmed => {
+                    push_injection_kind(&mut results, &mut stack, template_str, step)
+                }
+                // all other steps silently pass through
+                _ => {}
+            }
         }
 
         results
-    }
-}
-
-fn push_step(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
-    template_str: &str,
-    step: Step,
-) {
-    match step.kind {
-        // tags
-        StepKind::Tag => push_element(results, stack, sieve, template_str, step),
-        StepKind::ElementClosed => close_element(results, stack, sieve, template_str, step),
-        StepKind::EmptyElementClosed => {
-            close_empty_element(results, stack, sieve, template_str, step)
-        }
-        StepKind::TailTag => pop_element(results, stack, sieve, template_str, step),
-        // text
-        StepKind::Text => push_text(results, stack, sieve, template_str, step),
-        // attributes
-        StepKind::Attr => add_attr(results, template_str, step),
-        StepKind::AttrValue => add_attr_value(results, template_str, step),
-        StepKind::AttrValueUnquoted => add_attr_value_unquoted(results, template_str, step),
-        // injections
-        StepKind::DescendantInjection => push_injection_kind(results, template_str, step),
-        StepKind::InjectionSpace => push_injection_kind(results, template_str, step),
-        StepKind::InjectionConfirmed => push_injection_kind(results, template_str, step),
-        // all other steps silently pass through
-        _ => {}
     }
 }
 
@@ -199,27 +196,65 @@ fn push_text(
     }
 }
 
-fn add_attr(results: &mut String, template_str: &str, step: Step) {
-    let attr = get_text_from_step(template_str, &step);
-    results.push(' ');
-    results.push_str(attr);
+fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: Step) {
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if !(tag_info.banned_path || tag_info.void_path) {
+        let attr = get_text_from_step(template_str, &step);
+        results.push(' ');
+        results.push_str(attr);
+    }
 }
 
-fn add_attr_value(results: &mut String, template_str: &str, step: Step) {
-    let val = get_text_from_step(template_str, &step);
-    results.push_str("=\"");
-    results.push_str(val);
-    results.push('"');
+fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: Step) {
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if !(tag_info.banned_path || tag_info.void_path) {
+        let val = get_text_from_step(template_str, &step);
+        results.push_str("=\"");
+        results.push_str(val);
+        results.push('"');
+    }
 }
 
-fn add_attr_value_unquoted(results: &mut String, template_str: &str, step: Step) {
-    let val = get_text_from_step(template_str, &step);
-    results.push('=');
-    results.push_str(val);
+fn add_attr_value_unquoted(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    template_str: &str,
+    step: Step,
+) {
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if !(tag_info.banned_path || tag_info.void_path) {
+        let val = get_text_from_step(template_str, &step);
+        results.push('=');
+        results.push_str(val);
+    }
 }
 
 // injections
-fn push_injection_kind(results: &mut String, template_str: &str, step: Step) {
-    let glyph = get_text_from_step(template_str, &step);
-    results.push_str(glyph);
+fn push_injection_kind(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    template_str: &str,
+    step: Step,
+) {
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if !(tag_info.banned_path || tag_info.void_path) {
+        let glyph = get_text_from_step(template_str, &step);
+        results.push_str(glyph);
+    }
 }
