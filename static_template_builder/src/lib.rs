@@ -16,16 +16,18 @@ fn get_stackable(mut builder: TxmlBuilder, component: &Component) -> (TxmlBuilde
     let stack_bit = match component {
         Component::Text(text) => StackBit::Cmpnt(component),
         Component::List(list) => StackBit::Cmpnt(component),
-        Component::Tmpl(tmpl) => {
-            StackBit::Tmpl(component, builder.build(tmpl), TemplateBit { inj_index: 0 })
-        }
+        Component::Tmpl(tmpl) => StackBit::Tmpl(
+            component,
+            builder.build(&tmpl.template_str),
+            TemplateBit { inj_index: 0 },
+        ),
         _ => StackBit::None,
     };
 
     (builder, stack_bit)
 }
 
-fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
+pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     let mut templ_str = "".to_string();
 
     let sbit;
@@ -74,13 +76,23 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
                             // queue descendant injections to queue
                             StepKind::DescendantInjection => {
                                 // push previous
+
+                                // special!
+                                // push template back and bail early
                                 stack.push(stack_bit);
+
                                 let bit;
                                 (builder, bit) = get_stackable(builder, inj);
                                 stack.push(bit);
+                                continue;
                             }
                             _ => {}
                         }
+                    }
+
+                    // don't forget the last part of the templates!
+                    if index < results.strs.len() {
+                        stack.push(stack_bit);
                     }
                 }
             }
