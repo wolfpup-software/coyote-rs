@@ -121,14 +121,13 @@ fn close_empty_element(
         _ => return,
     };
 
-    let tag = get_text_from_step(template_str, &step);
     if !(tag_info.banned_path || tag_info.void_path) {
         if tag_info.namespace != "html" {
             results.push_str("/>");
         } else {
-            if !void_el(tag) {
+            if !void_el(&tag_info.tag) {
                 results.push_str("></");
-                results.push_str(tag);
+                results.push_str(&tag_info.tag);
             }
             results.push('>');
         }
@@ -144,38 +143,32 @@ fn pop_element(
     template_str: &str,
     step: Step,
 ) {
-    // let tag = get_text_from_step(template_str, &step);
-    // let tag_info = match stack.last() {
-    //     Some(curr) => curr,
-    //     _ => return,
-    // };
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
 
-    // // bail on banned paths
-    // if tag_info.banned_path || tag_info.void_path {
-    //     stack.pop();
-    //     return;
-    // }
+    // if tags don't align, skip
+    let tag = get_text_from_step(template_str, &step);
+    if tag != tag_info.tag {
+        return;
+    }
 
-    // if tag != tag_info.tag {
-    //     return;
-    // }
+    if !(tag_info.banned_path || tag_info.void_path) {
+        if tag_info.namespace == "html" && void_el(tag) {
+            results.push('>');
+        } else {
+            if sieve.respect_indentation() && !tag_info.preserved_text_path {
+                results.push('\n');
+                results.push_str(&" ".repeat(tag_info.indent_count))
+            }
+            results.push_str("</");
+            results.push_str(tag);
+            results.push('>')
+        }
+    }
 
-    // if sieve.respect_indentation() && !tag_info.preserved_text_path {
-    //     // add indendation
-    // }
-
-    // if !(tag_info.void_path || tag_info.banned_path) {
-    //     results.push_str("<");
-    //     results.push_str(tag);
-    // }
-
-    // stack.pop();
-
-    // // get topmost and
-
-    // results.push_str("</");
-    // results.push_str(tag);
-    // results.push_str(">");
+    stack.pop();
 }
 
 fn push_text(
