@@ -116,33 +116,25 @@ fn close_empty_element(
     template_str: &str,
     step: Step,
 ) {
-    // let tag = get_text_from_step(template_str, &step);
-    // let tag_info = match stack.last() {
-    //     Some(curr) => curr,
-    //     _ => return,
-    // };
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
 
-    // if tag != tag_info.tag {
-    //     return;
-    // }
+    let tag = get_text_from_step(template_str, &step);
+    if !(tag_info.banned_path || tag_info.void_path) {
+        if tag_info.namespace != "html" {
+            results.push_str("/>");
+        } else {
+            if !void_el(tag) {
+                results.push_str("></");
+                results.push_str(tag);
+            }
+            results.push('>');
+        }
+    }
 
-    // if sieve.respect_indentation() {
-    //     // add indendation
-    // }
-
-    // // mathml and svg have empty elements, html has void
-    // match tag_info.namespace == "html" {
-    //     r#false => results.push_str("/"),
-    //     _ => {
-    //         if !void_el(&tag_info.tag) {
-    //             results.push_str("></");
-    //             results.push_str(tag);
-    //         }
-    //     }
-    // }
-    // results.push_str(">");
-
-    // stack.pop();
+    stack.pop();
 }
 
 fn pop_element(
