@@ -1,4 +1,4 @@
-use txml::{attrVal, list, text, txml, Component};
+use txml::{attr_val, list, text, txml, Component};
 
 // Test will not build if Function Components do not build
 
@@ -9,7 +9,7 @@ fn woof() -> Component {
 fn woof_woof() -> Component {
     let descendants = list([text("you're a boy kisser aren't you >:3"), woof()]);
 
-    let attributes = list([attrVal("action", "/uwu"), attrVal("method", "post")]);
+    let attributes = list([attr_val("action", "/uwu"), attr_val("method", "post")]);
 
     txml("<form {}>{}</form>", [attributes, descendants])
 }

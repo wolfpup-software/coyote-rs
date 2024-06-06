@@ -23,12 +23,12 @@ impl TxmlBuilder {
         TxmlBuilder {}
     }
 
-    pub fn build(&self, template: &Template) -> TxmlBuilderResults {
+    pub fn build(&self, template_str: &str) -> TxmlBuilderResults {
         // check for already built results
         let mut results = TxmlBuilderResults::new();
 
-        for step in parse_template_str(&template.template_str, StepKind::Initial) {
-            push_step(&mut results, &template.template_str, step);
+        for step in parse_template_str(template_str, StepKind::Initial) {
+            push_step(&mut results, template_str, step);
         }
 
         results

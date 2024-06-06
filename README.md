@@ -17,7 +17,7 @@ fn hai() -> Component {
 ### More interesting hai :3
 
 ```rust
-use txml::{attrVal, list, text, txml, Component};
+use txml::{Component, attr_val, list, text, txml};
 
 fn woof() -> Component {
     txml("<input type=submit value=\"yus -_-\">", [])
@@ -30,8 +30,8 @@ fn woof_woof() -> Component {
     ]);
 
     let attributes = list([
-        attrVal("action", "/uwu"),
-        attrVal("method", "post"),
+        attr_val("action", "/uwu"),
+        attr_val("method", "post"),
     ]);
 
     txml(
