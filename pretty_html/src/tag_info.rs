@@ -14,7 +14,7 @@ pub struct TagInfo {
 // tag needs to be aware of sieve
 impl TagInfo {
     pub fn new(sieve: &impl SafetySieve, tag: &str) -> TagInfo {
-        let mut namespace = "".to_string();
+        let mut namespace = "html".to_string();
         if namespace_el(tag) {
             namespace = tag.to_string()
         }
@@ -24,7 +24,7 @@ impl TagInfo {
             tag: tag.to_string(),
             indent_count: 0,
             void_path: void_el(tag),
-            preserved_text_path: preserve_space_el(tag),
+            preserved_text_path: false,
             banned_path: sieve.banned(tag),
         }
     }
@@ -40,20 +40,22 @@ impl TagInfo {
             void_path = true;
         }
 
+        // preserved text happends _after_ tag, so only if prev tag is "pre"
         let mut preserved_text_path = prev_tag_info.preserved_text_path;
-        if preserve_space_el(tag) {
+        if preserve_space_el(&prev_tag_info.tag) {
             preserved_text_path = true;
         }
 
+        // immediately ban elements
         let mut banned_path = prev_tag_info.banned_path;
         if sieve.banned(tag) {
             banned_path = true;
         }
 
         let mut indent_count = prev_tag_info.indent_count;
-        // if tabable_el(tag) {
-        //     indent_count += 1;
-        // }
+        if !void_el(tag) && indented_el(tag) {
+            indent_count += 1;
+        }
 
         TagInfo {
             namespace: namespace,
@@ -99,4 +101,50 @@ pub fn void_el(tag: &str) -> bool {
 
 fn preserve_space_el(tag: &str) -> bool {
     return tag == "pre";
+}
+
+fn indented_el(tag: &str) -> bool {
+    match tag {
+        "a" => false,
+        "abbr" => false,
+        "b" => false,
+        "bdi" => false,
+        "bdo" => false,
+        "cite" => false,
+        "code" => false,
+        "data" => false,
+        "dfn" => false,
+        "em" => false,
+        "i" => false,
+        "kbd" => false,
+        "mark" => false,
+        "q" => false,
+        "rp" => false,
+        "rt" => false,
+        "ruby" => false,
+        "s" => false,
+        "samp" => false,
+        "small" => false,
+        "span" => false,
+        "strong" => false,
+        "sub" => false,
+        "sup" => false,
+        "time" => false,
+        "u" => false,
+        "var" => false,
+        "wbr" => false,
+        "area" => false,
+        "audio" => false,
+        "img" => false,
+        "map" => false,
+        "track" => false,
+        "video" => false,
+        "embed" => false,
+        "iframe" => false,
+        "object" => false,
+        "picture" => false,
+        "portal" => false,
+        "source" => false,
+        _ => true,
+    }
 }

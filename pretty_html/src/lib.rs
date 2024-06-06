@@ -48,7 +48,7 @@ fn push_step(
         }
         StepKind::TailTag => pop_element(results, stack, sieve, template_str, step),
         // text
-        StepKind::Text => push_text(results, sieve, template_str, step),
+        StepKind::Text => push_text(results, stack, sieve, template_str, step),
         // attributes
         StepKind::Attr => add_attr(results, template_str, step),
         StepKind::AttrValue => add_attr_value(results, template_str, step),
@@ -75,12 +75,14 @@ fn push_element(
         _ => TagInfo::new(sieve, tag),
     };
 
-    if sieve.respect_indentation() {
-        // add indendation
+    if !(tag_info.banned_path || tag_info.void_path) {
+        if sieve.respect_indentation() && !tag_info.preserved_text_path {
+            results.push('\n');
+            results.push_str(&" ".repeat(tag_info.indent_count))
+        }
+        results.push('<');
+        results.push_str(tag);
     }
-
-    results.push_str("<");
-    results.push_str(tag);
 
     stack.push(tag_info);
 }
@@ -92,12 +94,16 @@ fn close_element(
     template_str: &str,
     step: Step,
 ) {
-    results.push_str(">");
-
-    let tag_info = match stack.last() {
+    // cannot close non existant tag
+    let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
     };
+
+    if !(tag_info.banned_path || tag_info.void_path) {
+        results.push_str(">");
+    }
+
     if tag_info.namespace == "html" && void_el(&tag_info.tag) {
         stack.pop();
     }
@@ -110,33 +116,33 @@ fn close_empty_element(
     template_str: &str,
     step: Step,
 ) {
-    let tag = get_text_from_step(template_str, &step);
-    let tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
+    // let tag = get_text_from_step(template_str, &step);
+    // let tag_info = match stack.last() {
+    //     Some(curr) => curr,
+    //     _ => return,
+    // };
 
-    if tag != tag_info.tag {
-        return;
-    }
+    // if tag != tag_info.tag {
+    //     return;
+    // }
 
-    if sieve.respect_indentation() {
-        // add indendation
-    }
+    // if sieve.respect_indentation() {
+    //     // add indendation
+    // }
 
-    // mathml and svg have empty elements, html has void
-    match tag_info.namespace == "html" {
-        r#false => results.push_str("/"),
-        _ => {
-            if !void_el(&tag_info.tag) {
-                results.push_str("></");
-                results.push_str(tag);
-            }
-        }
-    }
-    results.push_str(">");
+    // // mathml and svg have empty elements, html has void
+    // match tag_info.namespace == "html" {
+    //     r#false => results.push_str("/"),
+    //     _ => {
+    //         if !void_el(&tag_info.tag) {
+    //             results.push_str("></");
+    //             results.push_str(tag);
+    //         }
+    //     }
+    // }
+    // results.push_str(">");
 
-    stack.pop();
+    // stack.pop();
 }
 
 fn pop_element(
@@ -146,33 +152,63 @@ fn pop_element(
     template_str: &str,
     step: Step,
 ) {
-    let tag = get_text_from_step(template_str, &step);
-    let tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
+    // let tag = get_text_from_step(template_str, &step);
+    // let tag_info = match stack.last() {
+    //     Some(curr) => curr,
+    //     _ => return,
+    // };
 
-    if tag != tag_info.tag {
-        return;
-    }
-    if sieve.respect_indentation() {
-        // add indendation
-    }
-    let tag = get_text_from_step(template_str, &step);
+    // // bail on banned paths
+    // if tag_info.banned_path || tag_info.void_path {
+    //     stack.pop();
+    //     return;
+    // }
 
-    results.push_str("</");
-    results.push_str(tag);
-    results.push_str(">");
+    // if tag != tag_info.tag {
+    //     return;
+    // }
+
+    // if sieve.respect_indentation() && !tag_info.preserved_text_path {
+    //     // add indendation
+    // }
+
+    // if !(tag_info.void_path || tag_info.banned_path) {
+    //     results.push_str("<");
+    //     results.push_str(tag);
+    // }
+
+    // stack.pop();
+
+    // // get topmost and
+
+    // results.push_str("</");
+    // results.push_str(tag);
+    // results.push_str(">");
 }
 
-fn push_text(results: &mut String, sieve: &impl Sieve, template_str: &str, step: Step) {
-    if sieve.respect_indentation() {
-        // add indendation
-    }
+fn push_text(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    sieve: &impl Sieve,
+    template_str: &str,
+    step: Step,
+) {
+    // // base case, no stack, just add text
+    // let text = get_text_from_step(template_str, &step);
 
-    // respect indentation?
-    let text = get_text_from_step(template_str, &step);
-    results.push_str(text);
+    // let tag_info = match stack.last() {
+    //     Some(curr) => curr,
+    //     _ => {
+    //         return results.push_str(text);
+    //     }, // dont actually retun rthough
+    // };
+
+    // if sieve.respect_indentation() && !tag_info.preserved_text_path {
+    //     // add indendation
+    // }
+
+    // let text = get_text_from_step(template_str, &step);
+    // results.push_str(text);
 }
 
 fn add_attr(results: &mut String, template_str: &str, step: Step) {
