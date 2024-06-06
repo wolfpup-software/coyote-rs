@@ -1,4 +1,4 @@
-use pretty_parse::ParsleySieve;
+use parsley::ParsleySieve;
 
 pub trait SafetySieve {
     fn banned(&self, tag: &str) -> bool;
@@ -77,20 +77,6 @@ impl SafetySieve for HtmlWebComponentSieve {
             "script" => true,
             _ => false,
         }
-    }
-}
-
-fn valid_el(tag: &str) -> bool {
-    // len greater than 0
-    // starts with alpha numberic
-    // no spaces
-    true
-}
-
-fn comment_el(tag: &str) -> bool {
-    match tag {
-        "!--" => true,
-        _ => false,
     }
 }
 

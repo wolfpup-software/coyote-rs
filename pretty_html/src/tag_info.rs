@@ -13,7 +13,7 @@ pub struct TagInfo {
 
 // tag needs to be aware of sieve
 impl TagInfo {
-    fn new(&self, sieve: &impl SafetySieve, tag: &str) -> TagInfo {
+    pub fn new(sieve: &impl SafetySieve, tag: &str) -> TagInfo {
         let mut namespace = "".to_string();
         if namespace_el(tag) {
             namespace = tag.to_string()
@@ -29,28 +29,28 @@ impl TagInfo {
         }
     }
 
-    fn from(&self, sieve: &impl SafetySieve, prevTagInfo: &TagInfo, tag: &str) -> TagInfo {
-        let mut namespace = prevTagInfo.namespace.clone();
+    pub fn from(sieve: &impl SafetySieve, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
+        let mut namespace = prev_tag_info.namespace.clone();
         if namespace_el(tag) {
             namespace = tag.to_string();
         }
 
-        let mut void_path = prevTagInfo.void_path;
+        let mut void_path = prev_tag_info.void_path;
         if void_el(tag) {
             void_path = true;
         }
 
-        let mut preserved_text_path = prevTagInfo.preserved_text_path;
+        let mut preserved_text_path = prev_tag_info.preserved_text_path;
         if preserve_space_el(tag) {
             preserved_text_path = true;
         }
 
-        let mut banned_path = prevTagInfo.banned_path;
+        let mut banned_path = prev_tag_info.banned_path;
         if sieve.banned(tag) {
             banned_path = true;
         }
 
-        let mut indent_count = prevTagInfo.indent_count;
+        let mut indent_count = prev_tag_info.indent_count;
         // if tabable_el(tag) {
         //     indent_count += 1;
         // }
@@ -66,10 +66,6 @@ impl TagInfo {
     }
 }
 
-fn preserve_space_el(tag: &str) -> bool {
-    return tag == "pre";
-}
-
 fn namespace_el(tag: &str) -> bool {
     match tag {
         "html" => true,
@@ -79,7 +75,7 @@ fn namespace_el(tag: &str) -> bool {
     }
 }
 
-fn void_el(tag: &str) -> bool {
+pub fn void_el(tag: &str) -> bool {
     match tag {
         "!DOCTYPE" => true,
         "!--" => true,
@@ -99,4 +95,8 @@ fn void_el(tag: &str) -> bool {
         "wbr" => true,
         _ => false,
     }
+}
+
+fn preserve_space_el(tag: &str) -> bool {
+    return tag == "pre";
 }
