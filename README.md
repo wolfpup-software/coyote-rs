@@ -1,6 +1,6 @@
-# html-rs
+# txml-rs
 
-Create `XML | HTML | FRAGMENTS` from component functions in Rust!
+Create `XML | HTML | FRAGMENTS` from component template functions in Rust!
 
 ## Components
 

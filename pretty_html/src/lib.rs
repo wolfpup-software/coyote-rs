@@ -85,6 +85,7 @@ fn close_element(
     step: Step,
 ) {
     // cannot close non existant tag
+    let stack_len = stack.len();
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
@@ -93,6 +94,14 @@ fn close_element(
     if !(tag_info.banned_path || tag_info.void_path) {
         // if respect indendation
         results.push_str(">");
+    }
+
+    if sieve.respect_indentation()
+        && tag_info.namespace == "html"
+        && void_el(&tag_info.tag)
+        && stack_len < 2
+    {
+        results.push_str("\n");
     }
 
     if tag_info.namespace == "html" && void_el(&tag_info.tag) {
@@ -149,8 +158,6 @@ fn pop_element(
         if tag_info.namespace == "html" && void_el(tag) {
             results.push('>');
         } else {
-            println!("pop el\n{:?}", tag_info);
-
             if sieve.respect_indentation()
                 && !tag_info.preserved_text_path
                 && !preserve_space_el(&tag_info.tag)
@@ -199,10 +206,7 @@ fn push_text(
 
     tag_info.has_text = true;
 
-    if !sieve.respect_indentation()
-        || tag_info.preserved_text_path
-        || preserve_space_el(&tag_info.tag)
-    {
+    if tag_info.preserved_text_path || preserve_space_el(&tag_info.tag) {
         results.push_str(text);
         return;
     }
