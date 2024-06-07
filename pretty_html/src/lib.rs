@@ -63,14 +63,11 @@ fn push_element(
     };
 
     if !(tag_info.banned_path || tag_info.void_path) {
-        // default
         if sieve.respect_indentation() && !tag_info.preserved_text_path {
-            if stack.len() > 0 && indented_el(tag) {
+            if stack.len() > 0 {
                 results.push('\n');
             }
-            if tag_info.indent_count > 0 {
-                // results.push_str(&"\t".repeat(tag_info.indent_count - 1));
-            }
+            results.push_str(&"\t".repeat(tag_info.indent_count));
         }
 
         results.push('<');
@@ -94,6 +91,7 @@ fn close_element(
     };
 
     if !(tag_info.banned_path || tag_info.void_path) {
+        // if respect indendation
         results.push_str(">");
     }
 
@@ -151,15 +149,14 @@ fn pop_element(
         if tag_info.namespace == "html" && void_el(tag) {
             results.push('>');
         } else {
-            if sieve.respect_indentation() && !tag_info.preserved_text_path {
-                if tag_info.indent_count > 0 {
-                    // results.push_str(&"\t".repeat(tag_info.indent_count - 1))
-                }
+            if sieve.respect_indentation() && !tag_info.preserved_text_path && tag_info.has_text {
+                results.push_str("\n");
+                results.push_str(&"\t".repeat(tag_info.indent_count))
             }
 
             results.push_str("</");
             results.push_str(tag);
-            results.push('>')
+            results.push('>');
         }
     }
 
@@ -176,7 +173,7 @@ fn push_text(
     let text = get_text_from_step(template_str, &step);
 
     // add text if no stack
-    let tag_info = match stack.last() {
+    let tag_info = match stack.last_mut() {
         Some(curr) => curr,
         _ => {
             for line in text.split("\n") {
@@ -190,18 +187,27 @@ fn push_text(
         }
     };
 
-    if !(tag_info.banned_path || tag_info.void_path) {
-        if !sieve.respect_indentation() || tag_info.preserved_text_path {
-            results.push_str(text);
-        } else {
-            for line in text.trim().split("\n") {
-                if line.len() == 0 {
-                    continue;
-                }
-                results.push_str(&" ".repeat(tag_info.indent_count));
-                results.push_str(line.trim());
-            }
+    if tag_info.banned_path || tag_info.void_path {
+        return;
+    }
+
+    if !sieve.respect_indentation() || tag_info.preserved_text_path {
+        results.push_str(text);
+        return;
+    }
+
+    let trimmed = text.trim();
+
+    if trimmed.len() != text.len() {
+        tag_info.has_text = true;
+    }
+    for line in trimmed.split("\n") {
+        if line.len() == 0 {
+            continue;
         }
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+        results.push_str(line.trim());
     }
 }
 

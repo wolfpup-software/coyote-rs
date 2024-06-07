@@ -8,9 +8,18 @@ fn test_pretty_html() {
     let template = "
         <!DOCTYPE>
             <html>
-            <head />
+            <head>
+                <meta stuff=otherstuff>
+                <!-- sdfsdf s df sdf-->
+                <meta yo yo yo>
+            </head>
                 <body>
-                    <header></header>
+                    <header>hai! :3</header>
+                    <pre>
+
+    hiiiii
+            </pre>
+                    <article></article>
                     <footer/>
                 </body>
         </html>

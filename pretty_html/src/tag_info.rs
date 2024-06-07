@@ -5,6 +5,7 @@ use crate::sieves::SafetySieve;
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
+    pub has_text: bool,
     pub indent_count: usize,
     pub void_path: bool,
     pub preserved_text_path: bool,
@@ -22,6 +23,7 @@ impl TagInfo {
         TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
+            has_text: false,
             indent_count: 0,
             void_path: void_el(tag),
             preserved_text_path: false,
@@ -36,13 +38,16 @@ impl TagInfo {
         }
 
         let mut void_path = prev_tag_info.void_path;
-        if void_el(tag) {
+        if void_el(&prev_tag_info.tag) {
             void_path = true;
         }
 
         // preserved text happends _after_ tag, so only if prev tag is "pre"
         let mut preserved_text_path = prev_tag_info.preserved_text_path;
         if preserve_space_el(&prev_tag_info.tag) {
+            preserved_text_path = true;
+        }
+        if preserve_space_el(&tag) {
             preserved_text_path = true;
         }
 
@@ -53,13 +58,14 @@ impl TagInfo {
         }
 
         let mut indent_count = prev_tag_info.indent_count;
-        if !void_el(tag) && indented_el(tag) {
+        if indented_el(tag) {
             indent_count += 1;
         }
 
         TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
+            has_text: false,
             indent_count: indent_count, // find out if tabable do a +1 effort here
             void_path: void_path,
             preserved_text_path: preserved_text_path,
