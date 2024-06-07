@@ -2,7 +2,7 @@ use parsley::{get_text_from_step, parse_str, Step, StepKind};
 use txml::Template;
 
 mod tag_info;
-use tag_info::{indented_el, void_el, TagInfo};
+use tag_info::{indented_el, preserve_space_el, void_el, TagInfo};
 
 pub mod sieves;
 use sieves::Sieve;
@@ -149,9 +149,15 @@ fn pop_element(
         if tag_info.namespace == "html" && void_el(tag) {
             results.push('>');
         } else {
-            if sieve.respect_indentation() && !tag_info.preserved_text_path && tag_info.has_text {
+            println!("pop el\n{:?}", tag_info);
+
+            if sieve.respect_indentation()
+                && !tag_info.preserved_text_path
+                && !preserve_space_el(&tag_info.tag)
+                && tag_info.has_text
+            {
                 results.push_str("\n");
-                results.push_str(&"\t".repeat(tag_info.indent_count))
+                results.push_str(&"\t".repeat(tag_info.indent_count));
             }
 
             results.push_str("</");
@@ -176,12 +182,12 @@ fn push_text(
     let tag_info = match stack.last_mut() {
         Some(curr) => curr,
         _ => {
-            for line in text.split("\n") {
-                let trimmed = line.trim();
-                if trimmed.len() == 0 {
+            for line in text.trim().split("\n") {
+                if line.len() == 0 {
                     continue;
                 }
-                results.push_str(trimmed);
+                results.push('\n');
+                results.push_str(line.trim());
             }
             return;
         }
@@ -191,16 +197,17 @@ fn push_text(
         return;
     }
 
-    if !sieve.respect_indentation() || tag_info.preserved_text_path {
+    tag_info.has_text = true;
+
+    if !sieve.respect_indentation()
+        || tag_info.preserved_text_path
+        || preserve_space_el(&tag_info.tag)
+    {
         results.push_str(text);
         return;
     }
 
     let trimmed = text.trim();
-
-    if trimmed.len() != text.len() {
-        tag_info.has_text = true;
-    }
     for line in trimmed.split("\n") {
         if line.len() == 0 {
             continue;
@@ -217,11 +224,13 @@ fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, 
         _ => return,
     };
 
-    if !(tag_info.banned_path || tag_info.void_path) {
-        let attr = get_text_from_step(template_str, &step);
-        results.push(' ');
-        results.push_str(attr);
+    if tag_info.banned_path || tag_info.void_path {
+        return;
     }
+
+    let attr = get_text_from_step(template_str, &step);
+    results.push(' ');
+    results.push_str(attr);
 }
 
 fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: Step) {
@@ -230,12 +239,14 @@ fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: 
         _ => return,
     };
 
-    if !(tag_info.banned_path || tag_info.void_path) {
-        let val = get_text_from_step(template_str, &step);
-        results.push_str("=\"");
-        results.push_str(val);
-        results.push('"');
+    if tag_info.banned_path || tag_info.void_path {
+        return;
     }
+
+    let val = get_text_from_step(template_str, &step);
+    results.push_str("=\"");
+    results.push_str(val);
+    results.push('"');
 }
 
 fn add_attr_value_unquoted(
@@ -249,11 +260,13 @@ fn add_attr_value_unquoted(
         _ => return,
     };
 
-    if !(tag_info.banned_path || tag_info.void_path) {
-        let val = get_text_from_step(template_str, &step);
-        results.push('=');
-        results.push_str(val);
+    if tag_info.banned_path || tag_info.void_path {
+        return;
     }
+
+    let val = get_text_from_step(template_str, &step);
+    results.push('=');
+    results.push_str(val);
 }
 
 // injections
@@ -268,8 +281,10 @@ fn push_injection_kind(
         _ => return,
     };
 
-    if !(tag_info.banned_path || tag_info.void_path) {
-        let glyph = get_text_from_step(template_str, &step);
-        results.push_str(glyph);
+    if tag_info.banned_path || tag_info.void_path {
+        return;
     }
+
+    let glyph = get_text_from_step(template_str, &step);
+    results.push_str(glyph);
 }

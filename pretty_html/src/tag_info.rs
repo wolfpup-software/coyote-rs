@@ -2,6 +2,7 @@
 
 use crate::sieves::SafetySieve;
 
+#[derive(Debug)]
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
@@ -25,7 +26,7 @@ impl TagInfo {
             tag: tag.to_string(),
             has_text: false,
             indent_count: 0,
-            void_path: void_el(tag),
+            void_path: false,
             preserved_text_path: false,
             banned_path: sieve.banned(tag),
         }
@@ -47,9 +48,9 @@ impl TagInfo {
         if preserve_space_el(&prev_tag_info.tag) {
             preserved_text_path = true;
         }
-        if preserve_space_el(&tag) {
-            preserved_text_path = true;
-        }
+        // if preserve_space_el(&tag) {
+        //     preserved_text_path = true;
+        // }
 
         // immediately ban elements
         let mut banned_path = prev_tag_info.banned_path;
@@ -58,7 +59,7 @@ impl TagInfo {
         }
 
         let mut indent_count = prev_tag_info.indent_count;
-        if indented_el(tag) {
+        if indented_el(tag) || void_el(tag) {
             indent_count += 1;
         }
 
@@ -105,7 +106,7 @@ pub fn void_el(tag: &str) -> bool {
     }
 }
 
-fn preserve_space_el(tag: &str) -> bool {
+pub fn preserve_space_el(tag: &str) -> bool {
     return tag == "pre";
 }
 
