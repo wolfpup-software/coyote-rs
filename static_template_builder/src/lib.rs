@@ -37,21 +37,17 @@ pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String
     while let Some(mut stack_bit) = stack.pop() {
         match stack_bit {
             // text or list
-            StackBit::Cmpnt(cmpnt) => {
-                match cmpnt {
-                    Component::Text(text) => templ_str.push_str(text),
-                    // break lists into smaller chuncks
-                    Component::List(list) => {
-                        for cmpnt in list.iter().rev() {
-                            let bit;
-                            (builder, bit) = get_stackable(builder, cmpnt);
-                            stack.push(bit);
-                        }
+            StackBit::Cmpnt(cmpnt) => match cmpnt {
+                Component::Text(text) => templ_str.push_str(text),
+                Component::List(list) => {
+                    for cmpnt in list.iter().rev() {
+                        let bit;
+                        (builder, bit) = get_stackable(builder, cmpnt);
+                        stack.push(bit);
                     }
-                    _ => {}
                 }
-            }
-            // template    akin to (&componet, &results, &mut bit)
+                _ => {}
+            },
             StackBit::Tmpl(component, ref results, ref mut bit) => {
                 // templates will be N + 1
                 // injections will be length N
@@ -75,9 +71,6 @@ pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String
                             }
                             // queue descendant injections to queue
                             StepKind::DescendantInjection => {
-                                // push previous
-
-                                // special!
                                 // push template back and bail early
                                 stack.push(stack_bit);
 

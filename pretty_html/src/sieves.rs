@@ -1,8 +1,12 @@
 use parsley::ParsleySieve;
 
 pub trait SafetySieve {
-    fn banned(&self, tag: &str) -> bool;
     fn respect_indentation(&self) -> bool;
+    fn banned(&self, tag: &str) -> bool;
+    fn void_el(&self, tag: &str) -> bool;
+    fn namespace_el(&self, tag: &str) -> bool;
+    fn preserved_text_el(&self, tag: &str) -> bool;
+    fn indented_el(&self, tag: &str) -> bool;
 }
 
 // make a "true false"
@@ -37,6 +41,18 @@ impl SafetySieve for HtmlServerSieve {
     fn banned(&self, tag: &str) -> bool {
         false
     }
+    fn void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+    fn namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+    fn preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+    fn indented_el(&self, tag: &str) -> bool {
+        is_indented_el(tag)
+    }
 }
 
 pub struct HtmlClientSieve {}
@@ -70,6 +86,18 @@ impl SafetySieve for HtmlClientSieve {
             _ => false,
         }
     }
+    fn void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+    fn namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+    fn preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+    fn indented_el(&self, tag: &str) -> bool {
+        is_indented_el(tag)
+    }
 }
 
 pub struct HtmlWebComponentSieve {}
@@ -102,14 +130,98 @@ impl SafetySieve for HtmlWebComponentSieve {
             _ => false,
         }
     }
+    fn void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+    fn namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+    fn preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+    fn indented_el(&self, tag: &str) -> bool {
+        is_indented_el(tag)
+    }
 }
 
-fn namespace_el(tag: &str) -> bool {
+fn is_void_el(tag: &str) -> bool {
+    match tag {
+        "!DOCTYPE" => true,
+        "!--" => true,
+        "area" => true,
+        "base" => true,
+        "br" => true,
+        "col" => true,
+        "embed" => true,
+        "hr" => true,
+        "img" => true,
+        "input" => true,
+        "link" => true,
+        "meta" => true,
+        "param" => true,
+        "source" => true,
+        "track" => true,
+        "wbr" => true,
+        _ => false,
+    }
+}
+
+fn is_namespace_el(tag: &str) -> bool {
     match tag {
         "html" => true,
         "svg" => true,
         "math" => true,
         _ => false,
+    }
+}
+
+pub fn is_preserved_text_el(tag: &str) -> bool {
+    return tag == "pre";
+}
+
+pub fn is_indented_el(tag: &str) -> bool {
+    match tag {
+        "a" => false,
+        "abbr" => false,
+        "b" => false,
+        "bdi" => false,
+        "bdo" => false,
+        "cite" => false,
+        "code" => false,
+        "data" => false,
+        "dfn" => false,
+        "em" => false,
+        "i" => false,
+        "kbd" => false,
+        "mark" => false,
+        "q" => false,
+        "rp" => false,
+        "rt" => false,
+        "ruby" => false,
+        "s" => false,
+        "samp" => false,
+        "small" => false,
+        "span" => false,
+        "strong" => false,
+        "sub" => false,
+        "sup" => false,
+        "time" => false,
+        "u" => false,
+        "var" => false,
+        "wbr" => false,
+        "area" => false,
+        "audio" => false,
+        "img" => false,
+        "map" => false,
+        "track" => false,
+        "video" => false,
+        "embed" => false,
+        "iframe" => false,
+        "object" => false,
+        "picture" => false,
+        "portal" => false,
+        "source" => false,
+        _ => true,
     }
 }
 
@@ -128,7 +240,7 @@ fn is_html_element(tag: &str) -> bool {
         "address" => true,
         "article" => true,
         "aside" => true,
-        "footer" => true,
+        "fo_eloter" => true,
         "header" => true,
         "h1" => true,
         "h2" => true,
@@ -163,7 +275,7 @@ fn is_html_element(tag: &str) -> bool {
         "bdi" => true,
         "bdo" => true,
         "cite" => true,
-        "code" => true,
+        "co_elde" => true,
         "data" => true,
         "dfn" => true,
         "em" => true,

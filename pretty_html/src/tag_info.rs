@@ -8,6 +8,9 @@ pub struct TagInfo {
     pub tag: String,
     pub has_text: bool,
     pub indent_count: usize,
+    pub void_el: bool,
+    pub preserved_text_el: bool,
+
     pub void_path: bool,
     pub preserved_text_path: bool,
     pub banned_path: bool,
@@ -26,6 +29,8 @@ impl TagInfo {
             tag: tag.to_string(),
             has_text: false,
             indent_count: 0,
+            void_el: sieve.void_el(tag),
+            preserved_text_el: sieve.preserved_text_el(tag),
             void_path: false,
             preserved_text_path: false,
             banned_path: sieve.banned(tag),
@@ -39,18 +44,15 @@ impl TagInfo {
         }
 
         let mut void_path = prev_tag_info.void_path;
-        if void_el(&prev_tag_info.tag) {
+        if sieve.void_el(&prev_tag_info.tag) {
             void_path = true;
         }
 
         // preserved text happends _after_ tag, so only if prev tag is "pre"
         let mut preserved_text_path = prev_tag_info.preserved_text_path;
-        if preserve_space_el(&prev_tag_info.tag) {
+        if sieve.preserved_text_el(&prev_tag_info.tag) {
             preserved_text_path = true;
         }
-        // if preserve_space_el(&tag) {
-        //     preserved_text_path = true;
-        // }
 
         // immediately ban elements
         let mut banned_path = prev_tag_info.banned_path;
@@ -58,8 +60,9 @@ impl TagInfo {
             banned_path = true;
         }
 
+        let void_el = sieve.void_el(tag);
         let mut indent_count = prev_tag_info.indent_count;
-        if indented_el(tag) || void_el(tag) {
+        if void_el || indented_el(tag) {
             indent_count += 1;
         }
 
@@ -67,7 +70,9 @@ impl TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
             has_text: false,
-            indent_count: indent_count, // find out if tabable do a +1 effort here
+            indent_count: indent_count,
+            void_el: void_el,
+            preserved_text_el: sieve.preserved_text_el(tag),
             void_path: void_path,
             preserved_text_path: preserved_text_path,
             banned_path: banned_path,
@@ -80,28 +85,6 @@ fn namespace_el(tag: &str) -> bool {
         "html" => true,
         "svg" => true,
         "math" => true,
-        _ => false,
-    }
-}
-
-pub fn void_el(tag: &str) -> bool {
-    match tag {
-        "!DOCTYPE" => true,
-        "!--" => true,
-        "area" => true,
-        "base" => true,
-        "br" => true,
-        "col" => true,
-        "embed" => true,
-        "hr" => true,
-        "img" => true,
-        "input" => true,
-        "link" => true,
-        "meta" => true,
-        "param" => true,
-        "source" => true,
-        "track" => true,
-        "wbr" => true,
         _ => false,
     }
 }

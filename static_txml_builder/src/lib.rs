@@ -53,7 +53,6 @@ fn push_step(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     }
 }
 
-// template strs
 fn push_element(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     let tag = get_text_from_step(template_str, &step);
 
@@ -119,7 +118,6 @@ fn push_text(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     }
 }
 
-// injections
 fn push_attr_map_injection(results: &mut TxmlBuilderResults) {
     results.strs.push("".to_string());
     results.injs.push(StepKind::AttrMapInjection);
