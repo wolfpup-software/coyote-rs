@@ -51,8 +51,12 @@ fn push_element(
     step: Step,
 ) {
     let tag = get_text_from_step(template_str, &step);
+
     let tag_info = match stack.last_mut() {
-        Some(prev_tag_info) => TagInfo::from(sieve, prev_tag_info, tag),
+        Some(prev_tag_info) => {
+            prev_tag_info.last_descendant_tag = tag.to_string();
+            TagInfo::from(sieve, prev_tag_info, tag)
+        }
         _ => TagInfo::new(sieve, tag),
     };
 
@@ -61,17 +65,17 @@ fn push_element(
         return;
     }
 
-    if tag_info.indented_el && !tag_info.preserved_text_path && sieve.respect_indentation() {
-        // EDGE CASE, no \n at start of document
-        if stack.len() > 0 {
-            results.push('\n');
-        }
-        results.push_str(&"\t".repeat(tag_info.indent_count));
-    }
+    // if tag_info.indented_el && !tag_info.preserved_text_path && sieve.respect_indentation() {
+    //     // EDGE CASE, no \n at start of document
+    //     if stack.len() > 0 {
+    //         results.push('\n');
+    //     }
+    //     results.push_str(&"\t".repeat(tag_info.indent_count));
+    // }
 
-    if !tag_info.indented_el {
-        results.push(' ');
-    }
+    // if !tag_info.indented_el {
+    //     results.push(' ');
+    // }
 
     results.push('<');
     results.push_str(tag);
@@ -97,15 +101,18 @@ fn close_element(
         results.push_str(">");
     }
 
-    if tag_info.indented_el && tag_info.namespace == "html" && tag_info.void_el {
-        // EDGE CASE, void elements at start of document
-        if !tag_info.has_text
-            && tag_info.indented_el
-            && sieve.respect_indentation()
-            && stack_len < 2
-        {
-            results.push_str("\n");
-        }
+    // if tag_info.indented_el && tag_info.namespace == "html" && tag_info.void_el {
+    //     // EDGE CASE, void elements at start of document
+    //     if !tag_info.has_text
+    //         && tag_info.indented_el
+    //         && sieve.respect_indentation()
+    //         && stack_len < 2
+    //     {
+    //         results.push_str("\n");
+    //     }
+    //     stack.pop();
+    // }
+    if tag_info.namespace == "html" && tag_info.void_el {
         stack.pop();
     }
 }
@@ -127,6 +134,7 @@ fn close_empty_element(
         return;
     }
 
+    // svg and mathml elements can self close
     if tag_info.namespace != "html" {
         results.push_str("/>");
     } else {
@@ -165,23 +173,23 @@ fn pop_element(
     if tag_info.namespace == "html" && tag_info.void_el {
         results.push('>');
     } else {
-        if tag_info.indented_el
-            && tag_info.has_text
-            && !tag_info.preserved_text_path
-            && sieve.respect_indentation()
-            && !tag_info.preserved_text_el
-        {
-            results.push_str("\n");
-            results.push_str(&"\t".repeat(tag_info.indent_count));
-        }
+        // if tag_info.indented_el
+        //     && tag_info.has_text
+        //     && !tag_info.preserved_text_path
+        //     && sieve.respect_indentation()
+        //     && !tag_info.preserved_text_el
+        // {
+        //     results.push_str("\n");
+        //     results.push_str(&"\t".repeat(tag_info.indent_count));
+        // }
 
         results.push_str("</");
         results.push_str(tag);
         results.push('>');
 
-        if !tag_info.indented_el {
-            results.push_str(" ");
-        }
+        // if !tag_info.indented_el {
+        //     results.push_str(" ");
+        // }
     }
 
     stack.pop();
@@ -219,26 +227,30 @@ fn push_text(
         return;
     }
 
-    let trimmed = text.trim();
-    for (index, line) in trimmed.split("\n").enumerate() {
+    let mut trimmed_text = "".to_string();
+    for (index, line) in text.split("\n").enumerate() {
         let trimmed_line = line.trim();
         if trimmed_line.len() == 0 {
             continue;
         }
 
-        if tag_info.indented_el {
-            if sieve.respect_indentation() {
-                results.push('\n');
-                results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-            } else {
-                if index > 0 {
-                    results.push(' ');
-                }
-            }
-        }
+        // if tag_info.indented_el {
+        //     if sieve.respect_indentation() {
+        //         results.push('\n');
+        //         results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+        //     } else {
+        //         if index > 0 {
+        //             results.push(' ');
+        //         }
+        //     }
+        // }
 
-        results.push_str(trimmed_line);
+        trimmed_text.push_str(trimmed_line);
+    }
+
+    if trimmed_text.len() > 0 {
         tag_info.has_text = true;
+        results.push_str(&trimmed_text);
     }
 }
 
