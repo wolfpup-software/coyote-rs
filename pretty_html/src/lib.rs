@@ -169,7 +169,7 @@ fn pop_element(
             && tag_info.has_text
             && !tag_info.preserved_text_path
             && sieve.respect_indentation()
-            && !sieve.preserved_text_el(&tag_info.tag)
+            && !tag_info.preserved_text_el
         {
             results.push_str("\n");
             results.push_str(&"\t".repeat(tag_info.indent_count));
@@ -213,9 +213,8 @@ fn push_text(
         return;
     }
 
-    if tag_info.preserved_text_path || sieve.preserved_text_el(&tag_info.tag) {
+    if tag_info.preserved_text_path || tag_info.preserved_text_el {
         tag_info.has_text = true;
-
         results.push_str(text);
         return;
     }
