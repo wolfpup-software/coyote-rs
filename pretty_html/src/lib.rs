@@ -65,13 +65,14 @@ fn push_element(
         return;
     }
 
-    // if tag_info.indented_el && !tag_info.preserved_text_path && sieve.respect_indentation() {
-    //     // EDGE CASE, no \n at start of document
-    //     if stack.len() > 0 {
-    //         results.push('\n');
-    //     }
-    //     results.push_str(&"\t".repeat(tag_info.indent_count));
-    // }
+    if tag_info.indented_el && !tag_info.preserved_text_path && sieve.respect_indentation() {
+        //     // EDGE CASE, no \n at start of document
+        //     if stack.len() > 0 {
+        // results.push('\n');
+        //     }
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+    }
 
     // if !tag_info.indented_el {
     //     results.push(' ');
@@ -172,25 +173,22 @@ fn pop_element(
 
     if tag_info.namespace == "html" && tag_info.void_el {
         results.push('>');
-    } else {
-        // if tag_info.indented_el
-        //     && tag_info.has_text
-        //     && !tag_info.preserved_text_path
-        //     && sieve.respect_indentation()
-        //     && !tag_info.preserved_text_el
-        // {
-        //     results.push_str("\n");
-        //     results.push_str(&"\t".repeat(tag_info.indent_count));
-        // }
-
-        results.push_str("</");
-        results.push_str(tag);
-        results.push('>');
-
-        // if !tag_info.indented_el {
-        //     results.push_str(" ");
-        // }
+        stack.pop();
+        return;
     }
+
+    if tag_info.indented_el
+        && !tag_info.preserved_text_el
+        && (tag_info.has_text || tag_info.last_descendant_tag != "")
+        && sieve.respect_indentation()
+    {
+        results.push_str("\n");
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+    }
+
+    results.push_str("</");
+    results.push_str(tag);
+    results.push('>');
 
     stack.pop();
 }
@@ -228,22 +226,16 @@ fn push_text(
     }
 
     let mut trimmed_text = "".to_string();
-    for (index, line) in text.split("\n").enumerate() {
+    for line in text.split("\n") {
         let trimmed_line = line.trim();
         if trimmed_line.len() == 0 {
             continue;
         }
 
-        // if tag_info.indented_el {
-        //     if sieve.respect_indentation() {
-        //         results.push('\n');
-        //         results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-        //     } else {
-        //         if index > 0 {
-        //             results.push(' ');
-        //         }
-        //     }
-        // }
+        if tag_info.indented_el && sieve.respect_indentation() {
+            trimmed_text.push('\n');
+            trimmed_text.push_str(&"\t".repeat(tag_info.indent_count + 1));
+        }
 
         trimmed_text.push_str(trimmed_line);
     }
