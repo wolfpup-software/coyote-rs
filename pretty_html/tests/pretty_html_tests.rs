@@ -81,3 +81,49 @@ fn test_pretty_html_web_component() {
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
 }
+
+#[test]
+fn test_pretty_html_without_indents_server() {
+    let template = "        <!DOCTYPE>
+    <html>
+    <head>
+
+    </head>
+        <body>
+            <article>
+                You're a <span>boy kisser</span> aren't you?
+                Click <a>here</a> and go somewhere else.
+            </article>
+            <footer/>
+        </body>
+</html>";
+
+    let expected =
+    "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick <a>here</a> and go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
+    let sieve = HtmlServerSieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
+fn test_pretty_html_without_indents_client() {
+    let template = "        <!DOCTYPE>
+    <html>
+    <head>
+
+    </head>
+        <body>
+            <article>
+                You're a <span>boy kisser</span> aren't you?
+                Click <a>here</a> and go somewhere else.
+            </article>
+            <footer/>
+        </body>
+</html>";
+
+    let expected =
+        "<!DOCTYPE><html><head></head><body><article>You're a <span>boy kisser</span> aren't you? Click <a>here</a> and go somewhere else.</article><footer></footer></body></html>";
+    let sieve = HtmlClientSieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
