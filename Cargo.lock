@@ -11,15 +11,6 @@ name = "pretty_html"
 version = "0.1.0"
 dependencies = [
  "parsley",
- "pretty_parse",
- "txml",
-]
-
-[[package]]
-name = "pretty_parse"
-version = "0.1.0"
-dependencies = [
- "parsley",
  "txml",
 ]
 

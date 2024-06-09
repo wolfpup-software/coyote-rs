@@ -1,4 +1,4 @@
-use parsley::{get_text_from_step, parse_str, Step, StepKind};
+use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
 use txml::Template;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -23,12 +23,12 @@ impl TxmlBuilder {
         TxmlBuilder {}
     }
 
-    pub fn build(&self, template: &Template) -> TxmlBuilderResults {
+    pub fn build(&self, template_str: &str) -> TxmlBuilderResults {
         // check for already built results
         let mut results = TxmlBuilderResults::new();
 
-        for step in parse_str(&template.template_str, StepKind::Initial) {
-            push_step(&mut results, &template.template_str, step);
+        for step in parse_template_str(template_str, StepKind::Initial) {
+            push_step(&mut results, template_str, step);
         }
 
         results
@@ -53,7 +53,6 @@ fn push_step(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     }
 }
 
-// template strs
 fn push_element(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     let tag = get_text_from_step(template_str, &step);
 
@@ -119,7 +118,6 @@ fn push_text(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     }
 }
 
-// injections
 fn push_attr_map_injection(results: &mut TxmlBuilderResults) {
     results.strs.push("".to_string());
     results.injs.push(StepKind::AttrMapInjection);

@@ -1,8 +1,12 @@
-use pretty_parse::ParsleySieve;
+use parsley::ParsleySieve;
 
 pub trait SafetySieve {
-    fn banned(&self, tag: &str) -> bool;
     fn respect_indentation(&self) -> bool;
+    fn banned(&self, tag: &str) -> bool;
+    fn void_el(&self, tag: &str) -> bool;
+    fn namespace_el(&self, tag: &str) -> bool;
+    fn preserved_text_el(&self, tag: &str) -> bool;
+    fn indented_el(&self, tag: &str) -> bool;
 }
 
 // make a "true false"
@@ -11,6 +15,14 @@ pub trait SafetySieve {
 pub trait Sieve: ParsleySieve + SafetySieve {}
 
 pub struct HtmlServerSieve {}
+
+impl HtmlServerSieve {
+    pub fn new() -> HtmlServerSieve {
+        HtmlServerSieve {}
+    }
+}
+
+impl Sieve for HtmlServerSieve {}
 
 impl ParsleySieve for HtmlServerSieve {
     fn alt_text(&self, tag: &str) -> bool {
@@ -29,9 +41,29 @@ impl SafetySieve for HtmlServerSieve {
     fn banned(&self, tag: &str) -> bool {
         false
     }
+    fn void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+    fn namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+    fn preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+    fn indented_el(&self, tag: &str) -> bool {
+        is_indented_el(tag)
+    }
 }
 
 pub struct HtmlClientSieve {}
+
+impl HtmlClientSieve {
+    pub fn new() -> HtmlClientSieve {
+        HtmlClientSieve {}
+    }
+}
+
+impl Sieve for HtmlClientSieve {}
 
 impl ParsleySieve for HtmlClientSieve {
     fn alt_text(&self, tag: &str) -> bool {
@@ -54,9 +86,29 @@ impl SafetySieve for HtmlClientSieve {
             _ => false,
         }
     }
+    fn void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+    fn namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+    fn preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+    fn indented_el(&self, tag: &str) -> bool {
+        is_indented_el(tag)
+    }
 }
 
 pub struct HtmlWebComponentSieve {}
+
+impl HtmlWebComponentSieve {
+    pub fn new() -> HtmlWebComponentSieve {
+        HtmlWebComponentSieve {}
+    }
+}
+
+impl Sieve for HtmlWebComponentSieve {}
 
 impl ParsleySieve for HtmlWebComponentSieve {
     fn alt_text(&self, tag: &str) -> bool {
@@ -78,28 +130,98 @@ impl SafetySieve for HtmlWebComponentSieve {
             _ => false,
         }
     }
+    fn void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+    fn namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+    fn preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+    fn indented_el(&self, tag: &str) -> bool {
+        is_indented_el(tag)
+    }
 }
 
-fn valid_el(tag: &str) -> bool {
-    // len greater than 0
-    // starts with alpha numberic
-    // no spaces
-    true
-}
-
-fn comment_el(tag: &str) -> bool {
+fn is_void_el(tag: &str) -> bool {
     match tag {
+        "!DOCTYPE" => true,
         "!--" => true,
+        "area" => true,
+        "base" => true,
+        "br" => true,
+        "col" => true,
+        "embed" => true,
+        "hr" => true,
+        "img" => true,
+        "input" => true,
+        "link" => true,
+        "meta" => true,
+        "param" => true,
+        "source" => true,
+        "track" => true,
+        "wbr" => true,
         _ => false,
     }
 }
 
-fn namespace_el(tag: &str) -> bool {
+fn is_namespace_el(tag: &str) -> bool {
     match tag {
         "html" => true,
         "svg" => true,
         "math" => true,
         _ => false,
+    }
+}
+
+pub fn is_preserved_text_el(tag: &str) -> bool {
+    return tag == "pre";
+}
+
+pub fn is_indented_el(tag: &str) -> bool {
+    match tag {
+        "a" => false,
+        "abbr" => false,
+        "b" => false,
+        "bdi" => false,
+        "bdo" => false,
+        "cite" => false,
+        "code" => false,
+        "data" => false,
+        "dfn" => false,
+        "em" => false,
+        "i" => false,
+        "kbd" => false,
+        "mark" => false,
+        "q" => false,
+        "rp" => false,
+        "rt" => false,
+        "ruby" => false,
+        "s" => false,
+        "samp" => false,
+        "small" => false,
+        "span" => false,
+        "strong" => false,
+        "sub" => false,
+        "sup" => false,
+        "time" => false,
+        "u" => false,
+        "var" => false,
+        "wbr" => false,
+        "area" => false,
+        "audio" => false,
+        "img" => false,
+        "map" => false,
+        "track" => false,
+        "video" => false,
+        "embed" => false,
+        "iframe" => false,
+        "object" => false,
+        "picture" => false,
+        "portal" => false,
+        "source" => false,
+        _ => true,
     }
 }
 
@@ -118,7 +240,7 @@ fn is_html_element(tag: &str) -> bool {
         "address" => true,
         "article" => true,
         "aside" => true,
-        "footer" => true,
+        "fo_eloter" => true,
         "header" => true,
         "h1" => true,
         "h2" => true,
@@ -153,7 +275,7 @@ fn is_html_element(tag: &str) -> bool {
         "bdi" => true,
         "bdo" => true,
         "cite" => true,
-        "code" => true,
+        "co_elde" => true,
         "data" => true,
         "dfn" => true,
         "em" => true,
@@ -337,79 +459,3 @@ fn is_math_element(tag: &str) -> bool {
         _ => false,
     }
 }
-
-// fn deprecated_el(tag: &str) -> bool {
-//     match tag {
-//         "acronym" => true,
-//         "big" => true,
-//         "center" => true,
-//         "content" => true,
-//         "dir" => true,
-//         "font" => true,
-//         "frame" => true,
-//         "frameset" => true,
-//         "image" => true,
-//         "marquee" => true,
-//         "menuitem" => true,
-//         "nobr" => true,
-//         "noembed" => true,
-//         "noframes" => true,
-//         "param" => true,
-//         "plaintext" => true,
-//         "rb" => true,
-//         "rtc" => true,
-//         "shadow" => true,
-//         "strike" => true,
-//         "tt" => true,
-//         "xmp" => true,
-//         _ => false,
-//     }
-// }
-
-// fn block_el(tag: &str) -> bool {
-//     match tag {
-//         "!DOCTYPE" => true,
-//         "base" => true,
-//         "link" => true,
-//         "meta" => true,
-//         "noscript" => true,
-//         "script" => true,
-//         "style" => true,
-//         "title" => true,
-//         "header" => true,
-//         "footer" => true,
-//         "article" => true,
-//         "aside" => true,
-//         "nav" => true,
-//         "section" => true,
-//         "div" => true,
-//         "h1" => true,
-//         "h2" => true,
-//         "h3" => true,
-//         "h4" => true,
-//         "h5" => true,
-//         "h6" => true,
-//         "hgroup" => true,
-//         "p" => true,
-//         "form" => true,
-//         "fieldset" => true,
-//         "button" => true,
-//         "input" => true,
-//         "label" => true,
-//         "meter" => true,
-//         "object" => true,
-//         "output" => true,
-//         "progress" => true,
-//         "select" => true,
-//         "textarea" => true,
-//         "ul" => true,
-//         "ol" => true,
-//         "li" => true,
-//         "img" => true,
-//         "video" => true,
-//         "audio" => true,
-//         "template" => true,
-//         "iframe" => true,
-//         _ => false,
-//     }
-// }

@@ -16,16 +16,18 @@ fn get_stackable(mut builder: TxmlBuilder, component: &Component) -> (TxmlBuilde
     let stack_bit = match component {
         Component::Text(text) => StackBit::Cmpnt(component),
         Component::List(list) => StackBit::Cmpnt(component),
-        Component::Tmpl(tmpl) => {
-            StackBit::Tmpl(component, builder.build(tmpl), TemplateBit { inj_index: 0 })
-        }
+        Component::Tmpl(tmpl) => StackBit::Tmpl(
+            component,
+            builder.build(&tmpl.template_str),
+            TemplateBit { inj_index: 0 },
+        ),
         _ => StackBit::None,
     };
 
     (builder, stack_bit)
 }
 
-fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
+pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     let mut templ_str = "".to_string();
 
     let sbit;
@@ -35,21 +37,17 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     while let Some(mut stack_bit) = stack.pop() {
         match stack_bit {
             // text or list
-            StackBit::Cmpnt(cmpnt) => {
-                match cmpnt {
-                    Component::Text(text) => templ_str.push_str(text),
-                    // break lists into smaller chuncks
-                    Component::List(list) => {
-                        for cmpnt in list.iter().rev() {
-                            let bit;
-                            (builder, bit) = get_stackable(builder, cmpnt);
-                            stack.push(bit);
-                        }
+            StackBit::Cmpnt(cmpnt) => match cmpnt {
+                Component::Text(text) => templ_str.push_str(text),
+                Component::List(list) => {
+                    for cmpnt in list.iter().rev() {
+                        let bit;
+                        (builder, bit) = get_stackable(builder, cmpnt);
+                        stack.push(bit);
                     }
-                    _ => {}
                 }
-            }
-            // template    akin to (&componet, &results, &mut bit)
+                _ => {}
+            },
             StackBit::Tmpl(component, ref results, ref mut bit) => {
                 // templates will be N + 1
                 // injections will be length N
@@ -73,14 +71,21 @@ fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
                             }
                             // queue descendant injections to queue
                             StepKind::DescendantInjection => {
-                                // push previous
+                                // push template back and bail early
                                 stack.push(stack_bit);
+
                                 let bit;
                                 (builder, bit) = get_stackable(builder, inj);
                                 stack.push(bit);
+                                continue;
                             }
                             _ => {}
                         }
+                    }
+
+                    // don't forget the last part of the templates!
+                    if index < results.strs.len() {
+                        stack.push(stack_bit);
                     }
                 }
             }

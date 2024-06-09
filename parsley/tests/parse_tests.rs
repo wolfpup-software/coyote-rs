@@ -1,11 +1,11 @@
-use parsley::{parse_str, Results, Step, StepKind};
+use parsley::{parse_template_str, Results, Step, StepKind};
 
 /** DX **/
 // this test will fail to build if `clone` or `default formatter` is not available
 #[test]
 fn confirm_clone_and_debug() {
     const template_str: &str = "<fox>{}</fox>";
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
 
     let cloned = steps.clone();
     let debugged = println!("{:?}", cloned);
@@ -15,7 +15,7 @@ fn confirm_clone_and_debug() {
 #[test]
 fn parse_readme_example() {
     const template_str: &str = "<fox>{}</fox>";
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -76,7 +76,7 @@ fn parse_readme_example() {
 #[test]
 fn parse_text() {
     const template_str: &str = "hai :3";
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -96,7 +96,7 @@ fn parse_text() {
 #[test]
 fn parse_fragment() {
     const template_str: &str = "<>";
-    let steps = parse_str(template_str, StepKind::Text);
+    let steps = parse_template_str(template_str, StepKind::Text);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Text,
@@ -121,7 +121,7 @@ fn parse_fragment() {
 #[test]
 fn parse_close_fragment() {
     const template_str: &str = "</>";
-    let steps = parse_str(template_str, StepKind::FragmentClosed);
+    let steps = parse_template_str(template_str, StepKind::FragmentClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::FragmentClosed,
@@ -151,7 +151,7 @@ fn parse_close_fragment() {
 #[test]
 fn parse_node() {
     const template_str: &str = "<wolf>";
-    let steps = parse_str(template_str, StepKind::TailElementClosed);
+    let steps = parse_template_str(template_str, StepKind::TailElementClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::TailElementClosed,
@@ -181,7 +181,7 @@ fn parse_node() {
 #[test]
 fn parse_close_node() {
     const template_str: &str = "</wolf>";
-    let steps = parse_str(template_str, StepKind::FragmentClosed);
+    let steps = parse_template_str(template_str, StepKind::FragmentClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::FragmentClosed,
@@ -216,7 +216,7 @@ fn parse_close_node() {
 #[test]
 fn parse_void_node() {
     const template_str: &str = "<wolf/>";
-    let steps = parse_str(template_str, StepKind::TailElementClosed);
+    let steps = parse_template_str(template_str, StepKind::TailElementClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::TailElementClosed,
@@ -261,7 +261,7 @@ fn parse_all_nodes() {
     	</>
     	chase the sun
     ";
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -392,7 +392,7 @@ fn parse_all_nodes() {
 #[test]
 fn parse_attribute() {
     const template_str: &str = "<hello howdy>";
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -496,7 +496,7 @@ fn parse_multiple_attributes() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -556,7 +556,7 @@ fn parse_attribute_declaration() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -606,7 +606,7 @@ fn parse_attribute_value_unquoted() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -696,7 +696,7 @@ fn parse_multiple_attribute_value_unquoted() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -816,7 +816,7 @@ fn parse_multiple_attribute_declaration() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -936,7 +936,7 @@ fn parse_all_declarations() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -997,7 +997,7 @@ fn parse_descendant_injection() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -1077,7 +1077,7 @@ fn parse_multiple_descendant_injections() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -1122,7 +1122,7 @@ fn parse_attribute_injection() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -1207,7 +1207,7 @@ fn parse_multiple_attribute_injections() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -1360,7 +1360,7 @@ fn parse_all_injections() {
         },
     ]);
 
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
@@ -1373,7 +1373,7 @@ fn parse_a_mangled_mess() {
 clouds           big            opacity=\"0.9\"
 >
 ";
-    let steps = parse_str(template_str, StepKind::Initial);
+    let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
