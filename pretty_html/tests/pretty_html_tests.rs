@@ -5,35 +5,6 @@ use txml::{attr_val, list, text, txml, Component};
 
 #[test]
 fn test_pretty_html() {
-    let template = "
-        <!DOCTYPE>
-            <html>
-            <head>
-                <meta stuff=otherstuff>
-                <!-- sdfsdf s df sdf-->
-                <meta yo yo yo>
-            </head>
-                <body>
-                    <header>hai! :3</header>
-                    <pre>
-
-    hiiiii
-            </pre>
-                    <article></article>
-                    <footer/>
-                </body>
-        </html>
-    ";
-
-    let expected = "<!DOCTYPE>\n<html>\n\t<head>\n\t\t<meta stuff=otherstuff>\n\t\t<!-- sdfsdf s df sdf-->\n\t\t<meta yo yo yo>\n\t</head>\n\t<body>\n\t\t<header>\n\t\t\thai! :3\n\t\t</header>\n\t\t<pre>\n\n    hiiiii\n            </pre>\n\t\t<article></article>\n\t\t<footer></footer>\n\t</body>\n</html>";
-
-    let sieve = HtmlServerSieve::new();
-    let results = compose(&sieve, &template);
-    assert_eq!(expected, results);
-}
-
-#[test]
-fn test_pretty_html_client() {
     let template = "        <!DOCTYPE>
     <html>
     <head>
@@ -46,6 +17,35 @@ fn test_pretty_html_client() {
             if 2 < 3 {
                 console.log();
             }
+        </script>
+    </head>
+        <body>
+            <article></article>
+            <footer/>
+        </body>
+</html>";
+// "<!DOCTYPE>\n\t<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t\t<body>\n\t\t\t<article></article>\n\t\t\t<footer/>\n\t\t</body>\n</html>";
+    let expected =
+	"<!DOCTYPE>\n\t<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t\t<body>\n\t\t\t<article></article>\n\t\t\t<footer/>\n\t\t</body>\n</html>";
+    let sieve = HtmlServerSieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
+fn test_pretty_html_client() {
+    let template = "        <!DOCTYPE>
+    <html>
+    <head>
+        <style>
+#woof .bark {
+    color: doggo;
+}
+        </style>
+        <script>
+if 2 < 3 {
+    console.log();
+}
         </script>
     </head>
         <body>

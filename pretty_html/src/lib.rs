@@ -52,12 +52,13 @@ fn push_element(
 ) {
     let tag = get_text_from_step(template_str, &step);
 
-    let tag_info = match stack.last_mut() {
+    let stack_len = stack.len();
+    let (prev_tag_info_exists, tag_info) = match stack.last_mut() {
         Some(prev_tag_info) => {
             prev_tag_info.last_descendant_tag = tag.to_string();
-            TagInfo::from(sieve, prev_tag_info, tag)
+            (true, TagInfo::from(sieve, prev_tag_info, tag))
         }
-        _ => TagInfo::new(sieve, tag),
+        _ => (false, TagInfo::new(sieve, tag)),
     };
 
     if tag_info.banned_path || tag_info.void_path {
@@ -65,18 +66,24 @@ fn push_element(
         return;
     }
 
-    if tag_info.indented_el && !tag_info.preserved_text_path && sieve.respect_indentation() {
-        //     // EDGE CASE, no \n at start of document
-        //     if stack.len() > 0 {
-        // results.push('\n');
-        //     }
-        results.push('\n');
-        results.push_str(&"\t".repeat(tag_info.indent_count));
+    if sieve.respect_indentation() {
+        if tag_info.indented_el {
+            // edge case that requires reading from the results to prevent starting with \n
+            // not my favorite but works here
+            if results.len() > 0 {
+                results.push('\n');
+                results.push_str(&"\t".repeat(tag_info.indent_count));
+            }
+        } else {
+            if !tag_info.has_text {
+                results.push(' ');
+            }
+        }
+    } else {
+        if !tag_info.indented_el {
+            results.push(' ');
+        }
     }
-
-    // if !tag_info.indented_el {
-    //     results.push(' ');
-    // }
 
     results.push('<');
     results.push_str(tag);
@@ -113,6 +120,7 @@ fn close_element(
     //     }
     //     stack.pop();
     // }
+
     if tag_info.namespace == "html" && tag_info.void_el {
         stack.pop();
     }
@@ -177,13 +185,14 @@ fn pop_element(
         return;
     }
 
-    if tag_info.indented_el
-        && !tag_info.preserved_text_el
-        && (tag_info.has_text || tag_info.last_descendant_tag != "")
-        && sieve.respect_indentation()
-    {
-        results.push_str("\n");
-        results.push_str(&"\t".repeat(tag_info.indent_count));
+    if sieve.respect_indentation() {
+        if tag_info.indented_el
+            && !tag_info.preserved_text_el
+            && (tag_info.has_text || tag_info.last_descendant_tag != "")
+        {
+            results.push_str("\n");
+            results.push_str(&"\t".repeat(tag_info.indent_count));
+        }
     }
 
     results.push_str("</");
@@ -225,22 +234,50 @@ fn push_text(
         return;
     }
 
+    if sieve.alt_text(&tag_info.tag) {
+        for line in text.split("\n") {
+            if line.len() == 0 {
+                continue;
+            }
+            results.push('\n');
+            results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
+            results.push_str(line);
+        }
+        return;
+    }
+
     let mut trimmed_text = "".to_string();
-    for line in text.split("\n") {
+    for (index, line) in text.split("\n").enumerate() {
         let trimmed_line = line.trim();
         if trimmed_line.len() == 0 {
             continue;
         }
 
-        if tag_info.indented_el && sieve.respect_indentation() {
-            trimmed_text.push('\n');
-            trimmed_text.push_str(&"\t".repeat(tag_info.indent_count + 1));
+        if sieve.respect_indentation() {
+            if tag_info.indented_el && sieve.indented_el(&tag_info.last_descendant_tag) {
+                trimmed_text.push('\n');
+                trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
+            } else {
+                if index == 0 {
+                    if tag_info.has_text {
+                        trimmed_text.push(' ');
+                    }
+                } else {
+                    trimmed_text.push('\n');
+                    trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
+                }
+            }
+        } else {
+            if tag_info.has_text {
+                trimmed_text.push(' ');
+            }
         }
 
         trimmed_text.push_str(trimmed_line);
     }
 
-    if trimmed_text.len() > 0 {
+    let last_trim = trimmed_text.trim();
+    if last_trim.len() > 0 {
         tag_info.has_text = true;
         results.push_str(&trimmed_text);
     }
