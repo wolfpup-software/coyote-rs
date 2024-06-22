@@ -1,5 +1,4 @@
 use parsley::{get_text_from_step, parse_str, Step, StepKind};
-use txml::Template;
 
 mod tag_info;
 use tag_info::TagInfo;

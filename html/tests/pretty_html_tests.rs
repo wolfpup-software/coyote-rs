@@ -24,7 +24,7 @@ fn test_pretty_html() {
             <footer/>
         </body>
 </html>";
-// "<!DOCTYPE>\n\t<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t\t<body>\n\t\t\t<article></article>\n\t\t\t<footer/>\n\t\t</body>\n</html>";
+    // "<!DOCTYPE>\n\t<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t\t<body>\n\t\t\t<article></article>\n\t\t\t<footer/>\n\t\t</body>\n</html>";
     let expected =
 	"<!DOCTYPE>\n\t<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t\t<body>\n\t\t\t<article></article>\n\t\t\t<footer/>\n\t\t</body>\n</html>";
     let sieve = HtmlServerSieve::new();
