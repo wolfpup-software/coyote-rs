@@ -1,4 +1,4 @@
-# Coyote-rs
+# hxml-rs
 
 Create `XML | HTML | FRAGMENTS` from component functions in Rust!
 
@@ -7,7 +7,7 @@ Create `XML | HTML | FRAGMENTS` from component functions in Rust!
 ### Hello, world!
 
 ```rust
-use coyote::{tmpl, Component};
+use hxml::{tmpl, Component};
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", []);

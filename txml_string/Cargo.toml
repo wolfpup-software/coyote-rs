@@ -1,5 +1,5 @@
 [package]
-name = "txml_string_builder"
+name = "txml_string"
 version = "0.1.0"
 edition = "2021"
 

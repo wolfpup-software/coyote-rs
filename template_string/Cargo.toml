@@ -1,5 +1,5 @@
 [package]
-name = "template_string_builder"
+name = "template_string"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 parsley = { path = "../parsley" }
 txml = { path = "../txml" }
-static_txml_builder = { path = "../static_txml_builder" }
+txml_string = { path = "../txml_string" }
 
