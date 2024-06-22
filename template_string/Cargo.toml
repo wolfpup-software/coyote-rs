@@ -1,5 +1,5 @@
 [package]
-name = "pretty_html"
+name = "template_string_builder"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 parsley = { path = "../parsley" }
 txml = { path = "../txml" }
+static_txml_builder = { path = "../static_txml_builder" }
+

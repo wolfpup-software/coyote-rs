@@ -41,6 +41,8 @@ impl TagInfo {
     }
 
     pub fn from(sieve: &impl SafetySieve, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
+        // clone, then update values, then return
+        
         let mut namespace = prev_tag_info.namespace.clone();
         if namespace_el(tag) {
             namespace = tag.to_string();

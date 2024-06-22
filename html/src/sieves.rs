@@ -1,18 +1,10 @@
 use parsley::ParsleySieve;
-
-pub trait SafetySieve {
-    fn respect_indentation(&self) -> bool;
-    fn banned(&self, tag: &str) -> bool;
-    fn void_el(&self, tag: &str) -> bool;
-    fn namespace_el(&self, tag: &str) -> bool;
-    fn preserved_text_el(&self, tag: &str) -> bool;
-    fn indented_el(&self, tag: &str) -> bool;
-}
+use txml::Sieve;
 
 // make a "true false"
 // true -> creating readable static files
 // false -> creating server generated files
-pub trait Sieve: ParsleySieve + SafetySieve {}
+pub trait Sieve: ParsleySieve + Sieve {}
 
 pub struct HtmlServerSieve {}
 
@@ -34,11 +26,11 @@ impl ParsleySieve for HtmlServerSieve {
     }
 }
 
-impl SafetySieve for HtmlServerSieve {
+impl TxmlSieve for HtmlServerSieve {
     fn respect_indentation(&self) -> bool {
         true
     }
-    fn banned(&self, tag: &str) -> bool {
+    fn banned_el(&self, tag: &str) -> bool {
         false
     }
     fn void_el(&self, tag: &str) -> bool {
@@ -50,8 +42,8 @@ impl SafetySieve for HtmlServerSieve {
     fn preserved_text_el(&self, tag: &str) -> bool {
         is_preserved_text_el(tag)
     }
-    fn indented_el(&self, tag: &str) -> bool {
-        is_indented_el(tag)
+    fn inline_el(&self, tag: &str) -> bool {
+        is_inline_el(tag)
     }
 }
 
@@ -75,11 +67,11 @@ impl ParsleySieve for HtmlClientSieve {
     }
 }
 
-impl SafetySieve for HtmlClientSieve {
+impl TxmlSieve for HtmlClientSieve {
     fn respect_indentation(&self) -> bool {
         false
     }
-    fn banned(&self, tag: &str) -> bool {
+    fn banned_el(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
             "style" => true,
@@ -95,8 +87,8 @@ impl SafetySieve for HtmlClientSieve {
     fn preserved_text_el(&self, tag: &str) -> bool {
         is_preserved_text_el(tag)
     }
-    fn indented_el(&self, tag: &str) -> bool {
-        is_indented_el(tag)
+    fn inline_el(&self, tag: &str) -> bool {
+        is_inline_el(tag)
     }
 }
 
@@ -120,11 +112,11 @@ impl ParsleySieve for HtmlWebComponentSieve {
     }
 }
 
-impl SafetySieve for HtmlWebComponentSieve {
+impl TxmlSieve for HtmlWebComponentSieve {
     fn respect_indentation(&self) -> bool {
         false
     }
-    fn banned(&self, tag: &str) -> bool {
+    fn banned_el(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
             _ => false,
@@ -139,8 +131,8 @@ impl SafetySieve for HtmlWebComponentSieve {
     fn preserved_text_el(&self, tag: &str) -> bool {
         is_preserved_text_el(tag)
     }
-    fn indented_el(&self, tag: &str) -> bool {
-        is_indented_el(tag)
+    fn inline_el(&self, tag: &str) -> bool {
+        is_inline_el(tag)
     }
 }
 
@@ -179,49 +171,49 @@ pub fn is_preserved_text_el(tag: &str) -> bool {
     return tag == "pre";
 }
 
-pub fn is_indented_el(tag: &str) -> bool {
+pub fn is_inline_el(tag: &str) -> bool {
     match tag {
-        "a" => false,
-        "abbr" => false,
-        "b" => false,
-        "bdi" => false,
-        "bdo" => false,
-        "cite" => false,
-        "code" => false,
-        "data" => false,
-        "dfn" => false,
-        "em" => false,
-        "i" => false,
-        "kbd" => false,
-        "mark" => false,
-        "q" => false,
-        "rp" => false,
-        "rt" => false,
-        "ruby" => false,
-        "s" => false,
-        "samp" => false,
-        "small" => false,
-        "span" => false,
-        "strong" => false,
-        "sub" => false,
-        "sup" => false,
-        "time" => false,
-        "u" => false,
-        "var" => false,
-        "wbr" => false,
-        "area" => false,
-        "audio" => false,
-        "img" => false,
-        "map" => false,
-        "track" => false,
-        "video" => false,
-        "embed" => false,
-        "iframe" => false,
-        "object" => false,
-        "picture" => false,
-        "portal" => false,
-        "source" => false,
-        _ => true,
+        "a" => true,
+        "abbr" => true,
+        "b" => true,
+        "bdi" => true,
+        "bdo" => true,
+        "cite" => true,
+        "code" => true,
+        "data" => true,
+        "dfn" => true,
+        "em" => true,
+        "i" => true,
+        "kbd" => true,
+        "mark" => true,
+        "q" => true,
+        "rp" => true,
+        "rt" => true,
+        "ruby" => true,
+        "s" => true,
+        "samp" => true,
+        "small" => true,
+        "span" => true,
+        "strong" => true,
+        "sub" => true,
+        "sup" => true,
+        "time" => true,
+        "u" => true,
+        "var" => true,
+        "wbr" => true,
+        "area" => true,
+        "audio" => true,
+        "img" => true,
+        "map" => true,
+        "track" => true,
+        "video" => true,
+        "embed" => true,
+        "iframe" => true,
+        "object" => true,
+        "picture" => true,
+        "portal" => true,
+        "source" => true,
+        _ => false,
     }
 }
 

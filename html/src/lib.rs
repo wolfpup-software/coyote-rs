@@ -67,7 +67,7 @@ fn push_element(
     }
 
     if sieve.respect_indentation() {
-        if tag_info.indented_el {
+        if !tag_info.inline_el {
             // edge case that requires reading from the results to prevent starting with \n
             // not my favorite but works here
             if results.len() > 0 {
@@ -80,7 +80,7 @@ fn push_element(
             }
         }
     } else {
-        if !tag_info.indented_el {
+        if tag_info.inline_el {
             results.push(' ');
         }
     }
@@ -109,10 +109,10 @@ fn close_element(
         results.push_str(">");
     }
 
-    // if tag_info.indented_el && tag_info.namespace == "html" && tag_info.void_el {
+    // if !tag_info.inline_el && tag_info.namespace == "html" && tag_info.void_el {
     //     // EDGE CASE, void elements at start of document
     //     if !tag_info.has_text
-    //         && tag_info.indented_el
+    //         && !tag_info.inline_el
     //         && sieve.respect_indentation()
     //         && stack_len < 2
     //     {
@@ -186,7 +186,7 @@ fn pop_element(
     }
 
     if sieve.respect_indentation() {
-        if tag_info.indented_el
+        if !tag_info.inline_el
             && !tag_info.preserved_text_el
             && (tag_info.has_text || tag_info.last_descendant_tag != "")
         {
@@ -254,7 +254,7 @@ fn push_text(
         }
 
         if sieve.respect_indentation() {
-            if tag_info.indented_el && sieve.indented_el(&tag_info.last_descendant_tag) {
+            if !tag_info.inline_el && sieve.indented_el(&tag_info.last_descendant_tag) {
                 trimmed_text.push('\n');
                 trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
             } else {

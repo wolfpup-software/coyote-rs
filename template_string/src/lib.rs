@@ -12,21 +12,6 @@ pub enum StackBit<'a> {
     None,
 }
 
-fn get_stackable(mut builder: TxmlBuilder, component: &Component) -> (TxmlBuilder, StackBit) {
-    let stack_bit = match component {
-        Component::Text(text) => StackBit::Cmpnt(component),
-        Component::List(list) => StackBit::Cmpnt(component),
-        Component::Tmpl(tmpl) => StackBit::Tmpl(
-            component,
-            builder.build(&tmpl.template_str),
-            TemplateBit { inj_index: 0 },
-        ),
-        _ => StackBit::None,
-    };
-
-    (builder, stack_bit)
-}
-
 pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
     let mut templ_str = "".to_string();
 
@@ -94,6 +79,21 @@ pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String
     }
 
     templ_str
+}
+
+fn get_stackable(mut builder: TxmlBuilder, component: &Component) -> (TxmlBuilder, StackBit) {
+    let stack_bit = match component {
+        Component::Text(text) => StackBit::Cmpnt(component),
+        Component::List(list) => StackBit::Cmpnt(component),
+        Component::Tmpl(tmpl) => StackBit::Tmpl(
+            component,
+            builder.build(&tmpl.template_str),
+            TemplateBit { inj_index: 0 },
+        ),
+        _ => StackBit::None,
+    };
+
+    (builder, stack_bit)
 }
 
 fn add_attr_inj(mut template_str: String, component: &Component) -> String {

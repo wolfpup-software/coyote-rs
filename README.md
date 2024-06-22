@@ -1,42 +1,154 @@
-# txml-rs
+# Coyote-rs
 
-Create `XML | HTML | FRAGMENTS` from component template functions in Rust!
+Create `XML | HTML | FRAGMENTS` from component functions in Rust!
 
 ## Components
 
-### Hai :3
+### Hello, world!
 
 ```rust
-use txml::{txml, Component};
+use coyote::{tmpl, Component};
 
 fn hai() -> Component {
-    txml("<p>omgawsh hai :3</p>", []);
+    tmpl("<p>omgawsh hai :3</p>", []);
 }
 ```
 
 ### More interesting hai :3
 
 ```rust
-use txml::{Component, attr_val, list, text, txml};
+use coyote::{Component, attr_val, list, text, tmpl};
 
 fn woof() -> Component {
-    txml("<input type=submit value=\"yus -_-\">", [])
+    tmpl("<input type=submit value=\"yus -_-\">", [])
 }
 
-fn woof_woof() -> Component {
-    let descendants = list([
-        text("you're a boy kisser aren't you >:3"),
-        woof(),
-    ]);
-
+fn woof_form() -> Component {
     let attributes = list([
         attr_val("action", "/uwu"),
         attr_val("method", "post"),
     ]);
 
-    txml(
+    let descendants = list([
+        text("you're a boy kisser aren't you >:3"),
+        woof(),
+    ]);
+
+    tmpl(
         "<form {}>{}</form>",
         [attributes, descendants],
     )
 }
 ```
+
+## Syntax and grammars
+
+`Coyote` is built to be flexible. There's overlap between HTML and XML (and conveniences from JSX) but there are non-trival differences:
+* empty elements in XML can have self closing tags `<element />`
+* HTML does not have self closing tags `<element>`
+* neither has JXS fragments `</>`.
+
+`Coyote` supports all three.
+
+```rs
+    tmpl("
+        <form>
+            <p>hai?</>
+            <input type=\"submit\" />
+        </form>
+        <>
+            <p>hai!</p>
+            <ul>
+                <li>1</li>
+                <li>2</li>
+                <li>3</li>
+            </ul>
+        </>",
+        [],
+    )
+```
+
+The `tmpl()` function generates a nested Component structure. Whether empty elements or void elements are _composed_ depends on the rules of a `sieve`.
+
+## Sieves
+
+A `sieve` defines how `coyote` reacts to build steps recieved from `parsley`.
+
+The api for a `sieve` is defined as the following:
+
+```
+SafetySieve {
+    respect_indentation(): bool
+    banned_el(string): bool
+    void_el(string): bool
+    namespace_el(string): bool
+    preserved_text_el(string): bool
+    inline_el(string): bool
+}
+```
+
+And in rust:
+
+```rs
+pub trait SafetySieve {
+    fn respect_indentation(&self) -> bool;
+    fn banned_el(&self, tag: &str) -> bool;
+    fn void_el(&self, tag: &str) -> bool;
+    fn namespace_el(&self, tag: &str) -> bool;
+    fn preserved_text_el(&self, tag: &str) -> bool;
+    fn inline_el(&self, tag: &str) -> bool;
+}
+```
+
+These handful of functions help `tmxl` understand how to interpret elements in a template.
+
+SafetySieve
+* respect_indentation -> add indentation to template output
+* banned_el -> skip this element and their descendants
+* void_el -> dont add self closing tags or closing tags to this element 
+* namespace_el -> establish a new namespace for a branch of elements (ie: MathML or SVG)
+* preserved_text_el -> start a branch of elements without formating
+* inline_el -> add element and ignore indentation
+
+## Composition
+
+```rs
+use txml::TxmlBuilder
+use txml::sieves::HtmlServerSieve
+use txml::compose_static;
+use txml::pretty_html::compose;
+
+use coyote::html::{compose, Builder, Sieve};
+use mytemplates::homepage;
+
+fn main() {
+    let mut builder = TxmlBuilder::new();
+    let template = homepage();
+    let results = build_template(builder, &template);
+
+    let sieve = HtmlServerSieve::new();
+    let results = compose(&sieve, &template);
+
+    let home_page = homepage();
+    let static_template = compose(Sieve, Builder, home_page);
+}
+```
+
+
+
+```rs
+use coyote::Component;
+use coyote::html::compose;
+use coyote::html::{Builder, Sieve, ClientSieve, WebComponentSieve};
+
+use mytemplates::home_page;
+
+fn main() {
+    let homepage: Component = home_page();
+    let html: String = compose(Sieve, Builder, homepage);
+}
+```
+
+## License
+
+`Coyote-rs` is released under the BSD-3-Clause License

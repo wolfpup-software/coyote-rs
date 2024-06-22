@@ -15,6 +15,15 @@ pub struct Template {
     pub injections: Vec<Component>,
 }
 
+pub trait Sieve {
+    fn respect_indentation(&self) -> bool;
+    fn banned_el(&self, tag: &str) -> bool;
+    fn void_el(&self, tag: &str) -> bool;
+    fn namespace_el(&self, tag: &str) -> bool;
+    fn preserved_text_el(&self, tag: &str) -> bool;
+    fn inline_el(&self, tag: &str) -> bool;
+}
+
 // defacto template function
 pub fn txml<const N: usize>(template_str: &str, injections: [Component; N]) -> Component {
     Component::Tmpl(Template {
