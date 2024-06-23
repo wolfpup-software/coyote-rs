@@ -1,9 +1,6 @@
 use parsley::ParsleySieve;
 use txml::Sieve as TxmlSieve;
 
-// make a "true false"
-// true -> creating readable static files
-// false -> creating server generated files
 pub trait Sieve: ParsleySieve + TxmlSieve {}
 
 pub struct HtmlServerSieve {}
