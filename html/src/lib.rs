@@ -235,6 +235,8 @@ fn push_text(
             results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
             results.push_str(&line[common_index..].trim_right());
         }
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
         return;
     }
 
