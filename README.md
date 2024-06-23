@@ -1,6 +1,10 @@
 # hxml-rs
 
-Create `XML | HTML | FRAGMENTS` from component functions in Rust!
+Create `XML | HTML | FRAGMENTS` in Rust with component functions!
+
+## About
+
+`Coyote` helps developers create xml-like documents from function components.
 
 ## Components
 
@@ -40,35 +44,6 @@ fn woof_form() -> Component {
     )
 }
 ```
-
-## Syntax and grammars
-
-`Coyote` is built to be flexible. There's overlap between HTML and XML (and conveniences from JSX) but there are non-trival differences:
-* empty elements in XML can have self closing tags `<element />`
-* HTML does not have self closing tags `<element>`
-* neither has JXS fragments `</>`.
-
-`Coyote` supports all three.
-
-```rs
-    tmpl("
-        <form>
-            <p>hai?</>
-            <input type=\"submit\" />
-        </form>
-        <>
-            <p>hai!</p>
-            <ul>
-                <li>1</li>
-                <li>2</li>
-                <li>3</li>
-            </ul>
-        </>",
-        [],
-    )
-```
-
-The `tmpl()` function generates a nested Component structure. Whether empty elements or void elements are _composed_ depends on the rules of a `sieve`.
 
 ## Sieves
 
@@ -112,42 +87,46 @@ SafetySieve
 
 ## Composition
 
-```rs
-use txml::TxmlBuilder
-use txml::sieves::HtmlServerSieve
-use txml::compose_static;
-use txml::pretty_html::compose;
-
-use coyote::html::{compose, Builder, Sieve};
-use mytemplates::homepage;
-
-fn main() {
-    let mut builder = TxmlBuilder::new();
-    let template = homepage();
-    let results = build_template(builder, &template);
-
-    let sieve = HtmlServerSieve::new();
-    let results = compose(&sieve, &template);
-
-    let home_page = homepage();
-    let static_template = compose(Sieve, Builder, home_page);
-}
-```
-
-
+### Html
 
 ```rs
-use coyote::Component;
-use coyote::html::compose;
-use coyote::html::{Builder, Sieve, ClientSieve, WebComponentSieve};
+use coyote::html::{compose, Builder, Sieve, ClientSieve, WebComponentSieve};
 
 use mytemplates::home_page;
 
 fn main() {
-    let homepage: Component = home_page();
-    let html: String = compose(Sieve, Builder, homepage);
+    let html: String = compose(Sieve, Builder, woof_form());
 }
 ```
+
+## Syntax and grammars
+
+`Coyote` is built to be flexible. There's overlap between HTML and XML (and conveniences from JSX) but there are non-trival differences:
+* empty elements in XML can have self closing tags `<element />`
+* HTML does not have self closing tags `<element>`
+* neither has JXS fragments `</>`.
+
+`Coyote` supports all three.
+
+```rs
+    tmpl("
+        <form>
+            <p>hai?</>
+            <input type=\"submit\" />
+        </form>
+        <>
+            <p>hai!</p>
+            <ul>
+                <li>1</li>
+                <li>2</li>
+                <li>3</li>
+            </ul>
+        </>",
+        [],
+    )
+```
+
+The `tmpl()` function generates a nested Component structure. Whether empty elements or void elements are _composed_ depends on the rules of a `sieve`.
 
 ## License
 

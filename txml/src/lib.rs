@@ -25,7 +25,7 @@ pub trait Sieve {
 }
 
 // defacto template function
-pub fn txml<const N: usize>(template_str: &str, injections: [Component; N]) -> Component {
+pub fn tmpl<const N: usize>(template_str: &str, injections: [Component; N]) -> Component {
     Component::Tmpl(Template {
         template_str: template_str.to_string(),
         injections: Vec::from(injections),
