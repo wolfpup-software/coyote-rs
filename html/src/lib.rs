@@ -50,14 +50,12 @@ fn push_element(
     step: Step,
 ) {
     let tag = get_text_from_step(template_str, &step);
-
-    let stack_len = stack.len();
-    let (prev_tag_info_exists, tag_info) = match stack.last_mut() {
+    let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => {
             prev_tag_info.last_descendant_tag = tag.to_string();
-            (true, TagInfo::from(sieve, prev_tag_info, tag))
+            TagInfo::from(sieve, prev_tag_info, tag)
         }
-        _ => (false, TagInfo::new(sieve, tag)),
+        _ => TagInfo::new(sieve, tag),
     };
 
     if tag_info.banned_path || tag_info.void_path {
@@ -93,12 +91,11 @@ fn push_element(
 fn close_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
-    template_str: &str,
-    step: Step,
+    _sieve: &impl Sieve,
+    _template_str: &str,
+    _step: Step,
 ) {
     // cannot close non existant tag
-    let stack_len = stack.len();
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
@@ -108,18 +105,6 @@ fn close_element(
         results.push_str(">");
     }
 
-    // if !tag_info.inline_el && tag_info.namespace == "html" && tag_info.void_el {
-    //     // EDGE CASE, void elements at start of document
-    //     if !tag_info.has_text
-    //         && !tag_info.inline_el
-    //         && sieve.respect_indentation()
-    //         && stack_len < 2
-    //     {
-    //         results.push_str("\n");
-    //     }
-    //     stack.pop();
-    // }
-
     if tag_info.namespace == "html" && tag_info.void_el {
         stack.pop();
     }
@@ -128,9 +113,9 @@ fn close_element(
 fn close_empty_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
-    template_str: &str,
-    step: Step,
+    _sieve: &impl Sieve,
+    _template_str: &str,
+    _step: Step,
 ) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
@@ -253,7 +238,7 @@ fn push_text(
         }
 
         if sieve.respect_indentation() {
-            if !tag_info.inline_el && sieve.indented_el(&tag_info.last_descendant_tag) {
+            if !tag_info.inline_el && !sieve.inline_el(&tag_info.last_descendant_tag) {
                 trimmed_text.push('\n');
                 trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
             } else {

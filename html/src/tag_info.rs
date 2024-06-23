@@ -11,7 +11,7 @@ pub struct TagInfo {
     pub indent_count: usize,
     pub void_el: bool,
     pub preserved_text_el: bool,
-    pub indented_el: bool,
+    pub inline_el: bool,
     pub void_path: bool,
     pub preserved_text_path: bool,
     pub banned_path: bool,
@@ -21,7 +21,7 @@ pub struct TagInfo {
 impl TagInfo {
     pub fn new(sieve: &impl Sieve, tag: &str) -> TagInfo {
         let mut namespace = "html".to_string();
-        if namespace_el(tag) {
+        if sieve.namespace_el(tag) {
             namespace = tag.to_string()
         }
 
@@ -33,10 +33,10 @@ impl TagInfo {
             indent_count: 0,
             void_el: sieve.void_el(tag),
             preserved_text_el: sieve.preserved_text_el(tag),
-            indented_el: sieve.indented_el(tag),
+            inline_el: sieve.inline_el(tag),
             void_path: false,
             preserved_text_path: false,
-            banned_path: sieve.banned(tag),
+            banned_path: sieve.banned_el(tag),
         }
     }
 
@@ -44,7 +44,7 @@ impl TagInfo {
         // clone, then update values, then return
 
         let mut namespace = prev_tag_info.namespace.clone();
-        if namespace_el(tag) {
+        if sieve.namespace_el(tag) {
             namespace = tag.to_string();
         }
 
@@ -61,13 +61,13 @@ impl TagInfo {
 
         // immediately ban elements
         let mut banned_path = prev_tag_info.banned_path;
-        if sieve.banned(tag) {
+        if sieve.banned_el(tag) {
             banned_path = true;
         }
 
         let void_el = sieve.void_el(tag);
         let mut indent_count = prev_tag_info.indent_count;
-        if void_el || indented_el(tag) {
+        if void_el || !sieve.inline_el(tag) {
             indent_count += 1;
         }
 
@@ -79,69 +79,10 @@ impl TagInfo {
             indent_count: indent_count,
             void_el: void_el,
             preserved_text_el: sieve.preserved_text_el(tag),
-            indented_el: sieve.indented_el(tag),
+            inline_el: sieve.inline_el(tag),
             void_path: void_path,
             preserved_text_path: preserved_text_path,
             banned_path: banned_path,
         }
-    }
-}
-
-fn namespace_el(tag: &str) -> bool {
-    match tag {
-        "html" => true,
-        "svg" => true,
-        "math" => true,
-        _ => false,
-    }
-}
-
-pub fn preserve_space_el(tag: &str) -> bool {
-    return tag == "pre";
-}
-
-pub fn indented_el(tag: &str) -> bool {
-    match tag {
-        "a" => false,
-        "abbr" => false,
-        "b" => false,
-        "bdi" => false,
-        "bdo" => false,
-        "cite" => false,
-        "code" => false,
-        "data" => false,
-        "dfn" => false,
-        "em" => false,
-        "i" => false,
-        "kbd" => false,
-        "mark" => false,
-        "q" => false,
-        "rp" => false,
-        "rt" => false,
-        "ruby" => false,
-        "s" => false,
-        "samp" => false,
-        "small" => false,
-        "span" => false,
-        "strong" => false,
-        "sub" => false,
-        "sup" => false,
-        "time" => false,
-        "u" => false,
-        "var" => false,
-        "wbr" => false,
-        "area" => false,
-        "audio" => false,
-        "img" => false,
-        "map" => false,
-        "track" => false,
-        "video" => false,
-        "embed" => false,
-        "iframe" => false,
-        "object" => false,
-        "picture" => false,
-        "portal" => false,
-        "source" => false,
-        _ => true,
     }
 }

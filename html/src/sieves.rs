@@ -30,7 +30,7 @@ impl TxmlSieve for HtmlServerSieve {
     fn respect_indentation(&self) -> bool {
         true
     }
-    fn banned_el(&self, tag: &str) -> bool {
+    fn banned_el(&self, _tag: &str) -> bool {
         false
     }
     fn void_el(&self, tag: &str) -> bool {

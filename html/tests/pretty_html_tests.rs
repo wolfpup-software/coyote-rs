@@ -1,6 +1,6 @@
+use html::compose;
+use html::sieves::{HtmlClientSieve, HtmlServerSieve, HtmlWebComponentSieve};
 use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
-use pretty_html::compose;
-use pretty_html::sieves::{HtmlClientSieve, HtmlServerSieve, HtmlWebComponentSieve};
 use txml::{attr_val, list, text, txml, Component};
 
 #[test]
