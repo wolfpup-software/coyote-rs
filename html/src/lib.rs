@@ -219,13 +219,21 @@ fn push_text(
     }
 
     if sieve.alt_text(&tag_info.tag) {
+        // get most common white space
+        let common_index = get_most_common_space(text);
+        println!("most common index: {}", common_index);
         for line in text.split("\n") {
-            if line.len() == 0 {
+            // println!("line: \n{}", line);
+            let curr_index = get_first_char(line);
+            if curr_index == line.len() {
                 continue;
             }
+
+            println!("line: {} \n{}", line.len(), line);
+
             results.push('\n');
             results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-            results.push_str(line);
+            results.push_str(&line[common_index..].trim_right());
         }
         return;
     }
@@ -335,4 +343,70 @@ fn push_injection_kind(
 
     let glyph = get_text_from_step(template_str, &step);
     results.push_str(glyph);
+}
+
+fn get_most_common_space(text: &str) -> usize {
+    let mut longest_space_index = 0;
+
+    let mut text_itr = text.split("\n");
+    let mut prev_space = "";
+    let mut curr_space = "";
+    while let Some(chunk) = text_itr.next() {
+        println!("chunk: {}", chunk);
+        longest_space_index = get_first_char(chunk);
+        println!("longest_space: {}", longest_space_index);
+
+        if longest_space_index == chunk.len() {
+            continue;
+        }
+        prev_space = &chunk;
+        curr_space = &chunk;
+        break;
+    }
+
+    for line in text_itr {
+        prev_space = curr_space;
+
+        let curr_longest = get_first_char(line);
+        if curr_longest == line.len() {
+            continue;
+        }
+
+        curr_space = &line;
+        if prev_space == curr_space {
+            continue;
+        }
+
+        longest_space_index = get_most_common_space_two_strings(prev_space, curr_space);
+    }
+
+    println!("almost done with space: {}", longest_space_index);
+    longest_space_index
+}
+
+fn get_first_char(text: &str) -> usize {
+    for (index, glyph) in text.char_indices() {
+        if !glyph.is_whitespace() {
+            return index;
+        }
+    }
+
+    text.len()
+}
+
+fn get_most_common_space_two_strings(source: &str, target: &str) -> usize {
+    let mut source_chars = source.char_indices();
+    let mut target_chars = target.char_indices();
+
+    let mut prev_index = 0;
+    while let (Some((src_index, src_chr)), Some((tgt_index, tgt_chr))) =
+        (source_chars.next(), target_chars.next())
+    {
+        if !src_chr.is_whitespace() || !tgt_chr.is_whitespace() || src_chr != tgt_chr {
+            return src_index;
+        }
+        prev_index = src_index;
+    }
+
+    prev_index
 }
