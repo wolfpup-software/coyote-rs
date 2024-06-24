@@ -1,12 +1,12 @@
 use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
-use static_template_builder::build_template;
-use static_txml_builder::{TxmlBuilder, TxmlBuilderResults};
-use txml::{attr_val, list, text, txml, Component};
+use template_string::build_template;
+use txml::{attr_val, list, text, tmpl, Component};
+use txml_string::{TxmlBuilder, TxmlBuilderResults};
 
 // Test will not build if Function Components do not build
 
 fn woof() -> Component {
-    txml("<input type=submit value=\"yus -_-\">", [])
+    tmpl("<input type=submit value=\"yus -_-\">", [])
 }
 
 fn woof_woof() -> Component {
@@ -14,7 +14,7 @@ fn woof_woof() -> Component {
 
     let attributes = list([attr_val("action", "/uwu"), attr_val("method", "post")]);
 
-    txml("<form {}>{}</form>", [attributes, descendants])
+    tmpl("<form {}>{}</form>", [attributes, descendants])
 }
 
 #[test]

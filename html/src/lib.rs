@@ -1,13 +1,12 @@
 use parsley::{get_text_from_step, parse_str, Step, StepKind};
-use txml::Template;
 
 mod tag_info;
 use tag_info::TagInfo;
 
 pub mod sieves;
-use sieves::Sieve;
+use sieves::SieveImpl;
 
-pub fn compose(sieve: &impl Sieve, template_str: &str) -> String {
+pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();
 
@@ -46,19 +45,17 @@ pub fn compose(sieve: &impl Sieve, template_str: &str) -> String {
 fn push_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
+    sieve: &impl SieveImpl,
     template_str: &str,
     step: Step,
 ) {
     let tag = get_text_from_step(template_str, &step);
-
-    let stack_len = stack.len();
-    let (prev_tag_info_exists, tag_info) = match stack.last_mut() {
+    let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => {
             prev_tag_info.last_descendant_tag = tag.to_string();
-            (true, TagInfo::from(sieve, prev_tag_info, tag))
+            TagInfo::from(sieve, prev_tag_info, tag)
         }
-        _ => (false, TagInfo::new(sieve, tag)),
+        _ => TagInfo::new(sieve, tag),
     };
 
     if tag_info.banned_path || tag_info.void_path {
@@ -67,7 +64,7 @@ fn push_element(
     }
 
     if sieve.respect_indentation() {
-        if tag_info.indented_el {
+        if !tag_info.inline_el {
             // edge case that requires reading from the results to prevent starting with \n
             // not my favorite but works here
             if results.len() > 0 {
@@ -80,7 +77,7 @@ fn push_element(
             }
         }
     } else {
-        if !tag_info.indented_el {
+        if tag_info.inline_el {
             results.push(' ');
         }
     }
@@ -94,12 +91,11 @@ fn push_element(
 fn close_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
-    template_str: &str,
-    step: Step,
+    _sieve: &impl SieveImpl,
+    _template_str: &str,
+    _step: Step,
 ) {
     // cannot close non existant tag
-    let stack_len = stack.len();
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
@@ -109,18 +105,6 @@ fn close_element(
         results.push_str(">");
     }
 
-    // if tag_info.indented_el && tag_info.namespace == "html" && tag_info.void_el {
-    //     // EDGE CASE, void elements at start of document
-    //     if !tag_info.has_text
-    //         && tag_info.indented_el
-    //         && sieve.respect_indentation()
-    //         && stack_len < 2
-    //     {
-    //         results.push_str("\n");
-    //     }
-    //     stack.pop();
-    // }
-
     if tag_info.namespace == "html" && tag_info.void_el {
         stack.pop();
     }
@@ -129,9 +113,9 @@ fn close_element(
 fn close_empty_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
-    template_str: &str,
-    step: Step,
+    _sieve: &impl SieveImpl,
+    _template_str: &str,
+    _step: Step,
 ) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
@@ -160,7 +144,7 @@ fn close_empty_element(
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
+    sieve: &impl SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -186,7 +170,7 @@ fn pop_element(
     }
 
     if sieve.respect_indentation() {
-        if tag_info.indented_el
+        if !tag_info.inline_el
             && !tag_info.preserved_text_el
             && (tag_info.has_text || tag_info.last_descendant_tag != "")
         {
@@ -205,7 +189,7 @@ fn pop_element(
 fn push_text(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
+    sieve: &impl SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -234,14 +218,25 @@ fn push_text(
         return;
     }
 
+    // if alternative like styles or scripts
     if sieve.alt_text(&tag_info.tag) {
+        // get most common white space
+        let common_index = get_most_common_space_index(text);
+        tag_info.has_text = true;
+
+        println!("most common index: {}", common_index);
         for line in text.split("\n") {
-            if line.len() == 0 {
+            // println!("line: \n{}", line);
+            let curr_index = get_index_of_first_char(line);
+            if curr_index == line.len() {
                 continue;
             }
+
+            println!("line: {} \n{}", line.len(), line);
+
             results.push('\n');
             results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-            results.push_str(line);
+            results.push_str(&line[common_index..].trim_end());
         }
         return;
     }
@@ -254,7 +249,7 @@ fn push_text(
         }
 
         if sieve.respect_indentation() {
-            if tag_info.indented_el && sieve.indented_el(&tag_info.last_descendant_tag) {
+            if !tag_info.inline_el && !sieve.inline_el(&tag_info.last_descendant_tag) {
                 trimmed_text.push('\n');
                 trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
             } else {
@@ -351,4 +346,56 @@ fn push_injection_kind(
 
     let glyph = get_text_from_step(template_str, &step);
     results.push_str(glyph);
+}
+
+fn get_most_common_space_index(text: &str) -> usize {
+    let mut space_index = 0;
+
+    let mut prev_space;
+    let mut curr_space = "";
+
+    for line in text.split("\n") {
+        prev_space = curr_space;
+
+        let curr_index = get_index_of_first_char(line);
+        if curr_index == line.len() {
+            continue;
+        }
+
+        curr_space = &line;
+        if space_index == curr_index && prev_space == curr_space {
+            continue;
+        }
+
+        space_index = get_most_common_space_index_between_two_strings(prev_space, curr_space);
+    }
+
+    space_index
+}
+
+fn get_index_of_first_char(text: &str) -> usize {
+    for (index, glyph) in text.char_indices() {
+        if !glyph.is_whitespace() {
+            return index;
+        }
+    }
+
+    text.len()
+}
+
+fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -> usize {
+    let mut source_chars = source.char_indices();
+    let mut target_chars = target.char_indices();
+
+    let mut prev_index = 0;
+    while let (Some((src_index, src_chr)), Some((tgt_index, tgt_chr))) =
+        (source_chars.next(), target_chars.next())
+    {
+        if !src_chr.is_whitespace() || !tgt_chr.is_whitespace() || src_chr != tgt_chr {
+            return src_index;
+        }
+        prev_index = src_index;
+    }
+
+    prev_index
 }

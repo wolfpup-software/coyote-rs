@@ -1,5 +1,4 @@
 use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
-use txml::Template;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TxmlBuilderResults {

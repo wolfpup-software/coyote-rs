@@ -20,7 +20,7 @@ There isn't much to test.
 
 Nested functions create nested templates.
 
-Generally, other devs have warned against "trees" and "nodes" in rust but 
+Generally, other devs have warned against "trees" and "nodes" in rust but so far I don't understand why.
 
 It'd be wonderful to output a linear array of components, but I don't know how else to represent the function calls without:
 - doing some serious macro magic

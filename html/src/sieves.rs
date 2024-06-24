@@ -1,30 +1,19 @@
-use parsley::ParsleySieve;
+use parsley;
+use txml;
 
-pub trait SafetySieve {
-    fn respect_indentation(&self) -> bool;
-    fn banned(&self, tag: &str) -> bool;
-    fn void_el(&self, tag: &str) -> bool;
-    fn namespace_el(&self, tag: &str) -> bool;
-    fn preserved_text_el(&self, tag: &str) -> bool;
-    fn indented_el(&self, tag: &str) -> bool;
-}
+pub trait SieveImpl: parsley::SieveImpl + txml::SieveImpl {}
 
-// make a "true false"
-// true -> creating readable static files
-// false -> creating server generated files
-pub trait Sieve: ParsleySieve + SafetySieve {}
+pub struct Sieve {}
 
-pub struct HtmlServerSieve {}
-
-impl HtmlServerSieve {
-    pub fn new() -> HtmlServerSieve {
-        HtmlServerSieve {}
+impl Sieve {
+    pub fn new() -> Sieve {
+        Sieve {}
     }
 }
 
-impl Sieve for HtmlServerSieve {}
+impl SieveImpl for Sieve {}
 
-impl ParsleySieve for HtmlServerSieve {
+impl parsley::SieveImpl for Sieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -34,11 +23,11 @@ impl ParsleySieve for HtmlServerSieve {
     }
 }
 
-impl SafetySieve for HtmlServerSieve {
+impl txml::SieveImpl for Sieve {
     fn respect_indentation(&self) -> bool {
         true
     }
-    fn banned(&self, tag: &str) -> bool {
+    fn banned_el(&self, _tag: &str) -> bool {
         false
     }
     fn void_el(&self, tag: &str) -> bool {
@@ -50,22 +39,22 @@ impl SafetySieve for HtmlServerSieve {
     fn preserved_text_el(&self, tag: &str) -> bool {
         is_preserved_text_el(tag)
     }
-    fn indented_el(&self, tag: &str) -> bool {
-        is_indented_el(tag)
+    fn inline_el(&self, tag: &str) -> bool {
+        is_inline_el(tag)
     }
 }
 
-pub struct HtmlClientSieve {}
+pub struct ClientSieve {}
 
-impl HtmlClientSieve {
-    pub fn new() -> HtmlClientSieve {
-        HtmlClientSieve {}
+impl ClientSieve {
+    pub fn new() -> ClientSieve {
+        ClientSieve {}
     }
 }
 
-impl Sieve for HtmlClientSieve {}
+impl SieveImpl for ClientSieve {}
 
-impl ParsleySieve for HtmlClientSieve {
+impl parsley::SieveImpl for ClientSieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -75,11 +64,11 @@ impl ParsleySieve for HtmlClientSieve {
     }
 }
 
-impl SafetySieve for HtmlClientSieve {
+impl txml::SieveImpl for ClientSieve {
     fn respect_indentation(&self) -> bool {
         false
     }
-    fn banned(&self, tag: &str) -> bool {
+    fn banned_el(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
             "style" => true,
@@ -95,52 +84,8 @@ impl SafetySieve for HtmlClientSieve {
     fn preserved_text_el(&self, tag: &str) -> bool {
         is_preserved_text_el(tag)
     }
-    fn indented_el(&self, tag: &str) -> bool {
-        is_indented_el(tag)
-    }
-}
-
-pub struct HtmlWebComponentSieve {}
-
-impl HtmlWebComponentSieve {
-    pub fn new() -> HtmlWebComponentSieve {
-        HtmlWebComponentSieve {}
-    }
-}
-
-impl Sieve for HtmlWebComponentSieve {}
-
-impl ParsleySieve for HtmlWebComponentSieve {
-    fn alt_text(&self, tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
-        }
-    }
-}
-
-impl SafetySieve for HtmlWebComponentSieve {
-    fn respect_indentation(&self) -> bool {
-        false
-    }
-    fn banned(&self, tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            _ => false,
-        }
-    }
-    fn void_el(&self, tag: &str) -> bool {
-        is_void_el(tag)
-    }
-    fn namespace_el(&self, tag: &str) -> bool {
-        is_namespace_el(tag)
-    }
-    fn preserved_text_el(&self, tag: &str) -> bool {
-        is_preserved_text_el(tag)
-    }
-    fn indented_el(&self, tag: &str) -> bool {
-        is_indented_el(tag)
+    fn inline_el(&self, tag: &str) -> bool {
+        is_inline_el(tag)
     }
 }
 
@@ -179,49 +124,49 @@ pub fn is_preserved_text_el(tag: &str) -> bool {
     return tag == "pre";
 }
 
-pub fn is_indented_el(tag: &str) -> bool {
+pub fn is_inline_el(tag: &str) -> bool {
     match tag {
-        "a" => false,
-        "abbr" => false,
-        "b" => false,
-        "bdi" => false,
-        "bdo" => false,
-        "cite" => false,
-        "code" => false,
-        "data" => false,
-        "dfn" => false,
-        "em" => false,
-        "i" => false,
-        "kbd" => false,
-        "mark" => false,
-        "q" => false,
-        "rp" => false,
-        "rt" => false,
-        "ruby" => false,
-        "s" => false,
-        "samp" => false,
-        "small" => false,
-        "span" => false,
-        "strong" => false,
-        "sub" => false,
-        "sup" => false,
-        "time" => false,
-        "u" => false,
-        "var" => false,
-        "wbr" => false,
-        "area" => false,
-        "audio" => false,
-        "img" => false,
-        "map" => false,
-        "track" => false,
-        "video" => false,
-        "embed" => false,
-        "iframe" => false,
-        "object" => false,
-        "picture" => false,
-        "portal" => false,
-        "source" => false,
-        _ => true,
+        "a" => true,
+        "abbr" => true,
+        "b" => true,
+        "bdi" => true,
+        "bdo" => true,
+        "cite" => true,
+        "code" => true,
+        "data" => true,
+        "dfn" => true,
+        "em" => true,
+        "i" => true,
+        "kbd" => true,
+        "mark" => true,
+        "q" => true,
+        "rp" => true,
+        "rt" => true,
+        "ruby" => true,
+        "s" => true,
+        "samp" => true,
+        "small" => true,
+        "span" => true,
+        "strong" => true,
+        "sub" => true,
+        "sup" => true,
+        "time" => true,
+        "u" => true,
+        "var" => true,
+        "wbr" => true,
+        "area" => true,
+        "audio" => true,
+        "img" => true,
+        "map" => true,
+        "track" => true,
+        "video" => true,
+        "embed" => true,
+        "iframe" => true,
+        "object" => true,
+        "picture" => true,
+        "portal" => true,
+        "source" => true,
+        _ => false,
     }
 }
 

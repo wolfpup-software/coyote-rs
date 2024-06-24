@@ -1,30 +1,15 @@
 use parsley::StepKind;
-use static_txml_builder::{TxmlBuilder, TxmlBuilderResults};
-use txml::{Component, Template};
+use txml::Component;
+use txml_string::{TxmlBuilder, TxmlBuilderResults};
 
 struct TemplateBit {
     pub inj_index: usize,
 }
 
-pub enum StackBit<'a> {
+enum StackBit<'a> {
     Tmpl(&'a Component, TxmlBuilderResults, TemplateBit),
     Cmpnt(&'a Component),
     None,
-}
-
-fn get_stackable(mut builder: TxmlBuilder, component: &Component) -> (TxmlBuilder, StackBit) {
-    let stack_bit = match component {
-        Component::Text(text) => StackBit::Cmpnt(component),
-        Component::List(list) => StackBit::Cmpnt(component),
-        Component::Tmpl(tmpl) => StackBit::Tmpl(
-            component,
-            builder.build(&tmpl.template_str),
-            TemplateBit { inj_index: 0 },
-        ),
-        _ => StackBit::None,
-    };
-
-    (builder, stack_bit)
 }
 
 pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
@@ -96,12 +81,27 @@ pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String
     templ_str
 }
 
+fn get_stackable(builder: TxmlBuilder, component: &Component) -> (TxmlBuilder, StackBit) {
+    let stack_bit = match component {
+        Component::Text(_text) => StackBit::Cmpnt(component),
+        Component::List(_list) => StackBit::Cmpnt(component),
+        Component::Tmpl(tmpl) => StackBit::Tmpl(
+            component,
+            builder.build(&tmpl.template_str),
+            TemplateBit { inj_index: 0 },
+        ),
+        _ => StackBit::None,
+    };
+
+    (builder, stack_bit)
+}
+
 fn add_attr_inj(mut template_str: String, component: &Component) -> String {
     match component {
         Component::Attr(attr) => add_attr(template_str, attr),
         Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),
-        Component::List(attrList) => {
-            for cmpnt in attrList {
+        Component::List(attr_list) => {
+            for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
                         template_str = add_attr(template_str, &attr);
