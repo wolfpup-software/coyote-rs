@@ -1,7 +1,7 @@
 use html::compose;
-use html::sieves::{HtmlClientSieve, HtmlServerSieve, HtmlWebComponentSieve};
+use html::sieves::{ClientSieve, Sieve};
 use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
-use txml::{attr_val, list, text, txml, Component};
+use txml::{attr_val, list, text, tmpl, Component};
 
 #[test]
 fn test_pretty_html() {
@@ -27,7 +27,7 @@ fn test_pretty_html() {
     let expected =
         "<!DOCTYPE>\n<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t<body>\n\t\t<article></article>\n\t\t<footer></footer>\n\t</body>\n</html>";
 
-    let sieve = HtmlServerSieve::new();
+    let sieve = Sieve::new();
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
 }
@@ -56,7 +56,7 @@ if 2 < 3 {
     let expected =
         "<!DOCTYPE><html><head></head><body><article></article><footer></footer></body></html>";
 
-    let sieve = HtmlClientSieve::new();
+    let sieve = ClientSieve::new();
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
 }
@@ -77,7 +77,7 @@ fn test_pretty_html_web_component() {
     let expected =
         "<!DOCTYPE><html><head></head><body><article></article><footer></footer></body></html>";
 
-    let sieve = HtmlClientSieve::new();
+    let sieve = ClientSieve::new();
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
 }
@@ -100,7 +100,7 @@ fn test_pretty_html_without_indents_server() {
 
     let expected =
     "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick <a>here</a> and go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
-    let sieve = HtmlServerSieve::new();
+    let sieve = Sieve::new();
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
 }
@@ -123,7 +123,7 @@ fn test_pretty_html_without_indents_client() {
 
     let expected =
         "<!DOCTYPE><html><head></head><body><article>You're a <span>boy kisser</span> aren't you? Click <a>here</a> and go somewhere else.</article><footer></footer></body></html>";
-    let sieve = HtmlClientSieve::new();
+    let sieve = ClientSieve::new();
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
 }

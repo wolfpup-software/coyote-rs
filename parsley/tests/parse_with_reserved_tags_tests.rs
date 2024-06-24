@@ -1,4 +1,4 @@
-use parsley::{parse_str, ParsleySieve, Results, Step, StepKind};
+use parsley::{parse_str, Results, SieveImpl, Step, StepKind};
 
 pub struct TestSieve {}
 
@@ -8,7 +8,7 @@ impl TestSieve {
     }
 }
 
-impl ParsleySieve for TestSieve {
+impl SieveImpl for TestSieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,

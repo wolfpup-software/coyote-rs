@@ -1,6 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
-use crate::sieves::Sieve;
+use crate::sieves::SieveImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TagInfo {
@@ -18,7 +18,7 @@ pub struct TagInfo {
 }
 
 impl TagInfo {
-    pub fn new(sieve: &impl Sieve, tag: &str) -> TagInfo {
+    pub fn new(sieve: &impl SieveImpl, tag: &str) -> TagInfo {
         let mut namespace = "html".to_string();
         if sieve.namespace_el(tag) {
             namespace = tag.to_string()
@@ -39,7 +39,7 @@ impl TagInfo {
         }
     }
 
-    pub fn from(sieve: &impl Sieve, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
+    pub fn from(sieve: &impl SieveImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 

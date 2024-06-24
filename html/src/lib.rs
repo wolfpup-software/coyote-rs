@@ -4,9 +4,9 @@ mod tag_info;
 use tag_info::TagInfo;
 
 pub mod sieves;
-use sieves::Sieve;
+use sieves::SieveImpl;
 
-pub fn compose(sieve: &impl Sieve, template_str: &str) -> String {
+pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();
 
@@ -45,7 +45,7 @@ pub fn compose(sieve: &impl Sieve, template_str: &str) -> String {
 fn push_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
+    sieve: &impl SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -91,7 +91,7 @@ fn push_element(
 fn close_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    _sieve: &impl Sieve,
+    _sieve: &impl SieveImpl,
     _template_str: &str,
     _step: Step,
 ) {
@@ -113,7 +113,7 @@ fn close_element(
 fn close_empty_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    _sieve: &impl Sieve,
+    _sieve: &impl SieveImpl,
     _template_str: &str,
     _step: Step,
 ) {
@@ -144,7 +144,7 @@ fn close_empty_element(
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
+    sieve: &impl SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -189,7 +189,7 @@ fn pop_element(
 fn push_text(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl Sieve,
+    sieve: &impl SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -236,7 +236,7 @@ fn push_text(
 
             results.push('\n');
             results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-            results.push_str(&line[common_index..].trim_right());
+            results.push_str(&line[common_index..].trim_end());
         }
         return;
     }
@@ -350,19 +350,20 @@ fn push_injection_kind(
 
 fn get_most_common_space_index(text: &str) -> usize {
     let mut space_index = 0;
-    let mut prev_space = "";
+
+    let mut prev_space;
     let mut curr_space = "";
 
     for line in text.split("\n") {
         prev_space = curr_space;
 
-        let curr_longest = get_index_of_first_char(line);
-        if curr_longest == line.len() {
+        let curr_index = get_index_of_first_char(line);
+        if curr_index == line.len() {
             continue;
         }
 
         curr_space = &line;
-        if prev_space == curr_space {
+        if space_index == curr_index && prev_space == curr_space {
             continue;
         }
 

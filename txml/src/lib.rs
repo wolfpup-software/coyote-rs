@@ -15,7 +15,7 @@ pub struct Template {
     pub injections: Vec<Component>,
 }
 
-pub trait Sieve {
+pub trait SieveImpl {
     fn respect_indentation(&self) -> bool;
     fn banned_el(&self, tag: &str) -> bool;
     fn void_el(&self, tag: &str) -> bool;
@@ -23,6 +23,9 @@ pub trait Sieve {
     fn preserved_text_el(&self, tag: &str) -> bool;
     fn inline_el(&self, tag: &str) -> bool;
 }
+
+// ergonomic functions to quickly create Component Enums
+//  (considerably improves readability of component code)
 
 // defacto template function
 pub fn tmpl<const N: usize>(template_str: &str, injections: [Component; N]) -> Component {
@@ -32,8 +35,6 @@ pub fn tmpl<const N: usize>(template_str: &str, injections: [Component; N]) -> C
     })
 }
 
-// ergonomic functions to quickly create Component Enums
-//  (considerably improves readability of component code)
 pub fn text(txt: &str) -> Component {
     let escaped = txt.replace("<", "&lt;").replace("&", "&amp;");
     Component::Text(escaped)

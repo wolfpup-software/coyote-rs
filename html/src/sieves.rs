@@ -1,19 +1,19 @@
-use parsley::ParsleySieve;
-use txml::Sieve as TxmlSieve;
+use parsley::ParsleySieveImpl;
+use txml::SieveTrait as TxmlSieveImpl;
 
-pub trait Sieve: ParsleySieve + TxmlSieve {}
+pub trait SieveImpl: ParsleySieveImpl + TxmlSieveImpl {}
 
-pub struct HtmlServerSieve {}
+pub struct Sieve {}
 
-impl HtmlServerSieve {
-    pub fn new() -> HtmlServerSieve {
-        HtmlServerSieve {}
+impl Sieve {
+    pub fn new() -> Sieve {
+        Sieve {}
     }
 }
 
-impl Sieve for HtmlServerSieve {}
+impl SieveImpl for Sieve {}
 
-impl ParsleySieve for HtmlServerSieve {
+impl ParsleySieveImpl for Sieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -23,7 +23,7 @@ impl ParsleySieve for HtmlServerSieve {
     }
 }
 
-impl TxmlSieve for HtmlServerSieve {
+impl TxmlSieveImpl for Sieve {
     fn respect_indentation(&self) -> bool {
         true
     }
@@ -44,17 +44,17 @@ impl TxmlSieve for HtmlServerSieve {
     }
 }
 
-pub struct HtmlClientSieve {}
+pub struct ClientSieve {}
 
-impl HtmlClientSieve {
-    pub fn new() -> HtmlClientSieve {
-        HtmlClientSieve {}
+impl ClientSieve {
+    pub fn new() -> ClientSieve {
+        ClientSieve {}
     }
 }
 
-impl Sieve for HtmlClientSieve {}
+impl SieveImpl for ClientSieve {}
 
-impl ParsleySieve for HtmlClientSieve {
+impl ParsleySieveImpl for ClientSieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -64,7 +64,7 @@ impl ParsleySieve for HtmlClientSieve {
     }
 }
 
-impl TxmlSieve for HtmlClientSieve {
+impl TxmlSieveImpl for ClientSieve {
     fn respect_indentation(&self) -> bool {
         false
     }
@@ -72,50 +72,6 @@ impl TxmlSieve for HtmlClientSieve {
         match tag {
             "script" => true,
             "style" => true,
-            _ => false,
-        }
-    }
-    fn void_el(&self, tag: &str) -> bool {
-        is_void_el(tag)
-    }
-    fn namespace_el(&self, tag: &str) -> bool {
-        is_namespace_el(tag)
-    }
-    fn preserved_text_el(&self, tag: &str) -> bool {
-        is_preserved_text_el(tag)
-    }
-    fn inline_el(&self, tag: &str) -> bool {
-        is_inline_el(tag)
-    }
-}
-
-pub struct HtmlWebComponentSieve {}
-
-impl HtmlWebComponentSieve {
-    pub fn new() -> HtmlWebComponentSieve {
-        HtmlWebComponentSieve {}
-    }
-}
-
-impl Sieve for HtmlWebComponentSieve {}
-
-impl ParsleySieve for HtmlWebComponentSieve {
-    fn alt_text(&self, tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
-        }
-    }
-}
-
-impl TxmlSieve for HtmlWebComponentSieve {
-    fn respect_indentation(&self) -> bool {
-        false
-    }
-    fn banned_el(&self, tag: &str) -> bool {
-        match tag {
-            "script" => true,
             _ => false,
         }
     }

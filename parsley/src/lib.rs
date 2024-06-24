@@ -32,7 +32,7 @@ pub enum StepKind {
     Text,
 }
 
-pub trait ParsleySieve {
+pub trait SieveImpl {
     fn alt_text(&self, tag: &str) -> bool;
 }
 
@@ -88,7 +88,7 @@ pub fn parse_template_str(template_str: &str, intial_kind: StepKind) -> Results 
     steps
 }
 
-pub fn parse_str(sieve: &impl ParsleySieve, template_str: &str, intial_kind: StepKind) -> Results {
+pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKind) -> Results {
     let mut steps = Vec::from([Step {
         kind: intial_kind.clone(),
         origin: 0,
