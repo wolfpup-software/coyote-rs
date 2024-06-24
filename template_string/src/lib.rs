@@ -1,18 +1,18 @@
 use parsley::StepKind;
 use txml::Component;
-use txml_string::{TxmlBuilder, TxmlBuilderResults};
+use txml_string::{Builder, BuilderResults};
 
 struct TemplateBit {
     pub inj_index: usize,
 }
 
 enum StackBit<'a> {
-    Tmpl(&'a Component, TxmlBuilderResults, TemplateBit),
+    Tmpl(&'a Component, BuilderResults, TemplateBit),
     Cmpnt(&'a Component),
     None,
 }
 
-pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String {
+pub fn build_template(mut builder: Builder, component: &Component) -> String {
     let mut templ_str = "".to_string();
 
     let sbit;
@@ -81,7 +81,7 @@ pub fn build_template(mut builder: TxmlBuilder, component: &Component) -> String
     templ_str
 }
 
-fn get_stackable(builder: TxmlBuilder, component: &Component) -> (TxmlBuilder, StackBit) {
+fn get_stackable(builder: Builder, component: &Component) -> (Builder, StackBit) {
     let stack_bit = match component {
         Component::Text(_text) => StackBit::Cmpnt(component),
         Component::List(_list) => StackBit::Cmpnt(component),
