@@ -2,13 +2,14 @@
 
 (MORE README)
 
-## Components
+## HTML
 
-### More interesting hai :3
+### Fragments
+
+The example below creates a little form. 
 
 ```rust
-use coyote::html::{compose, Builder, Sieve};
-use coyote::{attr_val, list, text, tmpl, Component};
+use coyote::{Component, Html, attr_val, list, text, tmpl};
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
@@ -32,8 +33,13 @@ fn woof_form() -> Component {
 }
 
 fn main() {
-    let html: String = compose(Sieve, Builder, woof_form());
-    println!("{}", html);
+    let form = woof_form();
+
+    let html = Html::new();
+    // let html = Html::from_builder(builder);
+
+    let document = html.compose(&sieve, &form);
+    println!("{}", document);
 }
 ```
 
@@ -45,9 +51,96 @@ And the output will be:
 </form>
 ```
 
-## Sieves
+## Syntax and grammars
 
-A `sieve` defines how `coyote` reacts to build steps recieved from `parsley`.
+There is significant overlap between HTML and XML and JSX but there are also non-trival differences:
+* empty elements in XML can have self closing tags `<element />`
+* Self closing tags are not valid html
+* HTML void elements are empty elements without self closing tags
+* There are only a handful of void elements in HTML
+* All non void elements elements must have closing tags `<element></element>`
+* HTML and XML do not support JXS fragments `</>`.
+
+`Coyote` doesn't care.
+
+How a component is _composed_ depends on what `builder` and `sieve` is used.
+
+```rs
+    tmpl("
+        <form>
+            <p>hai?</p>
+            <input type=submit />
+        </form>
+        <>
+            <p>hai!</p>
+            <ul>
+                <li>1</li>
+                <li>2</li>
+                <li>3</li>
+            </ul>
+        </>",
+        [],
+    )
+```
+
+## Runtime steps
+
+The `tmpl()` function generates nested `Components`. 
+
+How templates are _composed_ depends on the type of `builder` and the rules of a `sieve`.
+
+```html
+<form>
+    <p>hai?</p>
+    <input type=submit>
+</form>
+<p>hai!</p>
+<ul>
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+</ul>
+```
+
+## HTML
+```
+SafetySieve {
+    banned_el(string): bool
+    preserved_text_el(string): bool
+    text_descendants_only(string): bool
+}
+```
+### Sieves
+
+A `sieve` defines how `coyote` reacts to component build steps. It can _ban_ elements and direct behavior based on tag names. This makes component functions useful across multiple environments.
+
+Consider a server and client. A server will generate entire documents for a someone's first visit but lazily load document fragments on certain interactions. The initial document will most likely include inline and external CSS and JS.
+
+However, lazily loading CSS and JS while fetching document fragments can generate side-effects outside of document structure. That's bad!
+
+So a `sieve` lets a developer re-use components with CSS and JS removed from a template when required.
+
+The provided `HtmlSieve` does exactly that.
+
+```rust
+use coyote::{Component, tmpl};
+use coyote_html::{Html, HtmlSieve};
+
+fn hai() -> Component {
+    tmpl("<p>omgawsh hai :3</p>", [])
+}
+
+fn main() {
+    let hello_world = hai();
+
+    let html = Html::new();
+    let sieve = HtmlSieve::new();
+    
+    let document = html.compose(&sieve, &hello_world);
+
+    println!("{}", document);
+}
+```
 
 The api for a `sieve` is defined as the following:
 
@@ -85,34 +178,6 @@ SafetySieve
 * preserved_text_el -> start a branch of elements without formating
 * inline_el -> add element and ignore indentation
 
-## Syntax and grammars
-
-`Coyote` is built to be flexible. There's overlap between HTML and XML (and conveniences from JSX) but there are non-trival differences:
-* empty elements in XML can have self closing tags `<element />`
-* HTML does not have self closing tags `<element>`
-* neither has JXS fragments `</>`.
-
-`Coyote` supports all three.
-
-```rs
-    tmpl("
-        <form>
-            <p>hai?</>
-            <input type=\"submit\" />
-        </form>
-        <>
-            <p>hai!</p>
-            <ul>
-                <li>1</li>
-                <li>2</li>
-                <li>3</li>
-            </ul>
-        </>",
-        [],
-    )
-```
-
-The `tmpl()` function generates a nested Component structure. Whether empty elements or void elements are _composed_ depends on the rules of a `sieve`.
 
 ## License
 

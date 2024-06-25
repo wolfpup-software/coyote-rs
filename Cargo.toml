@@ -1,5 +1,5 @@
 [workspace]
-members = ["parsley", "txml", "html", "txml_string", "template_string", "coyote",]
+members = ["parsley", "txml", "html", "txml_string", "template_string", "coyote", "coyote_html",]
 resolver = "2"
 
 [workspace.dependencies]

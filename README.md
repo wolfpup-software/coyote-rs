@@ -2,44 +2,30 @@
 
 Create `XML | HTML | FRAGMENTS` in Rust with component functions!
 
-## About
+## Components
 
 `Coyote` creates xml-like documents from function components.
 
-## Hello, world!
-
-### HTML
-
-The example below creates an html string template.
-
 ```rust
 use coyote::{Component, tmpl};
-use coyote::html::{Builder, Sieve, compose};
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
 }
-
-fn main() {
-    let template = compose(Sieve, Builder, hai());
-    println!("{}", template);
-}
 ```
 
-And the output will be:
-```html
-<p>omgawsh hai :3</p>
-```
+Componets are the atomic pieces required to build xml-like templates.
+- `attr` -> attribute
+- `attr_val` -> attribute with value
+- `text` -> safer escaped text
+- `unescaped_text` -> unsafe unescaped text
+- `tmpl` -> a string template describing an xml-like document fragment 
+- `list` -> a list of components
 
-## Fragments
-
-### HTML
-
-The example below creates a little form. 
+They can be nested, placed in a `list`, it's a nested structure that roughly reflects the `node -> [node, text, node, ...]` structure of an xml document. 
 
 ```rust
 use coyote::{Component, attr_val, list, text, tmpl};
-use coyote::html::{Builder, Sieve, compose};
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
@@ -61,19 +47,36 @@ fn woof_form() -> Component {
         [attributes, descendants],
     )
 }
+```
+
+## HTML
+
+### Hello, world!
+
+The example below creates an html string template from a coyote component function.
+
+```rust
+use coyote::{Component, tmpl};
+use coyote_html::{Html, Sieve}
+
+fn hai() -> Component {
+    tmpl("<p>omgawsh hai :3</p>", [])
+}
 
 fn main() {
-    let template: String = compose(Sieve, Builder, woof_form());
-    println!("{}", template);
+    let hello_world = hai();
+
+    let sieve = Sieve::new();
+    let html = Html::new();
+
+    let document = html.compose(&hello_world, &sieve);
+    println!("{}", document);
 }
 ```
 
 And the output will be:
 ```html
-<form action="/uwu" method="post">
-    you're a boy kisser aren't you >:3"
-    <input type=submit value="yus -_-">
-</form>
+<p>omgawsh hai :3</p>
 ```
 
 ## License
