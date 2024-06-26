@@ -1,10 +1,12 @@
 [package]
-name = "html"
+name = "coyote_html"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-parse = { path = "../parse" }
+html = { path = "../html" }
 coyote = { path = "../coyote" }
+txml_string = { path = "../txml_string" }
+template_string = { path = "../template_string" }

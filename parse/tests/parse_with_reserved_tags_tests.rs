@@ -1,4 +1,4 @@
-use parsley::{parse_str, Results, SieveImpl, Step, StepKind};
+use parse::{parse_str, Results, SieveImpl, Step, StepKind};
 
 pub struct TestSieve {}
 

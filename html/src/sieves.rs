@@ -1,7 +1,7 @@
-use parsley;
-use txml;
+use coyote;
+use parse;
 
-pub trait SieveImpl: parsley::SieveImpl + txml::SieveImpl {}
+pub trait SieveImpl: parse::SieveImpl + coyote::SieveImpl {}
 
 pub struct Sieve {}
 
@@ -13,7 +13,8 @@ impl Sieve {
 
 impl SieveImpl for Sieve {}
 
-impl parsley::SieveImpl for Sieve {
+impl parse::SieveImpl for Sieve {
+    // alt_text_details ("</script", ) ( "-->", )
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -23,7 +24,7 @@ impl parsley::SieveImpl for Sieve {
     }
 }
 
-impl txml::SieveImpl for Sieve {
+impl coyote::SieveImpl for Sieve {
     fn respect_indentation(&self) -> bool {
         true
     }
@@ -54,7 +55,7 @@ impl ClientSieve {
 
 impl SieveImpl for ClientSieve {}
 
-impl parsley::SieveImpl for ClientSieve {
+impl parse::SieveImpl for ClientSieve {
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,
@@ -64,7 +65,7 @@ impl parsley::SieveImpl for ClientSieve {
     }
 }
 
-impl txml::SieveImpl for ClientSieve {
+impl coyote::SieveImpl for ClientSieve {
     fn respect_indentation(&self) -> bool {
         false
     }

@@ -1,30 +1,30 @@
-use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
+use parse::{get_text_from_step, parse_template_str, Step, StepKind};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct TxmlBuilderResults {
+pub struct BuilderResults {
     pub strs: Vec<String>,
     pub injs: Vec<StepKind>,
 }
 
-impl TxmlBuilderResults {
-    pub fn new() -> TxmlBuilderResults {
-        TxmlBuilderResults {
+impl BuilderResults {
+    pub fn new() -> BuilderResults {
+        BuilderResults {
             strs: Vec::from(["".to_string()]),
             injs: Vec::new(),
         }
     }
 }
 
-pub struct TxmlBuilder {}
+pub struct Builder {}
 
-impl TxmlBuilder {
-    pub fn new() -> TxmlBuilder {
-        TxmlBuilder {}
+impl Builder {
+    pub fn new() -> Builder {
+        Builder {}
     }
 
-    pub fn build(&self, template_str: &str) -> TxmlBuilderResults {
+    pub fn build(&self, template_str: &str) -> BuilderResults {
         // check for already built results
-        let mut results = TxmlBuilderResults::new();
+        let mut results = BuilderResults::new();
 
         for step in parse_template_str(template_str, StepKind::Initial) {
             push_step(&mut results, template_str, step);
@@ -34,7 +34,7 @@ impl TxmlBuilder {
     }
 }
 
-fn push_step(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn push_step(results: &mut BuilderResults, template_str: &str, step: Step) {
     match step.kind {
         // steps
         StepKind::Tag => push_element(results, template_str, step),
@@ -52,7 +52,7 @@ fn push_step(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     }
 }
 
-fn push_element(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn push_element(results: &mut BuilderResults, template_str: &str, step: Step) {
     let tag = get_text_from_step(template_str, &step);
 
     if let Some(last) = results.strs.last_mut() {
@@ -61,7 +61,7 @@ fn push_element(results: &mut TxmlBuilderResults, template_str: &str, step: Step
     }
 }
 
-fn add_attr(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn add_attr(results: &mut BuilderResults, template_str: &str, step: Step) {
     let attr = get_text_from_step(template_str, &step);
 
     if let Some(last) = results.strs.last_mut() {
@@ -70,7 +70,7 @@ fn add_attr(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
     }
 }
 
-fn add_attr_value_unquoted(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn add_attr_value_unquoted(results: &mut BuilderResults, template_str: &str, step: Step) {
     let attr_val = get_text_from_step(template_str, &step);
 
     if let Some(last) = results.strs.last_mut() {
@@ -79,7 +79,7 @@ fn add_attr_value_unquoted(results: &mut TxmlBuilderResults, template_str: &str,
     }
 }
 
-fn add_attr_value(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn add_attr_value(results: &mut BuilderResults, template_str: &str, step: Step) {
     let attr_val = get_text_from_step(template_str, &step);
 
     if let Some(last) = results.strs.last_mut() {
@@ -89,19 +89,19 @@ fn add_attr_value(results: &mut TxmlBuilderResults, template_str: &str, step: St
     }
 }
 
-fn close_element(results: &mut TxmlBuilderResults) {
+fn close_element(results: &mut BuilderResults) {
     if let Some(last) = results.strs.last_mut() {
         last.push_str(">");
     }
 }
 
-fn empty_void_element(results: &mut TxmlBuilderResults) {
+fn empty_void_element(results: &mut BuilderResults) {
     if let Some(last) = results.strs.last_mut() {
         last.push_str("/>");
     }
 }
 
-fn pop_element(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn pop_element(results: &mut BuilderResults, template_str: &str, step: Step) {
     let tag = get_text_from_step(template_str, &step);
     if let Some(last) = results.strs.last_mut() {
         last.push_str("</");
@@ -110,19 +110,19 @@ fn pop_element(results: &mut TxmlBuilderResults, template_str: &str, step: Step)
     }
 }
 
-fn push_text(results: &mut TxmlBuilderResults, template_str: &str, step: Step) {
+fn push_text(results: &mut BuilderResults, template_str: &str, step: Step) {
     let text = get_text_from_step(template_str, &step);
     if let Some(last) = results.strs.last_mut() {
         last.push_str(text);
     }
 }
 
-fn push_attr_map_injection(results: &mut TxmlBuilderResults) {
+fn push_attr_map_injection(results: &mut BuilderResults) {
     results.strs.push("".to_string());
     results.injs.push(StepKind::AttrMapInjection);
 }
 
-fn push_descendant_injection(results: &mut TxmlBuilderResults) {
+fn push_descendant_injection(results: &mut BuilderResults) {
     results.strs.push("".to_string());
     results.injs.push(StepKind::DescendantInjection);
 }
