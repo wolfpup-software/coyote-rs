@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 html = { path = "../html" }
-txml = { path = "../txml" }
+coyote = { path = "../coyote" }
 txml_string = { path = "../txml_string" }
 template_string = { path = "../template_string" }

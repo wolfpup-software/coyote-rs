@@ -1,4 +1,4 @@
-use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
+use parse::{get_text_from_step, parse_template_str, Step, StepKind};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct BuilderResults {

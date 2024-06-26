@@ -1,4 +1,4 @@
-use parsley::{parse_template_str, Results, Step, StepKind};
+use parse::{parse_template_str, Results, Step, StepKind};
 
 /** DX **/
 // this test will fail to build if `clone` or `default formatter` is not available

@@ -1,5 +1,5 @@
-use parsley::{get_text_from_step, parse_template_str, Step, StepKind};
-use txml::{attr_val, list, text, tmpl, Component};
+use coyote::{attr_val, list, text, tmpl, Component};
+
 use txml_string::{Builder, BuilderResults};
 
 // Test will not build if Function Components do not build

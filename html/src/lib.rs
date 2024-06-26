@@ -1,4 +1,4 @@
-use parsley::{get_text_from_step, parse_str, Step, StepKind};
+use parse::{get_text_from_step, parse_str, Step, StepKind};
 
 mod tag_info;
 use tag_info::TagInfo;

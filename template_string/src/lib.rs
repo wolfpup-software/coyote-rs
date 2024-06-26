@@ -1,5 +1,5 @@
-use parsley::StepKind;
-use txml::Component;
+use coyote::Component;
+use parse::StepKind;
 use txml_string::{Builder, BuilderResults};
 
 struct TemplateBit {
