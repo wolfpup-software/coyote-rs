@@ -1,6 +1,6 @@
 use coyote::{attr_val, list, text, tmpl, Component};
 
-use txml_string::{Builder, BuilderResults};
+use txml_string::build;
 
 // Test will not build if Function Components do not build
 
@@ -19,10 +19,9 @@ fn woof_woof() -> Component {
 #[test]
 fn test_txml_builder() {
     let template = woof_woof();
-    let builder = Builder::new();
 
     if let Component::Tmpl(tmpl) = template {
-        let results = builder.build(&tmpl.template_str);
+        let results = build(&tmpl.template_str);
         println!("{:?}", results);
     }
 }
