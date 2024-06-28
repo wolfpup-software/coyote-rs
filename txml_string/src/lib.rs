@@ -17,7 +17,7 @@ impl Results {
 
 // this needs to be a function
 // this is what is cached by a parent scope or context
-pub fn build(template_str: &str) -> Results {
+pub fn compose(template_str: &str) -> Results {
     // check for already built results
     let mut results = Results::new();
 

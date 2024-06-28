@@ -1,40 +1,42 @@
+pub use html::compose as pretty_html;
 pub use html::sieves::{ClientSieve, Sieve, SieveImpl};
-pub use txml_string::Builder;
 
 use coyote::Component;
-use html::compose as compose_html;
-use template_string::build_template;
+use template_string::{compose as compose_template, BuilderImpl};
+use txml_string::{compose as compose_txml, Results as TxmlResults};
 
-pub fn compose(
-    mut builder: Builder,
-    sieve: &impl SieveImpl,
-    component: &Component,
-) -> (Builder, String) {
-    let template;
-    (builder, template) = build_template(builder, component);
-    let results = compose_html(sieve, &template);
+pub struct Builder {}
 
-    (builder, results)
+impl Builder {
+    fn new() -> Builder {
+        Builder {}
+    }
+}
+
+impl BuilderImpl for Builder {
+    fn build(&mut self, template_str: &str) -> TxmlResults {
+        // chance to cache templates here
+        compose_txml(template_str)
+    }
 }
 
 // create Html with a builder in mind
 pub struct Html {
-    pub builder: TemplateBuilder,
+    pub builder: Builder,
 }
 
 impl Html {
     fn new() -> Html {
         Html {
-            builder: TemplateBuilder::new(),
+            builder: Builder::new(),
         }
     }
 
-    fn from_builder(builder: TemplateBuilder) -> Html {
+    fn from_builder(builder: Builder) -> Html {
         Html { builder: builder }
     }
 
-    fn build(&mut self, component: &Component, sieve: &impl SieveImpl) -> String {
-        let template = build_template(self.builder, component);
-        compose_html(sieve, &template)
+    fn build(&mut self, component: &Component) -> String {
+        compose_template(&mut self.builder, component)
     }
 }
