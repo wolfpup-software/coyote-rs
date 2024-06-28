@@ -1,26 +1,8 @@
 use coyote::{attr_val, list, text, tmpl, Component};
-use parse::{get_text_from_step, parse_template_str, Step, StepKind};
-use template_string::{build_template, BuilderImpl};
-use txml_string::{build, Results};
+use coyote_html::{Builder, Html};
 
 use std::sync::Arc;
 use std::sync::Mutex;
-// Test will not build if Function Components do not build
-
-pub struct TxmlBuilder {}
-
-impl TxmlBuilder {
-    fn new() -> TxmlBuilder {
-        TxmlBuilder {}
-    }
-}
-
-impl BuilderImpl for TxmlBuilder {
-    fn build(&mut self, template_str: &str) -> Results {
-        // chance to cache templates here
-        build(template_str)
-    }
-}
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
@@ -35,19 +17,13 @@ fn woof_woof() -> Component {
 }
 
 #[test]
-fn test_static_template_builder() {
-    let mut builder = TemplateBuilder::new();
-    let template = woof_woof();
-    let _results = build_template(&mut builder, &template);
-}
-
-#[test]
 fn test_static_template_builder_with_arc() {
-    let mut builder = TxmlBuilder::new();
-    let arc = Arc::new(Mutex::new(builder));
-    let builder_clone = arc.clone();
-    if let Ok(mut builder_mutex) = builder_clone.lock() {
-        let template = woof_woof();
-        let _results = build_template(&mut builder_mutex, &template);
+    let mut html = Html::from_builder(Builder::new());
+    let arc = Arc::new(Mutex::new(html));
+    let html_clone = arc.clone();
+
+    let woof_form = woof_woof();
+    if let Ok(mut html_mutex) = html_clone.lock() {
+        let _results = html_mutex.build(&woof_form);
     };
 }

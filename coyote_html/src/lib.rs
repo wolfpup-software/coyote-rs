@@ -5,10 +5,11 @@ use coyote::Component;
 use template_string::{compose as compose_template, BuilderImpl};
 use txml_string::{compose as compose_txml, Results as TxmlResults};
 
+// Builder without caching
 pub struct Builder {}
 
 impl Builder {
-    fn new() -> Builder {
+    pub fn new() -> Builder {
         Builder {}
     }
 }
@@ -26,17 +27,17 @@ pub struct Html {
 }
 
 impl Html {
-    fn new() -> Html {
+    pub fn new() -> Html {
         Html {
             builder: Builder::new(),
         }
     }
 
-    fn from_builder(builder: Builder) -> Html {
+    pub fn from_builder(builder: Builder) -> Html {
         Html { builder: builder }
     }
 
-    fn build(&mut self, component: &Component) -> String {
+    pub fn build(&mut self, component: &Component) -> String {
         compose_template(&mut self.builder, component)
     }
 }
