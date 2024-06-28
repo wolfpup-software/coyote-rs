@@ -61,7 +61,7 @@ The example below creates an html string template from a coyote component functi
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::{Html, Sieve}
+use coyote_html::Html
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -70,10 +70,60 @@ fn hai() -> Component {
 fn main() {
     let hello_world = hai();
 
-    let sieve = Sieve::new();
-    let html = Html::new();
+    let html = Html::new()
+    let document = html.compose(&hello_world);
 
-    let document = html.compose(&hello_world, &sieve);
+    println!("{}", document);
+}
+```
+
+### Hello, pretty world
+
+The example below creates an html string based on 
+
+```rust
+use coyote::{Component, tmpl};
+use coyote_html::{Html, Sieve, pretty_html}
+
+fn hai() -> Component {
+    tmpl("<p>omgawsh hai :3</p>", [])
+}
+
+fn main() {
+    let hello_world = hai();
+
+    let html = Html::new()
+    let document = html.compose(&hello_world);
+    
+    println!("{}", pretty_html(document, Sieve::new());
+}
+```
+
+And the output will be:
+```html
+<p>omgawsh hai :3</p>
+```
+
+### Hello, pre-rendered world
+
+(* work in progress)
+
+The example below creates an html string based on 
+
+```rust
+use coyote::{Component, tmpl};
+use coyote_html::{Html, CachedBuilder}
+
+fn hai() -> Component {
+    tmpl("<p>omgawsh hai :3</p>", [])
+}
+
+fn main() {
+    let hello_world = hai();
+
+    let html = Html::from(CachedBuilder::new());
+    let document = html.compose(&hello_world);
+    
     println!("{}", document);
 }
 ```

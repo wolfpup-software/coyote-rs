@@ -1,8 +1,8 @@
 use coyote::{attr_val, list, text, tmpl, Component};
+use coyote_html::{Builder, Html};
 
-use txml_string::build;
-
-// Test will not build if Function Components do not build
+use std::sync::Arc;
+use std::sync::Mutex;
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
@@ -17,11 +17,13 @@ fn woof_woof() -> Component {
 }
 
 #[test]
-fn test_txml_builder() {
-    let template = woof_woof();
+fn test_static_template_builder_with_arc() {
+    let mut html = Html::from_builder(Builder::new());
+    let arc = Arc::new(Mutex::new(html));
+    let html_clone = arc.clone();
 
-    if let Component::Tmpl(tmpl) = template {
-        let results = build(&tmpl.template_str);
-        println!("{:?}", results);
-    }
+    let woof_form = woof_woof();
+    if let Ok(mut html_mutex) = html_clone.lock() {
+        let _results = html_mutex.build(&woof_form);
+    };
 }
