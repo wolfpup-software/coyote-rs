@@ -12,25 +12,13 @@ enum StackBit<'a> {
     None,
 }
 
+pub trait BuilderImpl {
+    fn build(&mut self, template_str: &str) -> Results;
+}
+
 // this needs a context to retain a scope for chaching.
 // this way renders are
 
-pub struct TemplateBuilder {}
-
-impl TemplateBuilder {
-    fn new() -> TemplateBuilder {
-        TemplateBuilder {}
-    }
-
-    fn build(&mut self, template_str: &str) -> Results {
-        // chance to cache templates here
-        build(template_str)
-    }
-}
-
-trait TemplateBuilderImpl {
-    fn build(&mut self, template_str: &str) -> Results;
-}
 // There are three sections that are basically copy paste.
 // They need to be in the same function / ownership scope?
 // Cannot mutable borrow more than once.
@@ -38,7 +26,7 @@ trait TemplateBuilderImpl {
 // (builder, template) = build(builder, template_str)
 // (self.builder, template) = build(builer, template_str)
 
-pub fn build_template(builder: &mut dyn TemplateBuilderImpl, component: &Component) -> String {
+pub fn compose(builder: &mut dyn BuilderImpl, component: &Component) -> String {
     let mut templ_str = "".to_string();
 
     let sbit = match component {
