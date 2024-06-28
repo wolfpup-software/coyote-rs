@@ -26,7 +26,9 @@ pub fn build(template_str: &str) -> Results {
             // steps
             StepKind::Tag => push_element(&mut results, template_str, step),
             StepKind::Attr => add_attr(&mut results, template_str, step),
-            StepKind::AttrValueUnquoted => add_attr_value_unquoted(&mut results, template_str, step),
+            StepKind::AttrValueUnquoted => {
+                add_attr_value_unquoted(&mut results, template_str, step)
+            }
             StepKind::AttrValue => add_attr_value(&mut results, template_str, step),
             StepKind::ElementClosed => close_element(&mut results),
             StepKind::EmptyElementClosed => empty_void_element(&mut results),
