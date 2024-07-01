@@ -1,6 +1,6 @@
 use coyote::Component;
 use parse::StepKind;
-use txml_string::{compose as compose_txml, Results};
+use txml_string::Results;
 
 struct TemplateBit {
     pub inj_index: usize,

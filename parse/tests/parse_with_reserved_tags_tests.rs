@@ -20,19 +20,19 @@ impl SieveImpl for TestSieve {
 
 #[test]
 fn confirm_clone_and_debug() {
-    const template_str: &str = "<fox>{}</fox>";
-    let sieve = TestSieve {};
+    let template_str: &str = "<fox>{}</fox>";
+    let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let cloned = steps.clone();
-    let debugged = format!("{:?}", cloned);
+    let _debugged = format!("{:?}", cloned);
 }
 
 /** NODE TYPES **/
 #[test]
 fn parse_text() {
-    const template_str: &str = "hai :3";
-    let sieve = TestSieve {};
+    let template_str: &str = "hai :3";
+    let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
@@ -54,8 +54,8 @@ fn parse_text() {
 /** RESERVED TAGS **/
 #[test]
 fn parse_reserved_tag() {
-    const template_str: &str = "<style>.fox{color: auburn;}</style>";
-    let sieve = TestSieve {};
+    let template_str: &str = "<style>.fox{color: auburn;}</style>";
+    let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
@@ -111,8 +111,8 @@ fn parse_reserved_tag() {
 
 #[test]
 fn parse_nested_reserved_tag() {
-    const template_str: &str = "<fox><style>.fox{color: auburn;}</style></fox>";
-    let sieve = TestSieve {};
+    let template_str: &str = "<fox><style>.fox{color: auburn;}</style></fox>";
+    let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
@@ -203,9 +203,9 @@ fn parse_nested_reserved_tag() {
 
 #[test]
 fn parse_multiple_sieve() {
-    const template_str: &str =
+    let template_str: &str =
         "<style>.fox{color: auburn;}</style><script>console.log('hai :3')</script>";
-    let sieve = TestSieve {};
+    let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
@@ -301,9 +301,9 @@ fn parse_multiple_sieve() {
 
 #[test]
 fn cannot_parse_nested_sieve() {
-    const template_str: &str =
+    let template_str: &str =
         "<script><style>.fox{color: auburn;}</style>console.log('hai :3')</script>";
-    let sieve = TestSieve {};
+    let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([

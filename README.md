@@ -1,11 +1,15 @@
 # Coyote-rs
 
-Create `XML | HTML | SCNENES | DOCUMENTS` in Rust with function components!
+Create `HTML | XML | DOCUMENTS | SCENES` in Rust with function components.
 
 ## Components
 
-`Coyote-rs` creates documents from [components](./coyote/README.md).
+Create documents with `coyote` [components](./coyote/README.md).
 
 ## Html
 
-`Coyote-rs` can render components as [html](./coyote_html/README.md).
+Render components as [html](./coyote_html/README.md) with `coyote_html`.
+
+## License
+
+`Coyote-rs` is released under the BSD 3-Clause License.

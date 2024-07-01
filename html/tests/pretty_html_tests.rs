@@ -1,7 +1,5 @@
-use coyote::{attr_val, list, text, tmpl, Component};
 use html::compose;
 use html::sieves::{ClientSieve, Sieve};
-use parse::{get_text_from_step, parse_template_str, Step, StepKind};
 
 #[test]
 fn test_pretty_html() {

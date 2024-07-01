@@ -17,8 +17,8 @@ fn woof_woof() -> Component {
 }
 
 #[test]
-fn test_static_template_builder_with_arc() {
-    let mut html = Html::from_builder(Builder::new());
+fn test_coyote_html_with_arc_and_mutex() {
+    let html = Html::from_builder(Builder::new());
     let arc = Arc::new(Mutex::new(html));
     let html_clone = arc.clone();
 

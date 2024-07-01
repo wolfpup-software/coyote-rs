@@ -1,8 +1,7 @@
+mod routes;
 mod sliding_window;
 
 use sliding_window::SlidingWindow;
-
-mod routes;
 
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub enum StepKind {

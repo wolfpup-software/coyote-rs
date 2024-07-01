@@ -13,12 +13,8 @@ pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
     for step in parse_str(sieve, &template_str, StepKind::Initial) {
         match step.kind {
             StepKind::Tag => push_element(&mut results, &mut stack, sieve, template_str, step),
-            StepKind::ElementClosed => {
-                close_element(&mut results, &mut stack, sieve, template_str, step)
-            }
-            StepKind::EmptyElementClosed => {
-                close_empty_element(&mut results, &mut stack, sieve, template_str, step)
-            }
+            StepKind::ElementClosed => close_element(&mut results, &mut stack),
+            StepKind::EmptyElementClosed => close_empty_element(&mut results, &mut stack),
             StepKind::TailTag => pop_element(&mut results, &mut stack, sieve, template_str, step),
             StepKind::Text => push_text(&mut results, &mut stack, sieve, template_str, step),
             StepKind::Attr => add_attr(&mut results, &mut stack, template_str, step),
@@ -88,13 +84,7 @@ fn push_element(
     stack.push(tag_info);
 }
 
-fn close_element(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    _sieve: &impl SieveImpl,
-    _template_str: &str,
-    _step: Step,
-) {
+fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     // cannot close non existant tag
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
@@ -110,13 +100,7 @@ fn close_element(
     }
 }
 
-fn close_empty_element(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    _sieve: &impl SieveImpl,
-    _template_str: &str,
-    _step: Step,
-) {
+fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -224,15 +208,11 @@ fn push_text(
         let common_index = get_most_common_space_index(text);
         tag_info.has_text = true;
 
-        println!("most common index: {}", common_index);
         for line in text.split("\n") {
-            // println!("line: \n{}", line);
             let curr_index = get_index_of_first_char(line);
             if curr_index == line.len() {
                 continue;
             }
-
-            println!("line: {} \n{}", line.len(), line);
 
             results.push('\n');
             results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
@@ -388,7 +368,7 @@ fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -
     let mut target_chars = target.char_indices();
 
     let mut prev_index = 0;
-    while let (Some((src_index, src_chr)), Some((tgt_index, tgt_chr))) =
+    while let (Some((src_index, src_chr)), Some((_, tgt_chr))) =
         (source_chars.next(), target_chars.next())
     {
         if !src_chr.is_whitespace() || !tgt_chr.is_whitespace() || src_chr != tgt_chr {
