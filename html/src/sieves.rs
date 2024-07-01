@@ -14,7 +14,6 @@ impl Sieve {
 impl SieveImpl for Sieve {}
 
 impl parse::SieveImpl for Sieve {
-    // alt_text_details ("</script", ) ( "-->", )
     fn alt_text(&self, tag: &str) -> bool {
         match tag {
             "script" => true,

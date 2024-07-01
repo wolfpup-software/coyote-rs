@@ -4,17 +4,17 @@ use parse::{parse_template_str, Results, Step, StepKind};
 // this test will fail to build if `clone` or `default formatter` is not available
 #[test]
 fn confirm_clone_and_debug() {
-    const template_str: &str = "<fox>{}</fox>";
+    let template_str: &str = "<fox>{}</fox>";
     let steps = parse_template_str(template_str, StepKind::Initial);
 
     let cloned = steps.clone();
-    let debugged = println!("{:?}", cloned);
+    let _debugged = println!("{:?}", cloned);
 }
 
 /** README EXAMPLE **/
 #[test]
 fn parse_readme_example() {
-    const template_str: &str = "<fox>{}</fox>";
+    let template_str: &str = "<fox>{}</fox>";
     let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
@@ -75,7 +75,7 @@ fn parse_readme_example() {
 /** NODE TYPES **/
 #[test]
 fn parse_text() {
-    const template_str: &str = "hai :3";
+    let template_str: &str = "hai :3";
     let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
@@ -95,7 +95,7 @@ fn parse_text() {
 
 #[test]
 fn parse_fragment() {
-    const template_str: &str = "<>";
+    let template_str: &str = "<>";
     let steps = parse_template_str(template_str, StepKind::Text);
     let expected: Results = Vec::from([
         Step {
@@ -120,7 +120,7 @@ fn parse_fragment() {
 
 #[test]
 fn parse_close_fragment() {
-    const template_str: &str = "</>";
+    let template_str: &str = "</>";
     let steps = parse_template_str(template_str, StepKind::FragmentClosed);
     let expected: Results = Vec::from([
         Step {
@@ -150,7 +150,7 @@ fn parse_close_fragment() {
 
 #[test]
 fn parse_node() {
-    const template_str: &str = "<wolf>";
+    let template_str: &str = "<wolf>";
     let steps = parse_template_str(template_str, StepKind::TailElementClosed);
     let expected: Results = Vec::from([
         Step {
@@ -180,7 +180,7 @@ fn parse_node() {
 
 #[test]
 fn parse_close_node() {
-    const template_str: &str = "</wolf>";
+    let template_str: &str = "</wolf>";
     let steps = parse_template_str(template_str, StepKind::FragmentClosed);
     let expected: Results = Vec::from([
         Step {
@@ -215,7 +215,7 @@ fn parse_close_node() {
 
 #[test]
 fn parse_void_node() {
-    const template_str: &str = "<wolf/>";
+    let template_str: &str = "<wolf/>";
     let steps = parse_template_str(template_str, StepKind::TailElementClosed);
     let expected: Results = Vec::from([
         Step {
@@ -250,7 +250,7 @@ fn parse_void_node() {
 
 #[test]
 fn parse_all_nodes() {
-    const template_str: &str = "
+    let template_str: &str = "
     	prarie
     	<>
 		  	<hare />
@@ -391,7 +391,7 @@ fn parse_all_nodes() {
 /** ATTRIBUTES **/
 #[test]
 fn parse_attribute() {
-    const template_str: &str = "<hello howdy>";
+    let template_str: &str = "<hello howdy>";
     let steps = parse_template_str(template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
@@ -431,7 +431,7 @@ fn parse_attribute() {
 
 #[test]
 fn parse_multiple_attributes() {
-    const template_str: &str = "<hello howdy look up occasionally>";
+    let template_str: &str = "<hello howdy look up occasionally>";
 
     let expected: Results = Vec::from([
         Step {
@@ -502,7 +502,7 @@ fn parse_multiple_attributes() {
 
 #[test]
 fn parse_attribute_declaration() {
-    const template_str: &str = "<hello red=\"blue\">";
+    let template_str: &str = "<hello red=\"blue\">";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -562,7 +562,7 @@ fn parse_attribute_declaration() {
 
 #[test]
 fn parse_attribute_value_unquoted() {
-    const template_str: &str = "<hello red=blue>";
+    let template_str: &str = "<hello red=blue>";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -612,7 +612,7 @@ fn parse_attribute_value_unquoted() {
 
 #[test]
 fn parse_multiple_attribute_value_unquoted() {
-    const template_str: &str = "<hello red=blue hia=:3 herro=!!!>";
+    let template_str: &str = "<hello red=blue hia=:3 herro=!!!>";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -702,7 +702,7 @@ fn parse_multiple_attribute_value_unquoted() {
 
 #[test]
 fn parse_multiple_attribute_declaration() {
-    const template_str: &str = "<hello red=\"blue\" orange=\"purple\" green=\"pink\">";
+    let template_str: &str = "<hello red=\"blue\" orange=\"purple\" green=\"pink\">";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -822,7 +822,7 @@ fn parse_multiple_attribute_declaration() {
 
 #[test]
 fn parse_all_declarations() {
-    const template_str: &str = "<hello red=\"blue\" wolf orange=\"purple\" tiger crane>";
+    let template_str: &str = "<hello red=\"blue\" wolf orange=\"purple\" tiger crane>";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -943,7 +943,7 @@ fn parse_all_declarations() {
 /** INJECTIONS **/
 #[test]
 fn parse_descendant_injection() {
-    const template_str: &str = "<hello>{}</hello>";
+    let template_str: &str = "<hello>{}</hello>";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -1003,7 +1003,7 @@ fn parse_descendant_injection() {
 
 #[test]
 fn parse_multiple_descendant_injections() {
-    const template_str: &str = "{}<hello>{}</hello>{}";
+    let template_str: &str = "{}<hello>{}</hello>{}";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -1083,7 +1083,7 @@ fn parse_multiple_descendant_injections() {
 
 #[test]
 fn parse_attribute_injection() {
-    const template_str: &str = "<hello {}>";
+    let template_str: &str = "<hello {}>";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -1128,7 +1128,7 @@ fn parse_attribute_injection() {
 
 #[test]
 fn parse_multiple_attribute_injections() {
-    const template_str: &str = "<hello {} {} world {}>";
+    let template_str: &str = "<hello {} {} world {}>";
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -1213,7 +1213,7 @@ fn parse_multiple_attribute_injections() {
 
 #[test]
 fn parse_all_injections() {
-    const template_str: &str = "
+    let template_str: &str = "
     	<hello world {} {} howdy>
     		what's good!
     		{}
@@ -1367,7 +1367,7 @@ fn parse_all_injections() {
 /** RELIABLE CHAOS **/
 #[test]
 fn parse_a_mangled_mess() {
-    const template_str: &str = "
+    let template_str: &str = "
 			<			moon phase=				text_that_is_very_bad_and_does_not_belong
 	\"waxing gibbous\"					/					><
 clouds           big            opacity=\"0.9\"

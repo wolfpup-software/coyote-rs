@@ -1,6 +1,6 @@
 use coyote::{attr_val, list, text, tmpl, Component};
 
-use txml_string::build;
+use txml_string::compose;
 
 // Test will not build if Function Components do not build
 
@@ -21,7 +21,6 @@ fn test_txml_builder() {
     let template = woof_woof();
 
     if let Component::Tmpl(tmpl) = template {
-        let results = build(&tmpl.template_str);
-        println!("{:?}", results);
+        let _results = compose(&tmpl.template_str);
     }
 }
