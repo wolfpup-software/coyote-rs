@@ -155,7 +155,7 @@ fn pop_element(
 
     if sieve.respect_indentation() {
         if !tag_info.inline_el
-            && !tag_info.preserved_text_el
+            && !tag_info.preserved_text_path
             && (tag_info.has_text || tag_info.last_descendant_tag != "")
         {
             results.push_str("\n");
@@ -196,7 +196,7 @@ fn push_text(
         return;
     }
 
-    if tag_info.preserved_text_path || tag_info.preserved_text_el {
+    if tag_info.preserved_text_path {
         tag_info.has_text = true;
         results.push_str(text);
         return;
