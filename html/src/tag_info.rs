@@ -11,7 +11,6 @@ pub struct TagInfo {
     pub indent_count: usize,
     pub void_el: bool,
     pub inline_el: bool,
-    pub void_path: bool,
     pub preserved_text_path: bool,
     pub banned_path: bool,
 }
@@ -31,7 +30,6 @@ impl TagInfo {
             indent_count: 0,
             void_el: sieve.void_el(tag),
             inline_el: sieve.inline_el(tag),
-            void_path: false,
             preserved_text_path: false,
             banned_path: sieve.banned_el(tag),
         }
@@ -43,10 +41,6 @@ impl TagInfo {
 
         if sieve.namespace_el(tag) {
             tag_info.namespace = tag.to_string();
-        }
-
-        if sieve.void_el(&prev_tag_info.tag) || sieve.void_el(tag) {
-            tag_info.void_path = true;
         }
 
         // preserved text happends _after_ tag

@@ -54,7 +54,7 @@ fn push_element(
         _ => TagInfo::new(sieve, tag),
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path {
         stack.push(tag_info);
         return;
     }
@@ -91,7 +91,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         _ => return,
     };
 
-    if !(tag_info.banned_path || tag_info.void_path) {
+    if !(tag_info.banned_path) {
         results.push_str(">");
     }
 
@@ -106,7 +106,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         stack.pop();
         return;
     }
@@ -142,7 +142,7 @@ fn pop_element(
         return;
     }
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         stack.pop();
         return;
     }
@@ -192,7 +192,7 @@ fn push_text(
         }
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         return;
     }
 
@@ -264,7 +264,7 @@ fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, 
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         return;
     }
 
@@ -279,7 +279,7 @@ fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: 
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         return;
     }
 
@@ -300,7 +300,7 @@ fn add_attr_value_unquoted(
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         return;
     }
 
@@ -320,7 +320,7 @@ fn push_injection_kind(
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_path {
+    if tag_info.banned_path || tag_info.void_el {
         return;
     }
 
