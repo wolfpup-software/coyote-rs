@@ -47,7 +47,7 @@ impl TagInfo {
             tag_info.namespace = tag.to_string();
         }
 
-        if sieve.void_el(&prev_tag_info.tag) {
+        if sieve.void_el(&prev_tag_info.tag) || sieve.void_el(tag) {
             tag_info.void_path = true;
         }
 
