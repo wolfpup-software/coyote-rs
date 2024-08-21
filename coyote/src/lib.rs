@@ -40,8 +40,8 @@ pub fn text(txt: &str) -> Component {
     Component::Text(escaped)
 }
 
-pub fn unescaped_text(txt: String) -> Component {
-    Component::Text(txt)
+pub fn unescaped_text(txt: &str) -> Component {
+    Component::Text(txt.to_string())
 }
 
 pub fn attr(attr_str: &str) -> Component {

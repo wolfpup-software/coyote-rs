@@ -6,7 +6,7 @@ use crate::sieves::SieveImpl;
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
-    pub last_descendant_tag: String,
+    pub descendant_tag: String,
     pub has_text: bool,
     pub indent_count: usize,
     pub void_el: bool,
@@ -25,7 +25,7 @@ impl TagInfo {
         TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
-            last_descendant_tag: "".to_string(),
+            descendant_tag: "".to_string(),
             has_text: false,
             indent_count: 0,
             void_el: sieve.void_el(tag),
@@ -52,12 +52,15 @@ impl TagInfo {
             tag_info.banned_path = true;
         }
 
-        if sieve.void_el(tag) || !sieve.inline_el(tag) {
+        // problematic
+        if !sieve.void_el(&prev_tag_info.tag) && !sieve.inline_el(tag) {
+            println!("found a void element! {:?}", &tag);
             tag_info.indent_count += 1;
         }
 
+        tag_info.void_el = sieve.void_el(&tag);
         tag_info.tag = tag.to_string();
-        tag_info.last_descendant_tag = "".to_string();
+        tag_info.descendant_tag = "".to_string();
         tag_info.inline_el = sieve.inline_el(tag);
         tag_info.has_text = false;
 

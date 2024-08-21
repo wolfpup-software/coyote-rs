@@ -2,7 +2,44 @@ use html::compose;
 use html::sieves::{ClientSieve, Sieve};
 
 #[test]
-fn test_pretty_html() {
+fn test_pretty_html_void_el() {
+    let template = "
+            <input>   <input>
+            <input><input> ";
+    let expected = "<input>\n<input>\n<input>\n<input>";
+
+    let sieve = Sieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
+fn test_pretty_html_void_el_and_others() {
+    let template = "
+            <input><p>hai :3</p>    ";
+    let expected = "<input>\n<p>\n\thai :3\n</p>";
+
+    let sieve = Sieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
+fn test_pretty_html_nested_void_el() {
+    let template = "
+        <section>
+            <input><p>hai :3</p>
+        </section>
+    ";
+    let expected = "<section>\n\t<input>\n\t<p>\n\t\thai :3\n\t</p>\n</section>";
+
+    let sieve = Sieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
+fn test_pretty_html_doc() {
     let template = "        <!DOCTYPE>
     <html>
     <head>

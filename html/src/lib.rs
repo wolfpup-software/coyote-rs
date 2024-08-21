@@ -48,7 +48,7 @@ fn push_element(
     let tag = get_text_from_step(template_str, &step);
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => {
-            prev_tag_info.last_descendant_tag = tag.to_string();
+            prev_tag_info.descendant_tag = tag.to_string();
             TagInfo::from(sieve, prev_tag_info, tag)
         }
         _ => TagInfo::new(sieve, tag),
@@ -59,23 +59,19 @@ fn push_element(
         return;
     }
 
-    if sieve.respect_indentation() {
-        if !tag_info.inline_el {
-            // edge case that requires reading from the results to prevent starting with \n
-            // not my favorite but works here
-            if results.len() > 0 {
-                results.push('\n');
-                results.push_str(&"\t".repeat(tag_info.indent_count));
-            }
-        } else {
-            if !tag_info.has_text {
-                results.push(' ');
-            }
-        }
-    } else {
-        if tag_info.inline_el {
-            results.push(' ');
-        }
+    if !sieve.respect_indentation() && tag_info.inline_el {
+        results.push(' ');
+    }
+
+    if sieve.respect_indentation() && !tag_info.inline_el && results.len() > 0 {
+        // edge case that requires reading from the results to prevent starting with \n
+        // not my favorite but works here
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+    }
+
+    if sieve.respect_indentation() && tag_info.inline_el && !tag_info.has_text {
+        results.push(' ');
     }
 
     results.push('<');
@@ -95,6 +91,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(">");
     }
 
+    println!("close element {:?}", tag_info);
     if tag_info.namespace == "html" && tag_info.void_el {
         stack.pop();
     }
@@ -111,14 +108,17 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         return;
     }
 
-    // svg and mathml elements can self close
     if tag_info.namespace != "html" {
         results.push_str("/>");
-    } else {
-        if !tag_info.void_el {
-            results.push_str("></");
-            results.push_str(&tag_info.tag);
-        }
+    }
+
+    if tag_info.namespace == "html" && !tag_info.void_el {
+        results.push_str("></");
+        results.push_str(&tag_info.tag);
+    }
+
+    // svg and mathml elements can self close
+    if tag_info.namespace == "html" {
         results.push('>');
     }
 
@@ -132,12 +132,16 @@ fn pop_element(
     template_str: &str,
     step: Step,
 ) {
+    let tag = get_text_from_step(template_str, &step);
+
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
     };
 
-    let tag = get_text_from_step(template_str, &step);
+    println!("pop tail: {:?}", tag);
+    println!("prev tag: {:?}", tag_info.tag);
+
     if tag != tag_info.tag {
         return;
     }
@@ -153,14 +157,13 @@ fn pop_element(
         return;
     }
 
-    if sieve.respect_indentation() {
-        if !tag_info.inline_el
-            && !tag_info.preserved_text_path
-            && (tag_info.has_text || tag_info.last_descendant_tag != "")
-        {
-            results.push_str("\n");
-            results.push_str(&"\t".repeat(tag_info.indent_count));
-        }
+    if sieve.respect_indentation()
+        && !tag_info.inline_el
+        && !tag_info.preserved_text_path
+        && (tag_info.has_text || tag_info.descendant_tag != "")
+    {
+        results.push_str("\n");
+        results.push_str(&"\t".repeat(tag_info.indent_count));
     }
 
     results.push_str("</");
@@ -229,7 +232,7 @@ fn push_text(
         }
 
         if sieve.respect_indentation() {
-            if !tag_info.inline_el && !sieve.inline_el(&tag_info.last_descendant_tag) {
+            if !tag_info.inline_el && !sieve.inline_el(&tag_info.descendant_tag) {
                 trimmed_text.push('\n');
                 trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
             } else {
