@@ -91,7 +91,6 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(">");
     }
 
-    println!("close element {:?}", tag_info);
     if tag_info.namespace == "html" && tag_info.void_el {
         stack.pop();
     }
@@ -138,9 +137,6 @@ fn pop_element(
         Some(curr) => curr,
         _ => return,
     };
-
-    println!("pop tail: {:?}", tag);
-    println!("prev tag: {:?}", tag_info.tag);
 
     if tag != tag_info.tag {
         return;
@@ -207,6 +203,7 @@ fn push_text(
 
     // if alternative like styles or scripts
     if sieve.alt_text(&tag_info.tag) {
+        println!("alt_text: {:?}", text);
         // get most common white space
         let common_index = get_most_common_space_index(text);
         tag_info.has_text = true;

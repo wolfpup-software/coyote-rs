@@ -151,6 +151,8 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
         step.target = template_str.len();
     }
 
+    println!("steps: {:?}", &steps);
+
     steps
 }
 
@@ -176,7 +178,7 @@ fn add_reserved_element_text(
         _ => return Err(()),
     };
 
-    step.target = index - (tag_step.len() + 2);
+    step.target = index - (tag_step.len() + 1);
     steps.push(Step {
         kind: StepKind::Element,
         origin: index - (tag_step.len() + 1),

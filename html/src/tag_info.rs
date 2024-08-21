@@ -54,7 +54,6 @@ impl TagInfo {
 
         // problematic
         if !sieve.void_el(&prev_tag_info.tag) && !sieve.inline_el(tag) {
-            println!("found a void element! {:?}", &tag);
             tag_info.indent_count += 1;
         }
 

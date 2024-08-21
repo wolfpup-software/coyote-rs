@@ -1,6 +1,6 @@
 # Coyote-rs
 
-Create `HTML | XML | DOCUMENTS | SCENES` in Rust with function components.
+Create `HTML | XML` in Rust with function components.
 
 ## Components
 

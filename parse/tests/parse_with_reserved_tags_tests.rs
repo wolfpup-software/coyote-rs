@@ -82,7 +82,7 @@ fn parse_reserved_tag() {
         Step {
             kind: StepKind::Text,
             origin: 7,
-            target: 26,
+            target: 27,
         },
         Step {
             kind: StepKind::Element,
@@ -154,7 +154,7 @@ fn parse_nested_reserved_tag() {
         Step {
             kind: StepKind::Text,
             origin: 12,
-            target: 31,
+            target: 32,
         },
         Step {
             kind: StepKind::Element,
@@ -232,7 +232,7 @@ fn parse_multiple_sieve() {
         Step {
             kind: StepKind::Text,
             origin: 7,
-            target: 26,
+            target: 27,
         },
         Step {
             kind: StepKind::Element,
@@ -272,7 +272,7 @@ fn parse_multiple_sieve() {
         Step {
             kind: StepKind::Text,
             origin: 43,
-            target: 63,
+            target: 64,
         },
         Step {
             kind: StepKind::Element,
@@ -330,7 +330,7 @@ fn cannot_parse_nested_sieve() {
         Step {
             kind: StepKind::Text,
             origin: 8,
-            target: 63,
+            target: 64,
         },
         Step {
             kind: StepKind::Element,
