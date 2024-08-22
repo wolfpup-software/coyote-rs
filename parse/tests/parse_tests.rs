@@ -8,7 +8,7 @@ fn confirm_clone_and_debug() {
     let steps = parse_template_str(template_str, StepKind::Initial);
 
     let cloned = steps.clone();
-    let _debugged = println!("{:?}", cloned);
+    let _debugged = format!("{:?}", cloned);
 }
 
 /** README EXAMPLE **/
