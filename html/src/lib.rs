@@ -203,7 +203,6 @@ fn push_text(
 
     // if alternative like styles or scripts
     if sieve.alt_text(&tag_info.tag) {
-        println!("alt_text: {:?}", text);
         // get most common white space
         let common_index = get_most_common_space_index(text);
         tag_info.has_text = true;
