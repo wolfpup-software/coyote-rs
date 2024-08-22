@@ -142,7 +142,7 @@ fn pop_element(
         return;
     }
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         stack.pop();
         return;
     }
@@ -264,7 +264,7 @@ fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, 
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         return;
     }
 
@@ -279,7 +279,7 @@ fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: 
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         return;
     }
 
@@ -300,7 +300,7 @@ fn add_attr_value_unquoted(
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         return;
     }
 
@@ -320,7 +320,7 @@ fn push_injection_kind(
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         return;
     }
 
