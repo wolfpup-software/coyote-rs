@@ -151,8 +151,6 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
         step.target = template_str.len();
     }
 
-    println!("steps: {:?}", &steps);
-
     steps
 }
 
