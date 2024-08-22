@@ -13,6 +13,19 @@ fn test_pretty_html_void_el() {
 }
 
 #[test]
+fn test_pretty_html_void_el_with_attributes() {
+    let template = "
+        <!DOCTYPE html><input type=checkbox>   <input woof=\"bark\">
+            <input grrr><input> ";
+    let expected =
+        "<!DOCTYPE html>\n<input type=checkbox>\n<input woof=\"bark\">\n<input grrr>\n<input>";
+
+    let sieve = Sieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
 fn test_pretty_html_void_el_and_others() {
     let template = "
             <input><p>hai :3</p>    ";
