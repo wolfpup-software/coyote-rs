@@ -366,7 +366,7 @@ fn get_most_common_space_index(text: &str) -> usize {
             continue;
         }
 
-        curr_space = &line;
+        curr_space = line;
         if space_index == curr_index && prev_space == curr_space {
             continue;
         }
