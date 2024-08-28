@@ -1,7 +1,7 @@
 use parse::{get_text_from_step, parse_str, Step, StepKind};
 
 mod tag_info;
-use tag_info::TagInfo;
+use tag_info::{DescendantStatus, TagInfo};
 
 pub mod sieves;
 use sieves::SieveImpl;
@@ -46,10 +46,14 @@ fn push_element(
     step: Step,
 ) {
     let tag = get_text_from_step(template_str, &step);
-    let tag_info = match stack.last_mut() {
-        Some(prev_tag_info) => {
+    let mut tag_info = match stack.last_mut() {
+        Some(mut prev_tag_info) => {
             prev_tag_info.descendant_tag = tag.to_string();
-            TagInfo::from(sieve, prev_tag_info, tag)
+            // prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+            //     true => DescendantStatus::InlineElement,
+            //     _ => DescendantStatus::Element,
+            // };
+            TagInfo::from(sieve, &prev_tag_info, tag)
         }
         _ => TagInfo::new(sieve, tag),
     };
@@ -59,8 +63,19 @@ fn push_element(
         return;
     }
 
-    if !sieve.respect_indentation() && tag_info.inline_el {
-        results.push(' ');
+    if !sieve.respect_indentation() && tag_info.inline_el && !tag_info.void_el {
+        if let Some(prev_tag_info) = stack.last() {
+            println!(
+                "{:?} {:?}",
+                tag_info.tag, prev_tag_info.most_recent_descendant
+            );
+            if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
+                println!("yo made it!");
+
+                results.push(' ');
+            }
+        }
+        // results.push(' ');
     }
 
     if sieve.respect_indentation() && !tag_info.inline_el && results.len() > 0 {
@@ -70,10 +85,19 @@ fn push_element(
         results.push_str(&"\t".repeat(tag_info.indent_count));
     }
 
-    if sieve.respect_indentation() && tag_info.inline_el && !tag_info.has_text {
+    if sieve.respect_indentation() && tag_info.inline_el && results.len() > 0 {
+        // edge case that requires reading from the results to prevent starting with \n
+        // not my favorite but works here
         results.push(' ');
     }
 
+    if let Some(mut prev_tag_info) = stack.last_mut() {
+        prev_tag_info.descendant_tag = tag.to_string();
+        prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+            true => DescendantStatus::InlineElement,
+            _ => DescendantStatus::Element,
+        };
+    }
     results.push('<');
     results.push_str(tag);
 
@@ -87,7 +111,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         _ => return,
     };
 
-    if !(tag_info.banned_path) {
+    if !tag_info.banned_path {
         results.push_str(">");
     }
 
@@ -156,17 +180,36 @@ fn pop_element(
     if sieve.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
-        && (tag_info.has_text || tag_info.descendant_tag != "")
+        && tag_info.most_recent_descendant != DescendantStatus::Initial
     {
         results.push_str("\n");
         results.push_str(&"\t".repeat(tag_info.indent_count));
     }
+    // break this up
+    // if sieve.respect_indentation()
+    //     && !tag_info.inline_el
+    //     && !tag_info.preserved_text_path
+    //     // && (tag_info.has_text || tag_info.descendant_tag != "")
+    //     && tag_info.most_recent_descendant != DescendantStatus::Initial
+    //     && tag_info.most_recent_descendant != DescendantStatus::Text
+    // {
+    //     results.push_str("\n");
+    //     results.push_str(&"\t".repeat(tag_info.indent_count));
+    // }
 
     results.push_str("</");
     results.push_str(tag);
     results.push('>');
 
     stack.pop();
+}
+
+fn get_prev_element(stack: &mut Vec<TagInfo>) {
+    let prv_idx = stack.len() - 2;
+    match stack.get_mut(prv_idx) {
+        Some(el) => {}
+        _ => {}
+    };
 }
 
 fn push_text(
@@ -197,6 +240,7 @@ fn push_text(
 
     if tag_info.preserved_text_path {
         tag_info.has_text = true;
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         results.push_str(text);
         return;
     }
@@ -205,6 +249,7 @@ fn push_text(
     if sieve.alt_text(&tag_info.tag) {
         // get most common white space
         let common_index = get_most_common_space_index(text);
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         tag_info.has_text = true;
 
         for line in text.split("\n") {
@@ -252,6 +297,7 @@ fn push_text(
 
     let last_trim = trimmed_text.trim();
     if last_trim.len() > 0 {
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         tag_info.has_text = true;
         results.push_str(&trimmed_text);
     }

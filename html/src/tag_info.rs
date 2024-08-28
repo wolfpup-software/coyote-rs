@@ -3,10 +3,19 @@
 use crate::sieves::SieveImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+pub enum DescendantStatus {
+    Text,
+    Element,
+    InlineElement,
+    Initial,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
     pub descendant_tag: String,
+    pub most_recent_descendant: DescendantStatus,
     pub has_text: bool,
     pub indent_count: usize,
     pub void_el: bool,
@@ -14,6 +23,14 @@ pub struct TagInfo {
     pub preserved_text_path: bool,
     pub banned_path: bool,
 }
+
+/*
+    instead of descendant tag
+    mark if last descendant is:
+    - text
+    - inline
+    - block
+*/
 
 impl TagInfo {
     pub fn new(sieve: &impl SieveImpl, tag: &str) -> TagInfo {
@@ -26,6 +43,7 @@ impl TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
             descendant_tag: "".to_string(),
+            most_recent_descendant: DescendantStatus::Initial,
             has_text: false,
             indent_count: 0,
             void_el: sieve.void_el(tag),
@@ -59,6 +77,7 @@ impl TagInfo {
 
         tag_info.void_el = sieve.void_el(&tag);
         tag_info.tag = tag.to_string();
+        tag_info.most_recent_descendant = DescendantStatus::Initial;
         tag_info.descendant_tag = "".to_string();
         tag_info.inline_el = sieve.inline_el(tag);
         tag_info.has_text = false;

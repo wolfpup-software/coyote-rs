@@ -2,6 +2,16 @@ use html::compose;
 use html::sieves::{ClientSieve, Sieve};
 
 #[test]
+fn test_pretty_html_no_empty_space() {
+    let template = "<html></html>";
+    let expected = "<html></html>";
+
+    let sieve = Sieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+#[test]
 fn test_pretty_html_void_el() {
     let template = "<input>   <input>
             <input><input> ";
@@ -181,6 +191,17 @@ fn test_pretty_html_without_indents_client() {
 
     let expected =
         "<!DOCTYPE><html><head></head><body><article>You're a <span>boy kisser</span> aren't you? Click <a>here</a> and go somewhere else.</article><footer></footer></body></html>";
+    let sieve = ClientSieve::new();
+    let results = compose(&sieve, &template);
+    assert_eq!(expected, results);
+}
+
+/* complicated inline cases */
+#[test]
+fn test_pretty_html_without_indents_and_text() {
+    let template = "<a><label><input type=woofer>bark!</label><img></a>";
+
+    let expected = "<a><label><input type=woofer>bark!</label><img></a>";
     let sieve = ClientSieve::new();
     let results = compose(&sieve, &template);
     assert_eq!(expected, results);
