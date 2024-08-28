@@ -47,10 +47,7 @@ fn push_element(
 ) {
     let tag = get_text_from_step(template_str, &step);
     let mut tag_info = match stack.last_mut() {
-        Some(mut prev_tag_info) => {
-            prev_tag_info.descendant_tag = tag.to_string();
-            TagInfo::from(sieve, &prev_tag_info, tag)
-        }
+        Some(mut prev_tag_info) => TagInfo::from(sieve, &prev_tag_info, tag),
         _ => TagInfo::new(sieve, tag),
     };
 
@@ -81,7 +78,6 @@ fn push_element(
     }
 
     if let Some(mut prev_tag_info) = stack.last_mut() {
-        prev_tag_info.descendant_tag = tag.to_string();
         prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
             true => DescendantStatus::InlineElement,
             _ => DescendantStatus::Element,
@@ -252,7 +248,9 @@ fn push_text(
         }
 
         if sieve.respect_indentation() {
-            if !tag_info.inline_el && !sieve.inline_el(&tag_info.descendant_tag) {
+            if !tag_info.inline_el
+                && tag_info.most_recent_descendant != DescendantStatus::InlineElement
+            {
                 trimmed_text.push('\n');
                 trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
             } else {
