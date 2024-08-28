@@ -265,10 +265,10 @@ fn push_text(
                     trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
                 }
             }
-        } else {
-            if tag_info.has_text {
-                trimmed_text.push(' ');
-            }
+        }
+
+        if !sieve.respect_indentation() && tag_info.has_text {
+            trimmed_text.push(' ');
         }
 
         trimmed_text.push_str(trimmed_line);
