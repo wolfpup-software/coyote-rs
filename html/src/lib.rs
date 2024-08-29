@@ -141,6 +141,7 @@ fn pop_element(
     template_str: &str,
     step: Step,
 ) {
+    // need to get second to last element and then say this was a block element or an inline element
     let tag = get_text_from_step(template_str, &step);
 
     let tag_info = match stack.last() {
@@ -160,6 +161,9 @@ fn pop_element(
     if tag_info.namespace == "html" && tag_info.void_el {
         results.push('>');
         stack.pop();
+        if let Some(prev_tag_info) = stack.last_mut() {
+            prev_tag_info.most_recent_descendant = DescendantStatus::InlineElement;
+        }
         return;
     }
 
@@ -177,6 +181,16 @@ fn pop_element(
     results.push('>');
 
     stack.pop();
+
+    match stack.last_mut() {
+        Some(curr) => {
+            curr.most_recent_descendant = match sieve.inline_el(tag) {
+                true => DescendantStatus::InlineElement,
+                _ => DescendantStatus::Element,
+            }
+        }
+        _ => return,
+    };
 }
 
 fn get_prev_element(stack: &mut Vec<TagInfo>) {
@@ -224,19 +238,19 @@ fn push_text(
     if sieve.alt_text(&tag_info.tag) {
         // get most common white space
         let common_index = get_most_common_space_index(text);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
         tag_info.has_text = true;
 
         for line in text.split("\n") {
-            let curr_index = get_index_of_first_char(line);
-            if curr_index == line.len() {
+            if line.len() == get_index_of_first_char(line) {
                 continue;
             }
 
             results.push('\n');
-            results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-            results.push_str(&line[common_index..].trim_end());
+            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(line[common_index..].trim_end());
         }
+
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
 
@@ -265,7 +279,10 @@ fn push_text(
             }
         }
 
-        if !sieve.respect_indentation() && tag_info.has_text {
+        if !sieve.respect_indentation()
+            && tag_info.most_recent_descendant != DescendantStatus::Element
+            && tag_info.most_recent_descendant != DescendantStatus::Initial
+        {
             trimmed_text.push(' ');
         }
 
@@ -365,7 +382,7 @@ fn get_most_common_space_index(text: &str) -> usize {
         }
 
         curr_space = line;
-        if space_index == curr_index && prev_space == curr_space {
+        if space_index == curr_index {
             continue;
         }
 
