@@ -6,7 +6,9 @@ use crate::sieves::SieveImpl;
 pub enum DescendantStatus {
     Text,
     Element,
+    ElementClosed,
     InlineElement,
+    InlineElementClosed,
     Initial,
 }
 
