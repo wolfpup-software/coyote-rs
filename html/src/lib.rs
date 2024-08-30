@@ -132,7 +132,6 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(&tag_info.tag);
     }
 
-    // svg and mathml elements can self close
     if tag_info.namespace == "html" {
         results.push('>');
     }
@@ -317,7 +316,7 @@ fn add_element_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) 
 fn add_element_closed_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
     for line in texts {
         results.push('\n');
-        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
         results.push_str(line);
     }
 }
@@ -497,3 +496,19 @@ fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -
 
     prev_index
 }
+
+// "<!DOCTYPE>
+// <html>
+//     <head></head>
+//     <body>
+//       <article>
+//           You're a <span>boy kisser</span> aren't you?
+//           Click
+//           <a>
+//             here
+//           </a>
+//           and go somewhere else.
+//       </article>
+//       <footer></footer>
+//     </body>
+// </html>"

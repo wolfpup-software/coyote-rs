@@ -85,6 +85,10 @@ impl coyote::SieveImpl for ClientSieve {
         is_preserved_text_el(tag)
     }
     fn inline_el(&self, tag: &str) -> bool {
+        if tag == "a" {
+            return true;
+        }
+
         is_inline_el(tag)
     }
 }
@@ -126,7 +130,6 @@ pub fn is_preserved_text_el(tag: &str) -> bool {
 
 pub fn is_inline_el(tag: &str) -> bool {
     match tag {
-        "a" => true,
         "abbr" => true,
         "b" => true,
         "bdi" => true,
