@@ -300,7 +300,7 @@ fn push_text(
             DescendantStatus::ElementClosed => add_inline_element_text(results, texts, tag_info),
             DescendantStatus::InlineElement => add_inline_element_text(results, texts, tag_info),
             DescendantStatus::InlineElementClosed => {
-                add_inline_element_closed_text(results, texts, tag_info)
+                add_unpretty_inline_element_closed_text(results, texts, tag_info)
             }
             DescendantStatus::Text => add_inline_element_closed_text(results, texts, tag_info),
             DescendantStatus::Initial => add_inline_element_text(results, texts, tag_info),
@@ -308,48 +308,6 @@ fn push_text(
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
-
-    // let mut trimmed_text = "".to_string();
-    // for (index, line) in text.split("\n").enumerate() {
-    //     let trimmed_line = line.trim();
-    //     if trimmed_line.len() == 0 {
-    //         continue;
-    //     }
-
-    //     if sieve.respect_indentation() {
-    //         if !tag_info.inline_el
-    //             && tag_info.most_recent_descendant != DescendantStatus::InlineElement
-    //         {
-    //             trimmed_text.push('\n');
-    //             trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-    //         } else {
-    //             if index == 0 {
-    //                 if tag_info.has_text {
-    //                     trimmed_text.push(' ');
-    //                 }
-    //             } else {
-    //                 trimmed_text.push('\n');
-    //                 trimmed_text.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-    //             }
-    //         }
-    //     }
-
-    //     if !sieve.respect_indentation()
-    //         && tag_info.most_recent_descendant != DescendantStatus::Element
-    //         && tag_info.most_recent_descendant != DescendantStatus::Initial
-    //     {
-    //         trimmed_text.push(' ');
-    //     }
-
-    //     trimmed_text.push_str(trimmed_line);
-    // }
-
-    // let last_trim = trimmed_text.trim();
-    // if last_trim.len() > 0 {
-    //     tag_info.most_recent_descendant = DescendantStatus::Text;
-    //     tag_info.has_text = true;
-    //     results.push_str(&trimmed_text);
-    // }
 }
 
 fn add_element_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
@@ -382,7 +340,34 @@ fn add_inline_element_text(results: &mut String, texts: Vec<&str>, tag_info: &Ta
 }
 
 fn add_inline_element_closed_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
-    for line in texts {
+    let mut text_itr = texts.iter();
+
+    if let Some(line) = text_itr.next() {
+        results.push(' ');
+        results.push_str(line);
+    }
+
+    while let Some(line) = text_itr.next() {
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+        results.push_str(line);
+    }
+}
+
+fn add_unpretty_inline_element_closed_text(
+    results: &mut String,
+    texts: Vec<&str>,
+    tag_info: &TagInfo,
+) {
+    let mut text_itr = texts.iter();
+
+    if let Some(line) = text_itr.next() {
+        results.push(' ');
+
+        results.push_str(line);
+    }
+
+    while let Some(line) = text_itr.next() {
         results.push(' ');
         results.push_str(line);
     }
