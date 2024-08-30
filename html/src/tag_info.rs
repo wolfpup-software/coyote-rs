@@ -6,7 +6,9 @@ use crate::sieves::SieveImpl;
 pub enum DescendantStatus {
     Text,
     Element,
+    ElementClosed,
     InlineElement,
+    InlineElementClosed,
     Initial,
 }
 
@@ -14,9 +16,7 @@ pub enum DescendantStatus {
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
-    pub descendant_tag: String,
     pub most_recent_descendant: DescendantStatus,
-    pub has_text: bool,
     pub indent_count: usize,
     pub void_el: bool,
     pub inline_el: bool,
@@ -42,9 +42,7 @@ impl TagInfo {
         TagInfo {
             namespace: namespace,
             tag: tag.to_string(),
-            descendant_tag: "".to_string(),
             most_recent_descendant: DescendantStatus::Initial,
-            has_text: false,
             indent_count: 0,
             void_el: sieve.void_el(tag),
             inline_el: sieve.inline_el(tag),
@@ -78,9 +76,7 @@ impl TagInfo {
         tag_info.void_el = sieve.void_el(&tag);
         tag_info.tag = tag.to_string();
         tag_info.most_recent_descendant = DescendantStatus::Initial;
-        tag_info.descendant_tag = "".to_string();
         tag_info.inline_el = sieve.inline_el(tag);
-        tag_info.has_text = false;
 
         tag_info
     }
