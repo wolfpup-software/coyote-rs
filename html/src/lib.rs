@@ -272,8 +272,6 @@ fn push_text(
     }
 
     if sieve.respect_indentation() {
-        println!("text sieve indentation {:?}", tag_info);
-
         match tag_info.most_recent_descendant {
             DescendantStatus::Element => add_element_text(results, texts, tag_info),
             DescendantStatus::ElementClosed => add_element_closed_text(results, texts, tag_info),
@@ -361,7 +359,6 @@ fn add_unpretty_inline_element_closed_text(
 
     if let Some(line) = text_itr.next() {
         results.push(' ');
-
         results.push_str(line);
     }
 
