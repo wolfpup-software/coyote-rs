@@ -234,7 +234,6 @@ fn push_text(
     }
 
     if tag_info.preserved_text_path {
-        tag_info.has_text = true;
         tag_info.most_recent_descendant = DescendantStatus::Text;
         results.push_str(text);
         return;
@@ -243,7 +242,6 @@ fn push_text(
     // if alternative like styles or scripts
     if sieve.alt_text(&tag_info.tag) {
         let common_index = get_most_common_space_index(text);
-        tag_info.has_text = true;
 
         for line in text.split("\n") {
             if line.len() == get_index_of_first_char(line) {
