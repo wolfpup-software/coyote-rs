@@ -52,6 +52,12 @@ fn push_element(
     };
 
     if tag_info.banned_path {
+        if let Some(mut prev_tag_info) = stack.last_mut() {
+            prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+                true => DescendantStatus::InlineElement,
+                _ => DescendantStatus::Element,
+            };
+        }
         stack.push(tag_info);
         return;
     }
@@ -268,18 +274,25 @@ fn push_text(
     }
 
     if sieve.respect_indentation() {
+        println!("text sieve indentation {:?}", tag_info);
+
         match tag_info.most_recent_descendant {
             DescendantStatus::Element => add_element_text(results, texts, tag_info),
             DescendantStatus::ElementClosed => add_element_closed_text(results, texts, tag_info),
             DescendantStatus::InlineElement => {
-                println!("yooooooo {:?}", tag_info);
                 add_inline_element_text(results, texts, tag_info);
             }
             DescendantStatus::InlineElementClosed => {
                 add_inline_element_closed_text(results, texts, tag_info)
             }
             DescendantStatus::Text => add_text(results, texts, tag_info),
-            DescendantStatus::Initial => add_element_text(results, texts, tag_info),
+            DescendantStatus::Initial => {
+                if tag_info.inline_el {
+                    add_inline_element_text(results, texts, tag_info);
+                } else {
+                    add_element_text(results, texts, tag_info);
+                }
+            }
         }
     } else {
         match tag_info.most_recent_descendant {
