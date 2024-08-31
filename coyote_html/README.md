@@ -29,20 +29,30 @@ fn main() {
 }
 ```
 
+But this is not very useful and not very pretty.
+
 ### Hello, pretty world!
 
 The example below creates a formatted / opinionated html document from a string. 
 
+This is more useful and also pretty.
+
 ```rust
-use coyote_html::{Sieve, pretty_html}
+use coyote::{Component, tmpl};
+use coyote_html::{Html, Sieve, pretty_html}
+
+fn article() -> Component {
+    tmpl("
+    <article>   <p>hai :3</p>
+    </article>", [])
+}
 
 fn main() {
-    let hello_world = "
-    <article>
-        <p>hai :3<p>
-        </article>
-    ";
-    
+    let hello_article = article();
+
+    let html = Html::new()
+    let document = html.compose(&hello_article);
+
     println!("{}", pretty_html(document, Sieve::new());
 }
 ```
@@ -58,11 +68,10 @@ And the output will be:
 
 Technically, any text can be injected into any template. Which presents a challenge! How can we trust our own templates without extensive testing?
 
-
 The example below creates a _safer_ fragment for client-side renders from a string. 
 
 ```rust
-use coyote_html::{ClientSieve, pretty_html}
+use coyote_html::{ClientSieve, pretty_html};
 
 fn main() {
     let hello_world = "
@@ -81,9 +90,11 @@ And the output will be:
 <article><p>hai :3</p></article>
 ```
 
-`Coyote Html` uses `sieves` to strip unwanted elements and text from generated components.
+This is very useful, pretty, and _safe_.
 
-For instance the `ClietSieve` filters out elements with possible side effects outside of providing new document structure. So elements like `<script>` and `<style>` aren't just escaped, they're ripped from an html fragment entirely.
+`Coyote Html` uses `sieves` to strip unwanted elements and components.
+
+For instance the `ClietSieve` filters out elements with resposibilities outside of providing new document structure. So elements like `<script>` and `<style>` aren't just escaped, they're ripped from an html fragment entirely.
 
 ## License
 
