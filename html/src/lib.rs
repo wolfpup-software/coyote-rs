@@ -46,13 +46,13 @@ fn push_element(
     step: Step,
 ) {
     let tag = get_text_from_step(template_str, &step);
-    let mut tag_info = match stack.last_mut() {
-        Some(mut prev_tag_info) => TagInfo::from(sieve, &prev_tag_info, tag),
+    let tag_info = match stack.last_mut() {
+        Some(prev_tag_info) => TagInfo::from(sieve, &prev_tag_info, tag),
         _ => TagInfo::new(sieve, tag),
     };
 
     if tag_info.banned_path {
-        if let Some(mut prev_tag_info) = stack.last_mut() {
+        if let Some(prev_tag_info) = stack.last_mut() {
             prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
                 true => DescendantStatus::InlineElement,
                 _ => DescendantStatus::Element,
@@ -83,7 +83,7 @@ fn push_element(
         results.push(' ');
     }
 
-    if let Some(mut prev_tag_info) = stack.last_mut() {
+    if let Some(prev_tag_info) = stack.last_mut() {
         prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
             true => DescendantStatus::InlineElement,
             _ => DescendantStatus::Element,
@@ -187,20 +187,12 @@ fn pop_element(
 
     stack.pop();
 
-    if let Some(mut prev_tag_info) = stack.last_mut() {
+    if let Some(prev_tag_info) = stack.last_mut() {
         prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
             true => DescendantStatus::InlineElementClosed,
             _ => DescendantStatus::ElementClosed,
         };
     }
-}
-
-fn get_prev_element(stack: &mut Vec<TagInfo>) {
-    let prv_idx = stack.len() - 2;
-    match stack.get_mut(prv_idx) {
-        Some(el) => {}
-        _ => {}
-    };
 }
 
 fn push_text(
@@ -275,7 +267,7 @@ fn push_text(
             DescendantStatus::Element => add_element_text(results, texts, tag_info),
             DescendantStatus::ElementClosed => add_element_closed_text(results, texts, tag_info),
             DescendantStatus::InlineElement => {
-                add_inline_element_text(results, texts, tag_info);
+                add_inline_element_text(results, texts);
             }
             DescendantStatus::InlineElementClosed => {
                 add_inline_element_closed_text(results, texts, tag_info)
@@ -283,7 +275,7 @@ fn push_text(
             DescendantStatus::Text => add_text(results, texts, tag_info),
             DescendantStatus::Initial => {
                 if tag_info.inline_el {
-                    add_inline_element_text(results, texts, tag_info);
+                    add_inline_element_text(results, texts);
                 } else {
                     add_element_text(results, texts, tag_info);
                 }
@@ -291,14 +283,14 @@ fn push_text(
         }
     } else {
         match tag_info.most_recent_descendant {
-            DescendantStatus::Element => add_inline_element_text(results, texts, tag_info),
-            DescendantStatus::ElementClosed => add_inline_element_text(results, texts, tag_info),
-            DescendantStatus::InlineElement => add_inline_element_text(results, texts, tag_info),
+            DescendantStatus::Element => add_inline_element_text(results, texts),
+            DescendantStatus::ElementClosed => add_inline_element_text(results, texts),
+            DescendantStatus::InlineElement => add_inline_element_text(results, texts),
             DescendantStatus::InlineElementClosed => {
-                add_unpretty_inline_element_closed_text(results, texts, tag_info)
+                add_unpretty_inline_element_closed_text(results, texts)
             }
             DescendantStatus::Text => add_inline_element_closed_text(results, texts, tag_info),
-            DescendantStatus::Initial => add_inline_element_text(results, texts, tag_info),
+            DescendantStatus::Initial => add_inline_element_text(results, texts),
         }
     }
 
@@ -321,7 +313,7 @@ fn add_element_closed_text(results: &mut String, texts: Vec<&str>, tag_info: &Ta
     }
 }
 
-fn add_inline_element_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
+fn add_inline_element_text(results: &mut String, texts: Vec<&str>) {
     let mut text_itr = texts.iter();
 
     if let Some(line) = text_itr.next() {
@@ -349,11 +341,7 @@ fn add_inline_element_closed_text(results: &mut String, texts: Vec<&str>, tag_in
     }
 }
 
-fn add_unpretty_inline_element_closed_text(
-    results: &mut String,
-    texts: Vec<&str>,
-    tag_info: &TagInfo,
-) {
+fn add_unpretty_inline_element_closed_text(results: &mut String, texts: Vec<&str>) {
     let mut text_itr = texts.iter();
 
     if let Some(line) = text_itr.next() {
@@ -496,19 +484,3 @@ fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -
 
     prev_index
 }
-
-// "<!DOCTYPE>
-// <html>
-//     <head></head>
-//     <body>
-//       <article>
-//           You're a <span>boy kisser</span> aren't you?
-//           Click
-//           <a>
-//             here
-//           </a>
-//           and go somewhere else.
-//       </article>
-//       <footer></footer>
-//     </body>
-// </html>"
