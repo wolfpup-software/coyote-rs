@@ -16,6 +16,15 @@ impl SieveImpl for TestSieve {
             _ => false,
         }
     }
+
+    fn alt_text_steps(&self, tag: &str) -> Option<(&str, Vec<(parse::StepKind, usize)>)> {
+        match tag {
+            "script" => Some(("</script", Vec::from([]))),
+            "style" => Some(("</style", Vec::from([]))),
+            "!--" => Some(("-->", Vec::from([]))),
+            _ => None,
+        }
+    }
 }
 
 #[test]
