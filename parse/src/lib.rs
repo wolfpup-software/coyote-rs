@@ -30,6 +30,7 @@ pub enum StepKind {
     Tag,
     Text,
     AltTextCloseSequence, // edge case
+    CommentText,          // edge case
 }
 
 pub trait SieveImpl {
@@ -120,7 +121,11 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
             _ => return steps,
         };
 
+        // if tag is comment
         let mut curr_kind = routes::route(glyph, &front_step.kind);
+        if tag == "!--" {
+            curr_kind = StepKind::CommentText
+        }
         if is_injection_kind(&curr_kind) {
             continue;
         }
@@ -133,12 +138,22 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
             tag = get_text_from_step(template_str, &front_step);
         }
 
-        // get alt text close sequence, then add that to window
-        // create sliding_window on tags with alt_text
-        if front_step.kind == StepKind::ElementClosed && sieve.alt_text(tag) {
-            // this is where we find stuff
-            //
-            let mut slider = SlidingWindow::new(tag);
+        // two edge cases for comments
+        if front_step.kind == StepKind::Tag && tag == "!--" {
+            if let Some(close_seq) = sieve.get_close_sequence_from_alt_text_tag(tag) {
+                let mut slider = SlidingWindow::new(close_seq);
+                slider.slide(glyph);
+                sliding_window = Some(slider);
+
+                curr_kind = StepKind::Text;
+            };
+        }
+
+        if let (true, Some(close_seq)) = (
+            front_step.kind == StepKind::ElementClosed,
+            sieve.get_close_sequence_from_alt_text_tag(tag),
+        ) {
+            let mut slider = SlidingWindow::new(close_seq);
             slider.slide(glyph);
             sliding_window = Some(slider);
 
@@ -186,10 +201,10 @@ fn add_reserved_element_text(
         Some(sequence) => sequence,
         _ => return Ok(()),
     };
-    step.target = index - (closing_sequence.len() + 1);
+    step.target = index - (closing_sequence.len() - 1);
     steps.push(Step {
         kind: StepKind::AltTextCloseSequence,
-        origin: index - (closing_sequence.len() + 1),
+        origin: index - (closing_sequence.len() - 1),
         target: index - (closing_sequence.len()),
     });
 

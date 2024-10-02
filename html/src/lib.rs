@@ -6,6 +6,9 @@ use tag_info::{DescendantStatus, TagInfo};
 pub mod sieves;
 use sieves::SieveImpl;
 
+// intercept get_text_from_step
+// if step is a alt_step_close get tag
+
 pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();

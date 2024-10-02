@@ -29,6 +29,30 @@ impl parse::SieveImpl for Sieve {
             _ => None,
         }
     }
+
+    fn get_close_sequence_from_alt_text_tag(
+        &self,
+        tag: &str,
+    ) -> Option<(&str, Vec<(parse::StepKind, usize)>)> {
+        match tag {
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            "!--" => Some("-->"),
+            _ => None,
+        }
+    }
+
+    fn get_alt_text_tag_from_close_sequence(
+        &self,
+        tag: &str,
+    ) -> Option<(&str, Vec<(parse::StepKind, usize)>)> {
+        match tag {
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            "-->" => Some("--"),
+            _ => None,
+        }
+    }
 }
 
 impl coyote::SieveImpl for Sieve {
