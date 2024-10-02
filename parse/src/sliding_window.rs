@@ -1,6 +1,9 @@
+// add source index to track where reserved space exists
+
 pub struct SlidingWindow {
     target: Vec<char>,
     index: usize,
+    // source_index: usize,
 }
 
 impl SlidingWindow {

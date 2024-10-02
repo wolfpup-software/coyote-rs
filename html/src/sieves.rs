@@ -21,6 +21,14 @@ impl parse::SieveImpl for Sieve {
             _ => false,
         }
     }
+    fn alt_text_steps(&self, tag: &str) -> Option<(&str, Vec<(parse::StepKind, usize)>)> {
+        match tag {
+            "script" => Some(("</script", Vec::from([]))),
+            "style" => Some(("</style", Vec::from([]))),
+            "!--" => Some(("-->", Vec::from([]))),
+            _ => None,
+        }
+    }
 }
 
 impl coyote::SieveImpl for Sieve {
@@ -61,6 +69,11 @@ impl parse::SieveImpl for ClientSieve {
             "style" => true,
             _ => false,
         }
+    }
+
+    // "</script [element 0, close_slash 1, close_tag 4]
+    fn alt_text_steps(&self, _tag: &str) -> Option<(&str, Vec<(parse::StepKind, usize)>)> {
+        None
     }
 }
 
