@@ -29,11 +29,12 @@ pub enum StepKind {
     Element,
     Tag,
     Text,
+    AltTextCloseSequence, // edge case
 }
 
 pub trait SieveImpl {
     fn alt_text(&self, tag: &str) -> bool;
-    fn alt_text_steps(&self, tag: &str) -> Option<(&str, Vec<(StepKind, usize)>)>;
+    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
 }
 
 #[derive(Debug, Eq, Clone, PartialEq)]
@@ -105,11 +106,9 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
                 continue;
             }
 
-            if let Err(_) = add_reserved_element_text(&mut steps, tag, index) {
+            if let Err(_) = add_reserved_element_text(sieve, &mut steps, tag, index) {
                 return steps;
             };
-
-            // ask slider somehow to give the last steps
 
             sliding_window = None;
             continue;
@@ -134,9 +133,11 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
             tag = get_text_from_step(template_str, &front_step);
         }
 
+        // get alt text close sequence, then add that to window
         // create sliding_window on tags with alt_text
         if front_step.kind == StepKind::ElementClosed && sieve.alt_text(tag) {
             // this is where we find stuff
+            //
             let mut slider = SlidingWindow::new(tag);
             slider.slide(glyph);
             sliding_window = Some(slider);
@@ -170,27 +171,26 @@ fn is_injection_kind(step_kind: &StepKind) -> bool {
     }
 }
 
-fn add_reserved_element_text(steps: &mut Vec<Step>, tag: &str, index: usize) -> Result<(), ()> {
+fn add_reserved_element_text(
+    sieve: &impl SieveImpl,
+    steps: &mut Vec<Step>,
+    tag: &str,
+    index: usize,
+) -> Result<(), ()> {
     let step = match steps.last_mut() {
         Some(step) => step,
         _ => return Err(()),
     };
 
-    step.target = index - (tag.len() + 1);
+    let closing_sequence = match sieve.get_close_sequence_from_alt_text_tag(tag) {
+        Some(sequence) => sequence,
+        _ => return Ok(()),
+    };
+    step.target = index - (closing_sequence.len() + 1);
     steps.push(Step {
-        kind: StepKind::Element,
-        origin: index - (tag.len() + 1),
-        target: index - (tag.len()),
-    });
-    steps.push(Step {
-        kind: StepKind::TailElementSolidus,
-        origin: index - (tag.len()),
-        target: index - tag.len() + 1,
-    });
-    steps.push(Step {
-        kind: StepKind::TailTag,
-        origin: index - tag.len() + 1,
-        target: index + 1,
+        kind: StepKind::AltTextCloseSequence,
+        origin: index - (closing_sequence.len() + 1),
+        target: index - (closing_sequence.len()),
     });
 
     Ok(())

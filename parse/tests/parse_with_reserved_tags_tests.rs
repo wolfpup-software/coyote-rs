@@ -17,11 +17,11 @@ impl SieveImpl for TestSieve {
         }
     }
 
-    fn alt_text_steps(&self, tag: &str) -> Option<(&str, Vec<(parse::StepKind, usize)>)> {
+    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "script" => Some(("</script", Vec::from([]))),
-            "style" => Some(("</style", Vec::from([]))),
-            "!--" => Some(("-->", Vec::from([]))),
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            "!--" => Some("-->"),
             _ => None,
         }
     }
@@ -114,6 +114,17 @@ fn parse_reserved_tag() {
             target: 35,
         },
     ]);
+
+    assert_eq!(steps, expected);
+}
+
+#[test]
+fn parse_reserved_tag_comment() {
+    let template_str: &str = "<!-- imma pup! bork! -->";
+    let sieve = TestSieve::new();
+
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
+    let expected: Results = Vec::from([]);
 
     assert_eq!(steps, expected);
 }
