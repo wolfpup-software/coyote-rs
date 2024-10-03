@@ -9,13 +9,8 @@ impl TestSieve {
 }
 
 impl SieveImpl for TestSieve {
-    fn alt_text(&self, tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            "!--" => true,
-            _ => false,
-        }
+    fn is_comment(&self, tag: &str) -> bool {
+        tag == "!--"
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {

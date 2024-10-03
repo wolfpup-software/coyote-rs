@@ -29,12 +29,14 @@ pub enum StepKind {
     Element,
     Tag,
     Text,
-    AltTextCloseSequence, // edge case
-    CommentText,          // edge case
+    // needed for comments and scripts
+    AltText,              //
+    AltTextCloseSequence, //
+    CommentText,          //
 }
 
 pub trait SieveImpl {
-    fn alt_text(&self, tag: &str) -> bool;
+    fn is_comment(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
 }
 
@@ -47,6 +49,7 @@ pub struct Step {
 
 pub type Results = Vec<Step>;
 
+// remove parse string, it is the same code but no comments or styles
 pub fn parse_template_str(template_str: &str, intial_kind: StepKind) -> Results {
     let mut steps = Vec::from([Step {
         kind: intial_kind.clone(),
@@ -123,29 +126,27 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
 
         // if tag is comment
         let mut curr_kind = routes::route(glyph, &front_step.kind);
-        if tag == "!--" {
-            curr_kind = StepKind::CommentText
+        if curr_kind == front_step.kind {
+            continue;
         }
         if is_injection_kind(&curr_kind) {
             continue;
         }
-        if curr_kind == front_step.kind {
-            continue;
-        }
 
+        // record change
         front_step.target = index;
+
         if front_step.kind == StepKind::Tag {
             tag = get_text_from_step(template_str, &front_step);
         }
 
-        // two edge cases for comments
-        if front_step.kind == StepKind::Tag && tag == "!--" {
+        // two edge cases for comments and alt text
+        if sieve.is_comment(tag) {
             if let Some(close_seq) = sieve.get_close_sequence_from_alt_text_tag(tag) {
                 let mut slider = SlidingWindow::new(close_seq);
                 slider.slide(glyph);
                 sliding_window = Some(slider);
-
-                curr_kind = StepKind::Text;
+                curr_kind = StepKind::CommentText
             };
         }
 
@@ -157,8 +158,9 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
             slider.slide(glyph);
             sliding_window = Some(slider);
 
-            curr_kind = StepKind::Text;
+            curr_kind = StepKind::AltText;
         }
+        // end two edge cases
 
         steps.push(Step {
             kind: curr_kind,
@@ -201,6 +203,7 @@ fn add_reserved_element_text(
         Some(sequence) => sequence,
         _ => return Ok(()),
     };
+
     step.target = index - (closing_sequence.len() - 1);
     steps.push(Step {
         kind: StepKind::AltTextCloseSequence,

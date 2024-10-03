@@ -15,6 +15,11 @@ impl Results {
     }
 }
 
+// can this be skipped entirely?
+// just add all steps?
+// skip the bullshit
+// only split on injections
+
 // this needs to be a function
 // this is what is cached by a parent scope or context
 pub fn compose(template_str: &str) -> Results {
@@ -34,6 +39,9 @@ pub fn compose(template_str: &str) -> Results {
             StepKind::EmptyElementClosed => empty_void_element(&mut results),
             StepKind::TailTag => pop_element(&mut results, template_str, step),
             StepKind::Text => push_text(&mut results, template_str, step),
+            // alt text
+            // comment text
+            // alt text closing sequence
             // injections
             StepKind::AttrMapInjection => push_attr_map_injection(&mut results),
             StepKind::DescendantInjection => push_descendant_injection(&mut results),
