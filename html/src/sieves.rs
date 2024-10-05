@@ -26,6 +26,15 @@ impl parse::SieveImpl for Sieve {
             _ => None,
         }
     }
+
+    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            "-->" => Some("!--"),
+            _ => None,
+        }
+    }
 }
 
 impl coyote::SieveImpl for Sieve {
@@ -69,6 +78,15 @@ impl parse::SieveImpl for ClientSieve {
             "script" => Some("</script>"),
             "style" => Some("</style>"),
             "!--" => Some("-->"),
+            _ => None,
+        }
+    }
+
+    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            "-->" => Some("!--"),
             _ => None,
         }
     }

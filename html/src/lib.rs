@@ -25,6 +25,7 @@ pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
             StepKind::AttrValueUnquoted => {
                 add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
             }
+            // injections
             StepKind::DescendantInjection => {
                 push_injection_kind(&mut results, &mut stack, template_str, step)
             }
@@ -34,11 +35,60 @@ pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
             StepKind::InjectionConfirmed => {
                 push_injection_kind(&mut results, &mut stack, template_str, step)
             }
+            // alt text
+            StepKind::CommentText => push_text(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::AltText => push_text(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::AltTextCloseSequence => {
+                pop_closing_sequence(&mut results, &mut stack, sieve, template_str, step)
+            }
             _ => {}
         }
     }
 
     results
+}
+
+fn pop_closing_sequence(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    sieve: &impl SieveImpl,
+    template_str: &str,
+    step: Step,
+) {
+    // need to get second to last element and then say this was a block element or an inline element
+    let closing_sequence = get_text_from_step(template_str, &step);
+
+    let tag = match sieve.get_tag_from_close_sequence(closing_sequence) {
+        Some(t) => t,
+        _ => return,
+    };
+
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if tag != tag_info.tag {
+        return;
+    }
+
+    if tag_info.banned_path {
+        stack.pop();
+        return;
+    }
+
+    if sieve.respect_indentation()
+        && !tag_info.inline_el
+        && !tag_info.preserved_text_path
+        && tag_info.most_recent_descendant != DescendantStatus::Initial
+    {
+        results.push_str("\n");
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+    }
+
+    results.push_str(closing_sequence);
+
+    stack.pop();
 }
 
 fn push_element(
