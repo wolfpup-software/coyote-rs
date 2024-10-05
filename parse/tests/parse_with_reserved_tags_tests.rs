@@ -21,7 +21,7 @@ impl SieveImpl for TestSieve {
             _ => None,
         }
     }
-    
+
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
             "</script>" => Some("script"),
