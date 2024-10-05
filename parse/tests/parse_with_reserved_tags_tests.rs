@@ -110,8 +110,40 @@ fn parse_reserved_tag() {
             target: 35,
         },
     ]);
+    let new_expected = [
+        Step {
+            kind: StepKind::Initial,
+            origin: 0,
+            target: 0,
+        },
+        Step {
+            kind: StepKind::Element,
+            origin: 0,
+            target: 1,
+        },
+        Step {
+            kind: StepKind::Tag,
+            origin: 1,
+            target: 6,
+        },
+        Step {
+            kind: StepKind::ElementClosed,
+            origin: 6,
+            target: 7,
+        },
+        Step {
+            kind: StepKind::AltText,
+            origin: 7,
+            target: 27,
+        },
+        Step {
+            kind: StepKind::AltTextCloseSequence,
+            origin: 27,
+            target: 35,
+        },
+    ];
 
-    assert_eq!(steps, expected);
+    assert_eq!(steps, new_expected);
 }
 
 #[test]
@@ -120,7 +152,33 @@ fn parse_reserved_tag_comment() {
     let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([]);
+    let expected: Results = Vec::from([
+        Step {
+            kind: StepKind::Initial,
+            origin: 0,
+            target: 0,
+        },
+        Step {
+            kind: StepKind::Element,
+            origin: 0,
+            target: 1,
+        },
+        Step {
+            kind: StepKind::Tag,
+            origin: 1,
+            target: 4,
+        },
+        Step {
+            kind: StepKind::CommentText,
+            origin: 4,
+            target: 21,
+        },
+        Step {
+            kind: StepKind::AltTextCloseSequence,
+            origin: 21,
+            target: 24,
+        },
+    ]);
 
     assert_eq!(steps, expected);
 }
