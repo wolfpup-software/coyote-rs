@@ -234,7 +234,7 @@ fn push_text(
     }
 
     // if alternative like styles or scripts
-    if sieve.alt_text(&tag_info.tag) {
+    if let Some(_) = sieve.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         let common_index = get_most_common_space_index(text);
 
         for line in text.split("\n") {

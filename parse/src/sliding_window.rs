@@ -1,20 +1,10 @@
-// add source index to track where reserved space exists
-
 pub struct SlidingWindow {
     target: Vec<char>,
     index: usize,
-    // source_index: usize,
 }
 
 impl SlidingWindow {
     pub fn new(target_str: &str) -> SlidingWindow {
-        // finding </script> no need for extra stuff
-        // let mut glyphs = Vec::from(['<', '/']);
-        // glyphs.append(&mut target_str.chars().collect());
-        // SlidingWindow {
-        //     target: glyphs,
-        //     index: 1,
-        // }
         SlidingWindow {
             target: target_str.chars().collect(),
             index: 1,
