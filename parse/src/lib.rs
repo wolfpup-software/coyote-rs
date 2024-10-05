@@ -50,7 +50,7 @@ pub struct Step {
 
 pub type Results = Vec<Step>;
 
-pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKind) -> Results {
+pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKind) -> Results {
     let mut steps = Vec::from([Step {
         kind: intial_kind.clone(),
         origin: 0,
@@ -148,7 +148,7 @@ fn is_injection_kind(step_kind: &StepKind) -> bool {
 }
 
 fn add_reserved_element_text(
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     steps: &mut Vec<Step>,
     tag: &str,
     index: usize,
