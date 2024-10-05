@@ -9,11 +9,25 @@ impl TestSieve {
 }
 
 impl SieveImpl for TestSieve {
-    fn alt_text(&self, tag: &str) -> bool {
+    fn is_comment(&self, tag: &str) -> bool {
+        tag == "!--"
+    }
+
+    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            "!--" => Some("-->"),
+            _ => None,
+        }
+    }
+
+    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            "-->" => Some("!--"),
+            _ => None,
         }
     }
 }
@@ -58,7 +72,7 @@ fn parse_reserved_tag() {
     let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = [
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -80,29 +94,51 @@ fn parse_reserved_tag() {
             target: 7,
         },
         Step {
-            kind: StepKind::Text,
+            kind: StepKind::AltText,
             origin: 7,
             target: 27,
         },
         Step {
-            kind: StepKind::Element,
+            kind: StepKind::AltTextCloseSequence,
             origin: 27,
-            target: 28,
-        },
-        Step {
-            kind: StepKind::TailElementSolidus,
-            origin: 28,
-            target: 29,
-        },
-        Step {
-            kind: StepKind::TailTag,
-            origin: 29,
-            target: 34,
-        },
-        Step {
-            kind: StepKind::TailElementClosed,
-            origin: 34,
             target: 35,
+        },
+    ];
+
+    assert_eq!(steps, expected);
+}
+
+#[test]
+fn parse_reserved_tag_comment() {
+    let template_str: &str = "<!-- imma pup! bork! -->";
+    let sieve = TestSieve::new();
+
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
+    let expected: Results = Vec::from([
+        Step {
+            kind: StepKind::Initial,
+            origin: 0,
+            target: 0,
+        },
+        Step {
+            kind: StepKind::Element,
+            origin: 0,
+            target: 1,
+        },
+        Step {
+            kind: StepKind::Tag,
+            origin: 1,
+            target: 4,
+        },
+        Step {
+            kind: StepKind::CommentText,
+            origin: 4,
+            target: 21,
+        },
+        Step {
+            kind: StepKind::AltTextCloseSequence,
+            origin: 21,
+            target: 24,
         },
     ]);
 
@@ -115,7 +151,8 @@ fn parse_nested_reserved_tag() {
     let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+
+    let expected = [
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -152,28 +189,13 @@ fn parse_nested_reserved_tag() {
             target: 12,
         },
         Step {
-            kind: StepKind::Text,
+            kind: StepKind::AltText,
             origin: 12,
             target: 32,
         },
         Step {
-            kind: StepKind::Element,
+            kind: StepKind::AltTextCloseSequence,
             origin: 32,
-            target: 33,
-        },
-        Step {
-            kind: StepKind::TailElementSolidus,
-            origin: 33,
-            target: 34,
-        },
-        Step {
-            kind: StepKind::TailTag,
-            origin: 34,
-            target: 39,
-        },
-        Step {
-            kind: StepKind::TailElementClosed,
-            origin: 39,
             target: 40,
         },
         Step {
@@ -196,7 +218,7 @@ fn parse_nested_reserved_tag() {
             origin: 45,
             target: 46,
         },
-    ]);
+    ];
 
     assert_eq!(steps, expected);
 }
@@ -208,7 +230,8 @@ fn parse_multiple_sieve() {
     let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+
+    let expected = [
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -230,28 +253,13 @@ fn parse_multiple_sieve() {
             target: 7,
         },
         Step {
-            kind: StepKind::Text,
+            kind: StepKind::AltText,
             origin: 7,
             target: 27,
         },
         Step {
-            kind: StepKind::Element,
+            kind: StepKind::AltTextCloseSequence,
             origin: 27,
-            target: 28,
-        },
-        Step {
-            kind: StepKind::TailElementSolidus,
-            origin: 28,
-            target: 29,
-        },
-        Step {
-            kind: StepKind::TailTag,
-            origin: 29,
-            target: 34,
-        },
-        Step {
-            kind: StepKind::TailElementClosed,
-            origin: 34,
             target: 35,
         },
         Step {
@@ -270,31 +278,16 @@ fn parse_multiple_sieve() {
             target: 43,
         },
         Step {
-            kind: StepKind::Text,
+            kind: StepKind::AltText,
             origin: 43,
             target: 64,
         },
         Step {
-            kind: StepKind::Element,
+            kind: StepKind::AltTextCloseSequence,
             origin: 64,
-            target: 65,
-        },
-        Step {
-            kind: StepKind::TailElementSolidus,
-            origin: 65,
-            target: 66,
-        },
-        Step {
-            kind: StepKind::TailTag,
-            origin: 66,
-            target: 72,
-        },
-        Step {
-            kind: StepKind::TailElementClosed,
-            origin: 72,
             target: 73,
         },
-    ]);
+    ];
 
     assert_eq!(steps, expected);
 }
@@ -306,7 +299,8 @@ fn cannot_parse_nested_sieve() {
     let sieve = TestSieve::new();
 
     let steps = parse_str(&sieve, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+
+    let expected = [
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -328,31 +322,16 @@ fn cannot_parse_nested_sieve() {
             target: 8,
         },
         Step {
-            kind: StepKind::Text,
+            kind: StepKind::AltText,
             origin: 8,
             target: 64,
         },
         Step {
-            kind: StepKind::Element,
+            kind: StepKind::AltTextCloseSequence,
             origin: 64,
-            target: 65,
-        },
-        Step {
-            kind: StepKind::TailElementSolidus,
-            origin: 65,
-            target: 66,
-        },
-        Step {
-            kind: StepKind::TailTag,
-            origin: 66,
-            target: 72,
-        },
-        Step {
-            kind: StepKind::TailElementClosed,
-            origin: 72,
             target: 73,
         },
-    ]);
+    ];
 
     assert_eq!(steps, expected);
 }

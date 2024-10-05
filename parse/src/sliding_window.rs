@@ -5,10 +5,8 @@ pub struct SlidingWindow {
 
 impl SlidingWindow {
     pub fn new(target_str: &str) -> SlidingWindow {
-        let mut glyphs = Vec::from(['<', '/']);
-        glyphs.append(&mut target_str.chars().collect());
         SlidingWindow {
-            target: glyphs,
+            target: target_str.chars().collect(),
             index: 1,
         }
     }

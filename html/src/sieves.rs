@@ -14,11 +14,25 @@ impl Sieve {
 impl SieveImpl for Sieve {}
 
 impl parse::SieveImpl for Sieve {
-    fn alt_text(&self, tag: &str) -> bool {
+    fn is_comment(&self, tag: &str) -> bool {
+        tag == "!--"
+    }
+
+    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            "!--" => Some("-->"),
+            _ => None,
+        }
+    }
+
+    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            "-->" => Some("!--"),
+            _ => None,
         }
     }
 }
@@ -55,11 +69,25 @@ impl ClientSieve {
 impl SieveImpl for ClientSieve {}
 
 impl parse::SieveImpl for ClientSieve {
-    fn alt_text(&self, tag: &str) -> bool {
+    fn is_comment(&self, tag: &str) -> bool {
+        tag == "!--"
+    }
+
+    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            "!--" => Some("-->"),
+            _ => None,
+        }
+    }
+
+    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            "-->" => Some("!--"),
+            _ => None,
         }
     }
 }

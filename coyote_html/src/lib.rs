@@ -8,6 +8,9 @@ use txml_string::{compose as compose_txml, Results as TxmlResults};
 // Builder without caching
 pub struct Builder {}
 
+// make builder an interface
+// then accept
+// pub TxmlResults
 impl Builder {
     pub fn new() -> Builder {
         Builder {}

@@ -6,6 +6,9 @@ use tag_info::{DescendantStatus, TagInfo};
 pub mod sieves;
 use sieves::SieveImpl;
 
+// intercept get_text_from_step
+// if step is a alt_step_close get tag
+
 pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();
@@ -22,6 +25,7 @@ pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
             StepKind::AttrValueUnquoted => {
                 add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
             }
+            // injections
             StepKind::DescendantInjection => {
                 push_injection_kind(&mut results, &mut stack, template_str, step)
             }
@@ -31,11 +35,60 @@ pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
             StepKind::InjectionConfirmed => {
                 push_injection_kind(&mut results, &mut stack, template_str, step)
             }
+            // alt text
+            StepKind::CommentText => push_text(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::AltText => push_text(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::AltTextCloseSequence => {
+                pop_closing_sequence(&mut results, &mut stack, sieve, template_str, step)
+            }
             _ => {}
         }
     }
 
     results
+}
+
+fn pop_closing_sequence(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    sieve: &impl SieveImpl,
+    template_str: &str,
+    step: Step,
+) {
+    // need to get second to last element and then say this was a block element or an inline element
+    let closing_sequence = get_text_from_step(template_str, &step);
+
+    let tag = match sieve.get_tag_from_close_sequence(closing_sequence) {
+        Some(t) => t,
+        _ => return,
+    };
+
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if tag != tag_info.tag {
+        return;
+    }
+
+    if tag_info.banned_path {
+        stack.pop();
+        return;
+    }
+
+    if sieve.respect_indentation()
+        && !tag_info.inline_el
+        && !tag_info.preserved_text_path
+        && tag_info.most_recent_descendant != DescendantStatus::Initial
+    {
+        results.push_str("\n");
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+    }
+
+    results.push_str(closing_sequence);
+
+    stack.pop();
 }
 
 fn push_element(
@@ -231,7 +284,7 @@ fn push_text(
     }
 
     // if alternative like styles or scripts
-    if sieve.alt_text(&tag_info.tag) {
+    if let Some(_) = sieve.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         let common_index = get_most_common_space_index(text);
 
         for line in text.split("\n") {
