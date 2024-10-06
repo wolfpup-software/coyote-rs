@@ -32,9 +32,9 @@ pub enum StepKind {
     Tag,
     Text,
     // needed for comments and scripts
-    AltText,              //
-    AltTextCloseSequence, //
-    CommentText,          //
+    AltText,
+    AltTextCloseSequence,
+    CommentText,
 }
 
 #[derive(Debug, Eq, Clone, PartialEq)]

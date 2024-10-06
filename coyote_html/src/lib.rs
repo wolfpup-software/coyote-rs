@@ -2,16 +2,13 @@ pub use html::compose as pretty_html;
 pub use sieve::{ClientSieve, Sieve, SieveImpl};
 
 use coyote::Component;
-use html::compose as compose_html;
 use template_string::{compose as compose_template, BuilderImpl};
 use txml_string::{compose as compose_txml, Results as TxmlResults};
 
-// Builder without caching
-pub struct Builder {}
+pub struct Builder {
+    // place to cache txml results
+}
 
-// make builder an interface
-// then accept
-// pub TxmlResults
 impl Builder {
     pub fn new() -> Builder {
         Builder {}
@@ -25,7 +22,6 @@ impl BuilderImpl for Builder {
     }
 }
 
-// create Html with a builder in mind
 pub struct Html {
     pub builder: Builder,
 }

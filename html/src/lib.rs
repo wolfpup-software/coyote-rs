@@ -4,9 +4,6 @@ mod tag_info;
 use sieve::SieveImpl;
 use tag_info::{DescendantStatus, TagInfo};
 
-// intercept get_text_from_step
-// if step is a alt_step_close get tag
-
 pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();
@@ -121,14 +118,14 @@ fn push_element(
         }
     }
 
-    if sieve.respect_indentation() && !tag_info.inline_el && results.len() > 0 {
+    if sieve.respect_indentation() && results.len() > 0 && !tag_info.inline_el {
         // edge case that requires reading from the results to prevent starting with \n
         // not my favorite but works here
         results.push('\n');
         results.push_str(&"\t".repeat(tag_info.indent_count));
     }
 
-    if sieve.respect_indentation() && tag_info.inline_el && results.len() > 0 {
+    if sieve.respect_indentation() && results.len() > 0 && tag_info.inline_el {
         // edge case that requires reading from the results to prevent starting with \n
         // not my favorite but works here
         results.push(' ');
@@ -148,7 +145,6 @@ fn push_element(
 }
 
 fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
-    // cannot close non existant tag
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
@@ -197,7 +193,6 @@ fn pop_element(
     template_str: &str,
     step: Step,
 ) {
-    // need to get second to last element and then say this was a block element or an inline element
     let tag = get_text_from_step(template_str, &step);
 
     let tag_info = match stack.last() {
@@ -281,7 +276,7 @@ fn push_text(
         return;
     }
 
-    // if alternative like styles or scripts
+    // if alt text
     if let Some(_) = sieve.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         let common_index = get_most_common_space_index(text);
 
