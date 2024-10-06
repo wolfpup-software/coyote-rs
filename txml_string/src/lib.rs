@@ -5,10 +5,9 @@ use sieve::SieveImpl;
 /*
     INTERMEDIATE RENDER FORMAT
 
-    Uses the Parse crate to get steps.
     Templates are converted to an array of content[] and injections[].
 
-    Although Coyote currently focuses on a text / string environment
+    Coyote is focused on text / strings
 */
 
 #[derive(Debug, Clone, Eq, PartialEq)]
