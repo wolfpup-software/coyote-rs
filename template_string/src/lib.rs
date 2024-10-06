@@ -1,7 +1,5 @@
-/* */
-
 use coyote::Component;
-use parse::SieveImpl;
+use sieve::SieveImpl;
 
 use parse::StepKind;
 use txml_string::Results;
@@ -22,7 +20,7 @@ pub trait BuilderImpl {
 
 pub fn compose(
     builder: &mut dyn BuilderImpl,
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     component: &Component,
 ) -> String {
     let mut templ_str = "".to_string();

@@ -1,6 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
-use crate::sieves::SieveImpl;
+use sieve::SieveImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum DescendantStatus {
@@ -33,7 +33,7 @@ pub struct TagInfo {
 */
 
 impl TagInfo {
-    pub fn new(sieve: &impl SieveImpl, tag: &str) -> TagInfo {
+    pub fn new(sieve: &dyn SieveImpl, tag: &str) -> TagInfo {
         let mut namespace = "html".to_string();
         if sieve.namespace_el(tag) {
             namespace = tag.to_string()

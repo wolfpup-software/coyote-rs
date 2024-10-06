@@ -1,10 +1,8 @@
 use parse::{get_text_from_step, parse_str, Step, StepKind};
 
 mod tag_info;
+use sieve::SieveImpl;
 use tag_info::{DescendantStatus, TagInfo};
-
-pub mod sieves;
-use sieves::SieveImpl;
 
 // intercept get_text_from_step
 // if step is a alt_step_close get tag

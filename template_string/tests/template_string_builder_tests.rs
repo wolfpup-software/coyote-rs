@@ -1,41 +1,9 @@
 use coyote::{attr_val, list, text, tmpl, Component};
-use parse::SieveImpl;
+use sieve::{Sieve, SieveImpl};
 use template_string::{compose as compose_template, BuilderImpl};
 use txml_string::{compose as compose_txml, Results};
 
 // Test will not build if Function Components do not build
-
-pub struct TestSieve {}
-
-impl TestSieve {
-    fn new() -> TestSieve {
-        TestSieve {}
-    }
-}
-
-impl SieveImpl for TestSieve {
-    fn is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
-    }
-
-    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
-        match tag {
-            "script" => Some("</script>"),
-            "style" => Some("</style>"),
-            "!--" => Some("-->"),
-            _ => None,
-        }
-    }
-
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
-        match tag {
-            "</script>" => Some("script"),
-            "</style>" => Some("style"),
-            "-->" => Some("!--"),
-            _ => None,
-        }
-    }
-}
 
 pub struct TxmlBuilder {}
 
@@ -47,7 +15,6 @@ impl TxmlBuilder {
 
 impl BuilderImpl for TxmlBuilder {
     fn build(&mut self, sieve: &dyn SieveImpl, template_str: &str) -> Results {
-        // chance to cache templates here
         compose_txml(sieve, template_str)
     }
 }
@@ -66,7 +33,7 @@ fn woof_woof() -> Component {
 
 #[test]
 fn test_static_template_builder() {
-    let sieve = TestSieve::new();
+    let sieve = Sieve::new();
 
     let mut builder = TxmlBuilder::new();
     let template = woof_woof();

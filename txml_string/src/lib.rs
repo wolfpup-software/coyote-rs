@@ -1,4 +1,6 @@
-use parse::{get_text_from_step, parse_str, SieveImpl, Step, StepKind};
+use parse::{get_text_from_step, parse_str, Step, StepKind};
+
+use sieve::SieveImpl;
 
 // this should be called TEMPLATE STRING
 /*

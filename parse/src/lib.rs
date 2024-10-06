@@ -3,6 +3,8 @@ mod sliding_window;
 
 use sliding_window::SlidingWindow;
 
+use sieve::SieveImpl;
+
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub enum StepKind {
     AttrQuoteClosed,
@@ -33,12 +35,6 @@ pub enum StepKind {
     AltText,              //
     AltTextCloseSequence, //
     CommentText,          //
-}
-
-pub trait SieveImpl {
-    fn is_comment(&self, tag: &str) -> bool;
-    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
 }
 
 #[derive(Debug, Eq, Clone, PartialEq)]
