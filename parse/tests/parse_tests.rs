@@ -1,11 +1,15 @@
-use parse::{parse_template_str, Results, Step, StepKind};
+use parse::{parse_str, Results, Step, StepKind};
+
+use sieve::Sieve;
 
 /** DX **/
 // this test will fail to build if `clone` or `default formatter` is not available
 #[test]
 fn confirm_clone_and_debug() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<fox>{}</fox>";
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
 
     let cloned = steps.clone();
     let _debugged = format!("{:?}", cloned);
@@ -14,8 +18,10 @@ fn confirm_clone_and_debug() {
 /** README EXAMPLE **/
 #[test]
 fn parse_readme_example() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<fox>{}</fox>";
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -75,8 +81,10 @@ fn parse_readme_example() {
 /** NODE TYPES **/
 #[test]
 fn parse_text() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "hai :3";
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -95,8 +103,10 @@ fn parse_text() {
 
 #[test]
 fn parse_fragment() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<>";
-    let steps = parse_template_str(template_str, StepKind::Text);
+    let steps = parse_str(&sieve, template_str, StepKind::Text);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Text,
@@ -120,8 +130,10 @@ fn parse_fragment() {
 
 #[test]
 fn parse_close_fragment() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "</>";
-    let steps = parse_template_str(template_str, StepKind::FragmentClosed);
+    let steps = parse_str(&sieve, template_str, StepKind::FragmentClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::FragmentClosed,
@@ -150,8 +162,10 @@ fn parse_close_fragment() {
 
 #[test]
 fn parse_node() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<wolf>";
-    let steps = parse_template_str(template_str, StepKind::TailElementClosed);
+    let steps = parse_str(&sieve, template_str, StepKind::TailElementClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::TailElementClosed,
@@ -180,8 +194,10 @@ fn parse_node() {
 
 #[test]
 fn parse_close_node() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "</wolf>";
-    let steps = parse_template_str(template_str, StepKind::FragmentClosed);
+    let steps = parse_str(&sieve, template_str, StepKind::FragmentClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::FragmentClosed,
@@ -215,8 +231,10 @@ fn parse_close_node() {
 
 #[test]
 fn parse_void_node() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<wolf/>";
-    let steps = parse_template_str(template_str, StepKind::TailElementClosed);
+    let steps = parse_str(&sieve, template_str, StepKind::TailElementClosed);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::TailElementClosed,
@@ -250,6 +268,8 @@ fn parse_void_node() {
 
 #[test]
 fn parse_all_nodes() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "
     	prarie
     	<>
@@ -261,7 +281,7 @@ fn parse_all_nodes() {
     	</>
     	chase the sun
     ";
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -391,8 +411,10 @@ fn parse_all_nodes() {
 /** ATTRIBUTES **/
 #[test]
 fn parse_attribute() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello howdy>";
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,
@@ -431,6 +453,8 @@ fn parse_attribute() {
 
 #[test]
 fn parse_multiple_attributes() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello howdy look up occasionally>";
 
     let expected: Results = Vec::from([
@@ -496,12 +520,14 @@ fn parse_multiple_attributes() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_attribute_declaration() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello red=\"blue\">";
     let expected: Results = Vec::from([
         Step {
@@ -556,12 +582,14 @@ fn parse_attribute_declaration() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_attribute_value_unquoted() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello red=blue>";
     let expected: Results = Vec::from([
         Step {
@@ -606,12 +634,14 @@ fn parse_attribute_value_unquoted() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_multiple_attribute_value_unquoted() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello red=blue hia=:3 herro=!!!>";
     let expected: Results = Vec::from([
         Step {
@@ -696,12 +726,14 @@ fn parse_multiple_attribute_value_unquoted() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_multiple_attribute_declaration() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello red=\"blue\" orange=\"purple\" green=\"pink\">";
     let expected: Results = Vec::from([
         Step {
@@ -816,12 +848,14 @@ fn parse_multiple_attribute_declaration() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_all_declarations() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello red=\"blue\" wolf orange=\"purple\" tiger crane>";
     let expected: Results = Vec::from([
         Step {
@@ -936,13 +970,15 @@ fn parse_all_declarations() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 /** INJECTIONS **/
 #[test]
 fn parse_descendant_injection() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello>{}</hello>";
     let expected: Results = Vec::from([
         Step {
@@ -997,12 +1033,14 @@ fn parse_descendant_injection() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_multiple_descendant_injections() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "{}<hello>{}</hello>{}";
     let expected: Results = Vec::from([
         Step {
@@ -1077,12 +1115,14 @@ fn parse_multiple_descendant_injections() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_attribute_injection() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello {}>";
     let expected: Results = Vec::from([
         Step {
@@ -1122,12 +1162,14 @@ fn parse_attribute_injection() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_multiple_attribute_injections() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "<hello {} {} world {}>";
     let expected: Results = Vec::from([
         Step {
@@ -1207,12 +1249,14 @@ fn parse_multiple_attribute_injections() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 #[test]
 fn parse_all_injections() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "
     	<hello world {} {} howdy>
     		what's good!
@@ -1360,20 +1404,22 @@ fn parse_all_injections() {
         },
     ]);
 
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     assert_eq!(steps, expected);
 }
 
 /** RELIABLE CHAOS **/
 #[test]
 fn parse_a_mangled_mess() {
+    let sieve = Sieve::new();
+
     let template_str: &str = "
 			<			moon phase=				text_that_is_very_bad_and_does_not_belong
 	\"waxing gibbous\"					/					><
 clouds           big            opacity=\"0.9\"
 >
 ";
-    let steps = parse_template_str(template_str, StepKind::Initial);
+    let steps = parse_str(&sieve, template_str, StepKind::Initial);
     let expected: Results = Vec::from([
         Step {
             kind: StepKind::Initial,

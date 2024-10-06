@@ -3,6 +3,8 @@ mod sliding_window;
 
 use sliding_window::SlidingWindow;
 
+use sieve::SieveImpl;
+
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub enum StepKind {
     AttrQuoteClosed,
@@ -30,15 +32,9 @@ pub enum StepKind {
     Tag,
     Text,
     // needed for comments and scripts
-    AltText,              //
-    AltTextCloseSequence, //
-    CommentText,          //
-}
-
-pub trait SieveImpl {
-    fn is_comment(&self, tag: &str) -> bool;
-    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
+    AltText,
+    AltTextCloseSequence,
+    CommentText,
 }
 
 #[derive(Debug, Eq, Clone, PartialEq)]
@@ -50,51 +46,7 @@ pub struct Step {
 
 pub type Results = Vec<Step>;
 
-// remove parse string, it is the same code but no comments or styles
-pub fn parse_template_str(template_str: &str, intial_kind: StepKind) -> Results {
-    let mut steps = Vec::from([Step {
-        kind: intial_kind.clone(),
-        origin: 0,
-        target: 0,
-    }]);
-
-    let mut prev_inj_kind = intial_kind;
-
-    for (index, glyph) in template_str.char_indices() {
-        let front_step = match steps.last_mut() {
-            Some(step) => step,
-            _ => return steps,
-        };
-
-        let curr_kind = match front_step.kind {
-            StepKind::InjectionConfirmed => routes::route(glyph, &prev_inj_kind),
-            _ => routes::route(glyph, &front_step.kind),
-        };
-
-        if is_injection_kind(&curr_kind) {
-            prev_inj_kind = front_step.kind.clone();
-        }
-
-        if curr_kind == front_step.kind {
-            continue;
-        }
-
-        front_step.target = index;
-        steps.push(Step {
-            kind: curr_kind,
-            origin: index,
-            target: index,
-        });
-    }
-
-    if let Some(step) = steps.last_mut() {
-        step.target = template_str.len();
-    }
-
-    steps
-}
-
-pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKind) -> Results {
+pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKind) -> Results {
     let mut steps = Vec::from([Step {
         kind: intial_kind.clone(),
         origin: 0,
@@ -102,10 +54,11 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
     }]);
 
     let mut tag: &str = "";
+    let mut prev_inj_kind = intial_kind;
     let mut sliding_window: Option<SlidingWindow> = None;
 
     for (index, glyph) in template_str.char_indices() {
-        // slide through reserved tag
+        // window-slide through reserved tag
         if let Some(ref mut slider) = sliding_window {
             if !slider.slide(glyph) {
                 continue;
@@ -119,19 +72,21 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
             continue;
         }
 
-        // add steps
+        // route next step
         let front_step = match steps.last_mut() {
             Some(step) => step,
             _ => return steps,
         };
-
-        // if tag is comment
-        let mut curr_kind = routes::route(glyph, &front_step.kind);
+        let mut curr_kind = match front_step.kind {
+            StepKind::InjectionConfirmed => routes::route(glyph, &prev_inj_kind),
+            _ => routes::route(glyph, &front_step.kind),
+        };
         if curr_kind == front_step.kind {
             continue;
         }
+
         if is_injection_kind(&curr_kind) {
-            continue;
+            prev_inj_kind = front_step.kind.clone();
         }
 
         // record change
@@ -161,7 +116,6 @@ pub fn parse_str(sieve: &impl SieveImpl, template_str: &str, intial_kind: StepKi
 
             curr_kind = StepKind::AltText;
         }
-        // end two edge cases
 
         steps.push(Step {
             kind: curr_kind,
@@ -190,7 +144,7 @@ fn is_injection_kind(step_kind: &StepKind) -> bool {
 }
 
 fn add_reserved_element_text(
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     steps: &mut Vec<Step>,
     tag: &str,
     index: usize,

@@ -1,4 +1,5 @@
 use coyote::{attr_val, list, text, tmpl, Component};
+use sieve::Sieve;
 
 use txml_string::compose;
 
@@ -18,9 +19,11 @@ fn woof_woof() -> Component {
 
 #[test]
 fn test_txml_builder() {
+    let sieve = Sieve::new();
+
     let template = woof_woof();
 
     if let Component::Tmpl(tmpl) = template {
-        let _results = compose(&tmpl.template_str);
+        let _results = compose(&sieve, &tmpl.template_str);
     }
 }

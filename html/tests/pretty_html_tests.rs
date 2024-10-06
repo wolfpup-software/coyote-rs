@@ -1,5 +1,5 @@
 use html::compose;
-use html::sieves::{ClientSieve, Sieve};
+use sieve::{ClientSieve, Sieve};
 
 #[test]
 fn test_pretty_html_no_empty_space() {

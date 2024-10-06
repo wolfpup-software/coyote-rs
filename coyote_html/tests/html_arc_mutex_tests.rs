@@ -1,5 +1,5 @@
 use coyote::{attr_val, list, text, tmpl, Component};
-use coyote_html::{Builder, Html};
+use coyote_html::{Builder, Html, Sieve};
 
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -22,8 +22,9 @@ fn test_coyote_html_with_arc_and_mutex() {
     let arc = Arc::new(Mutex::new(html));
     let html_clone = arc.clone();
 
+    let sieve = Sieve::new();
     let woof_form = woof_woof();
     if let Ok(mut html_mutex) = html_clone.lock() {
-        let _results = html_mutex.build(&woof_form);
+        let _results = html_mutex.build(&sieve, &woof_form);
     };
 }

@@ -1,4 +1,3 @@
-// Components are injected into templates
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Component {
     Text(String),
@@ -15,19 +14,8 @@ pub struct Template {
     pub injections: Vec<Component>,
 }
 
-pub trait SieveImpl {
-    fn respect_indentation(&self) -> bool;
-    fn banned_el(&self, tag: &str) -> bool;
-    fn void_el(&self, tag: &str) -> bool;
-    fn namespace_el(&self, tag: &str) -> bool;
-    fn preserved_text_el(&self, tag: &str) -> bool;
-    fn inline_el(&self, tag: &str) -> bool;
-}
-
-// ergonomic functions to quickly create Component Enums
-//  (considerably improves readability of component code)
-
-// defacto template function
+// ergonomic functions to quickly create componets without the typical rust verbosity
+//  (improves readability of component code considerably)
 pub fn tmpl<const N: usize>(template_str: &str, injections: [Component; N]) -> Component {
     Component::Tmpl(Template {
         template_str: template_str.to_string(),

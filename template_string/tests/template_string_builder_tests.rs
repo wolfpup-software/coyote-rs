@@ -1,4 +1,5 @@
 use coyote::{attr_val, list, text, tmpl, Component};
+use sieve::{Sieve, SieveImpl};
 use template_string::{compose as compose_template, BuilderImpl};
 use txml_string::{compose as compose_txml, Results};
 
@@ -13,9 +14,8 @@ impl TxmlBuilder {
 }
 
 impl BuilderImpl for TxmlBuilder {
-    fn build(&mut self, template_str: &str) -> Results {
-        // chance to cache templates here
-        compose_txml(template_str)
+    fn build(&mut self, sieve: &dyn SieveImpl, template_str: &str) -> Results {
+        compose_txml(sieve, template_str)
     }
 }
 
@@ -33,7 +33,9 @@ fn woof_woof() -> Component {
 
 #[test]
 fn test_static_template_builder() {
+    let sieve = Sieve::new();
+
     let mut builder = TxmlBuilder::new();
     let template = woof_woof();
-    let _results = compose_template(&mut builder, &template);
+    let _results = compose_template(&mut builder, &sieve, &template);
 }
