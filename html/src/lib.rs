@@ -4,7 +4,7 @@ mod tag_info;
 use sieve::SieveImpl;
 use tag_info::{DescendantStatus, TagInfo};
 
-pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
+pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();
 
@@ -46,7 +46,7 @@ pub fn compose(sieve: &impl SieveImpl, template_str: &str) -> String {
 fn pop_closing_sequence(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -89,7 +89,7 @@ fn pop_closing_sequence(
 fn push_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -189,7 +189,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -244,7 +244,7 @@ fn pop_element(
 fn push_text(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &impl SieveImpl,
+    sieve: &dyn SieveImpl,
     template_str: &str,
     step: Step,
 ) {

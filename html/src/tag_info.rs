@@ -51,7 +51,7 @@ impl TagInfo {
         }
     }
 
-    pub fn from(sieve: &impl SieveImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
+    pub fn from(sieve: &dyn SieveImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 

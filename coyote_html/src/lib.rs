@@ -38,7 +38,7 @@ impl Html {
     }
 
     pub fn build(&mut self, sieve: &dyn SieveImpl, component: &Component) -> String {
-        compose_template(&mut self.builder, sieve, component)
-        // just go over with sieve again
+        let template = compose_template(&mut self.builder, sieve, component);
+        pretty_html(sieve, &template)
     }
 }
