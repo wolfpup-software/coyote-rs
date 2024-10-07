@@ -4,6 +4,7 @@
 ## Install
 
 ```sh
+cargo install --git https://github.com/wolf-pup/coyote-rs coyote
 cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 ```
 
@@ -40,7 +41,7 @@ use coyote_html::{ClientSieve, pretty_html};
 
 fn main() {
     let hello_world = "
-    <article><script>
+    <article><!-- bork bork! --><script>
         console.log(\"do something dangerous\");</script>
     <style>* { color: transparent }</style>
     <p>hai :3

@@ -12,6 +12,8 @@ cargo install --git https://github.com/wolf-pup/coyote-rs coyote
 
 `Coyote` creates documents from function components.
 
+### Function Components
+
 Function components are functions that return components!
 
 ```rust
@@ -22,9 +24,9 @@ fn hai() -> Component {
 }
 ```
 
-### Kinds of components
+### Types of components
 
-Componets are the atomic pieces required to build xml-like templates:
+`Components` are atomic pieces used to build a template:
 
 | Component | Type | Description |
 | --------- | ---- | ----------- |
@@ -36,37 +38,6 @@ Componets are the atomic pieces required to build xml-like templates:
 | List | `list([Component, ...]) -> Component` | a list of components |
 | Vector | `vlist(Vec::from([Component, ...])) -> Component` | a vector list of components |
 | None | `Component::None` | a component signifying the abscence of a component |
-
-## Nested components
-
-The `list` component enables function components to reflect the `node -> [node, text, node, ...]` structure of a document.
-
-In the example below, a form is defined by lists of attributes, templates, and text.
-
-```rust
-use coyote::{Component, attr_val, list, text, tmpl};
-
-fn woof() -> Component {
-    tmpl("<input type=submit value=\"yus -_-\">", [])
-}
-
-fn woof_form() -> Component {
-    let attributes = list([
-        attr_val("action", "/uwu"),
-        attr_val("method", "post"),
-    ]);
-
-    let descendants = list([
-        text("you're a boy kisser aren't you >:3"),
-        woof(),
-    ]);
-
-    tmpl(
-        "<form {}>{}</form>",
-        [attributes, descendants],
-    )
-}
-```
 
 ## Template Syntax
 
@@ -111,8 +82,41 @@ fn injection_story() -> Component {
 }
 ```
 
+Any other instance of `{}` will not be considered an injection.
+
+## Nested components
+
+The `list` component reflects the `node -> [node, text, node, ...]` heiarchy of an xml document.
+
+The example below shows a form defined by lists of attributes, templates, and text.
+
+```rust
+use coyote::{Component, attr_val, list, text, tmpl};
+
+fn woof() -> Component {
+    tmpl("<input type=submit value=\"yus -_-\">", [])
+}
+
+fn woof_form() -> Component {
+    let attributes = list([
+        attr_val("action", "/uwu"),
+        attr_val("method", "post"),
+    ]);
+
+    let descendants = list([
+        text("you're a boy kisser aren't you >:3"),
+        woof(),
+    ]);
+
+    tmpl(
+        "<form {}>{}</form>",
+        [attributes, descendants],
+    )
+}
+```
+
 ## Renders
 
-`Components` are not coupled to any particular markup language or output environment. This makes `coyote` ideal for expressing documents and scenes with xml.
+`Components` are not coupled to any particular markup language or output environment. This makes `coyote` an expressive way to create custom documents and object scenes from xml.
 
 Currently Coyote ships with support for [html](../coyote_html/README.md).
