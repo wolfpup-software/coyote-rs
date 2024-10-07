@@ -27,12 +27,7 @@ fn hai() -> Component {
 Render components as [html](./coyote_html/README.md) with `coyote_html`.
 
 ```rust
-use coyote::{Component, tmpl};
 use coyote_html::{Html, Sieve}
-
-fn hai() -> Component {
-    tmpl("<p>hai :3</p>", [])
-}
 
 fn main() {
     let hello_world = hai();
