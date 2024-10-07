@@ -32,6 +32,8 @@ pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> Results {
         match step.kind {
             StepKind::AttrMapInjection => push_attr_map_injection(&mut results),
             StepKind::DescendantInjection => push_descendant_injection(&mut results),
+            StepKind::InjectionSpace => {}
+            StepKind::InjectionConfirmed => {}
             _ => push_text(&mut results, template_str, step),
         }
     }

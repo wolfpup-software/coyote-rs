@@ -1,7 +1,8 @@
 use coyote::{attr_val, list, text, tmpl, Component};
 use sieve::Sieve;
 
-use txml_string::compose;
+use parse::StepKind;
+use txml_string::{compose, Results};
 
 // Test will not build if Function Components do not build
 
@@ -22,8 +23,13 @@ fn test_txml_builder() {
     let sieve = Sieve::new();
 
     let template = woof_woof();
+    let expected = Results {
+        strs: Vec::from(["<form ".to_string(), ">".to_string(), "</form>".to_string()]),
+        injs: Vec::from([StepKind::AttrMapInjection, StepKind::DescendantInjection]),
+    };
 
     if let Component::Tmpl(tmpl) = template {
-        let _results = compose(&sieve, &tmpl.template_str);
+        let results = compose(&sieve, &tmpl.template_str);
+        assert_eq!(expected, results);
     }
 }
