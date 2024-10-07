@@ -28,7 +28,7 @@ Render components as [html](./coyote_html/README.md) with `coyote_html`.
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::{Html, Sieve, pretty_html}
+use coyote_html::{Html, Sieve}
 
 fn hai() -> Component {
     tmpl("<p>hai :3</p>", [])
@@ -37,10 +37,12 @@ fn hai() -> Component {
 fn main() {
     let hello_world = hai();
 
-    let html = Html::new()
-    let document = html.compose(&hello_world); 
+    let html = Html::new();
+    let sieve = Sieve::new();
 
-    println!("{}", pretty_html(document, Sieve::new());
+    let document = html.compose(&sieve, &hello_world); 
+
+    println!("{}", document);
 }
 ```
 
