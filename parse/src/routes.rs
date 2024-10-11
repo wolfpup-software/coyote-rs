@@ -5,104 +5,23 @@ use crate::StepKind;
 
 pub fn route(glyph: char, prev_kind: &StepKind) -> StepKind {
     match prev_kind {
-        StepKind::Element => get_kind_from_element(glyph),
-        StepKind::TailElementSolidus => get_kind_from_tail_element_slash(glyph),
-        StepKind::Tag => get_kind_from_tagname(glyph),
-        StepKind::TailTag => get_kind_from_close_tagname(glyph),
-        StepKind::TailElementSpace => get_kind_from_tail_element_space(glyph),
-        StepKind::EmptyElement => get_kind_from_void_element(glyph),
-        StepKind::ElementSpace => get_kind_from_element_space(glyph),
         StepKind::Attr => get_kind_from_attribute(glyph),
-        StepKind::AttrSetter => get_kind_from_attribute_setter(glyph),
+        StepKind::AttrMapInjection => get_kind_from_injection(glyph),
         StepKind::AttrQuote => get_kind_from_attribute_quote(glyph),
+        StepKind::AttrQuoteClosed => get_kind_from_attribute_quote_closed(glyph),
+        StepKind::AttrSetter => get_kind_from_attribute_setter(glyph),
         StepKind::AttrValue => get_kind_from_attribute_quote(glyph),
         StepKind::AttrValueUnquoted => get_kind_from_attribute_value_unquoted(glyph),
-        StepKind::AttrQuoteClosed => get_kind_from_attribute_quote_closed(glyph),
-        StepKind::AttrMapInjection => get_kind_from_injection_found(glyph),
-        StepKind::DescendantInjection => get_kind_from_injection_found(glyph),
-        StepKind::InjectionSpace => get_kind_from_injection_found(glyph),
+        StepKind::DescendantInjection => get_kind_from_injection(glyph),
+        StepKind::Element => get_kind_from_element(glyph),
+        StepKind::ElementSpace => get_kind_from_element_space(glyph),
+        StepKind::EmptyElement => get_kind_from_empty_element(glyph),
+        StepKind::InjectionSpace => get_kind_from_injection(glyph),
+        StepKind::Tag => get_kind_from_tag(glyph),
+        StepKind::TailElementSolidus => get_kind_from_tail_element_solidus(glyph),
+        StepKind::TailElementSpace => get_kind_from_tail_element_space(glyph),
+        StepKind::TailTag => get_kind_from_tail_tag(glyph),
         _ => get_kind_from_initial(glyph),
-    }
-}
-
-fn get_kind_from_initial(glyph: char) -> StepKind {
-    match glyph {
-        '<' => StepKind::Element,
-        '{' => StepKind::DescendantInjection,
-        _ => StepKind::Text,
-    }
-}
-
-fn get_kind_from_element(glyph: char) -> StepKind {
-    if glyph.is_whitespace() {
-        return StepKind::Element;
-    }
-
-    match glyph {
-        '/' => StepKind::TailElementSolidus,
-        '>' => StepKind::Fragment,
-        _ => StepKind::Tag,
-    }
-}
-
-fn get_kind_from_tagname(glyph: char) -> StepKind {
-    if glyph.is_whitespace() {
-        return StepKind::ElementSpace;
-    }
-
-    match glyph {
-        '>' => StepKind::ElementClosed,
-        '/' => StepKind::EmptyElement,
-        _ => StepKind::Tag,
-    }
-}
-
-fn get_kind_from_tail_element_slash(glyph: char) -> StepKind {
-    if glyph.is_whitespace() {
-        return StepKind::TailElementSolidus;
-    }
-
-    match glyph {
-        '>' => StepKind::FragmentClosed,
-        _ => StepKind::TailTag,
-    }
-}
-
-fn get_kind_from_close_tagname(glyph: char) -> StepKind {
-    if glyph.is_whitespace() {
-        return StepKind::TailElementSpace;
-    }
-
-    match glyph {
-        '>' => StepKind::TailElementClosed,
-        _ => StepKind::TailTag,
-    }
-}
-
-fn get_kind_from_tail_element_space(glyph: char) -> StepKind {
-    match glyph {
-        '>' => StepKind::TailElementClosed,
-        _ => StepKind::TailElementSpace,
-    }
-}
-
-pub fn get_kind_from_void_element(glyph: char) -> StepKind {
-    match glyph {
-        '>' => StepKind::EmptyElementClosed,
-        _ => StepKind::EmptyElement,
-    }
-}
-
-fn get_kind_from_element_space(glyph: char) -> StepKind {
-    if glyph.is_whitespace() {
-        return StepKind::ElementSpace;
-    }
-
-    match glyph {
-        '>' => StepKind::ElementClosed,
-        '/' => StepKind::EmptyElement,
-        '{' => StepKind::AttrMapInjection,
-        _ => StepKind::Attr,
     }
 }
 
@@ -117,6 +36,28 @@ fn get_kind_from_attribute(glyph: char) -> StepKind {
         '/' => StepKind::EmptyElement,
         '{' => StepKind::AttrMapInjection,
         _ => StepKind::Attr,
+    }
+}
+
+fn get_kind_from_injection(glyph: char) -> StepKind {
+    match glyph {
+        '}' => StepKind::InjectionConfirmed,
+        _ => StepKind::InjectionSpace,
+    }
+}
+
+fn get_kind_from_attribute_quote(glyph: char) -> StepKind {
+    match glyph {
+        '"' => StepKind::AttrQuoteClosed,
+        _ => StepKind::AttrValue,
+    }
+}
+
+fn get_kind_from_attribute_quote_closed(glyph: char) -> StepKind {
+    match glyph {
+        '>' => StepKind::ElementClosed,
+        '/' => StepKind::EmptyElement,
+        _ => StepKind::ElementSpace,
     }
 }
 
@@ -142,24 +83,85 @@ fn get_kind_from_attribute_value_unquoted(glyph: char) -> StepKind {
     }
 }
 
-fn get_kind_from_attribute_quote(glyph: char) -> StepKind {
+fn get_kind_from_element(glyph: char) -> StepKind {
+    if glyph.is_whitespace() {
+        return StepKind::Element;
+    }
+
     match glyph {
-        '"' => StepKind::AttrQuoteClosed,
-        _ => StepKind::AttrValue,
+        '/' => StepKind::TailElementSolidus,
+        '>' => StepKind::Fragment,
+        _ => StepKind::Tag,
     }
 }
 
-fn get_kind_from_attribute_quote_closed(glyph: char) -> StepKind {
+fn get_kind_from_element_space(glyph: char) -> StepKind {
+    if glyph.is_whitespace() {
+        return StepKind::ElementSpace;
+    }
+
     match glyph {
         '>' => StepKind::ElementClosed,
         '/' => StepKind::EmptyElement,
-        _ => StepKind::ElementSpace,
+        '{' => StepKind::AttrMapInjection,
+        _ => StepKind::Attr,
     }
 }
 
-fn get_kind_from_injection_found(glyph: char) -> StepKind {
+pub fn get_kind_from_empty_element(glyph: char) -> StepKind {
     match glyph {
-        '}' => StepKind::InjectionConfirmed,
-        _ => StepKind::InjectionSpace,
+        '>' => StepKind::EmptyElementClosed,
+        _ => StepKind::EmptyElement,
     }
 }
+
+fn get_kind_from_tag(glyph: char) -> StepKind {
+    if glyph.is_whitespace() {
+        return StepKind::ElementSpace;
+    }
+
+    match glyph {
+        '>' => StepKind::ElementClosed,
+        '/' => StepKind::EmptyElement,
+        _ => StepKind::Tag,
+    }
+}
+
+fn get_kind_from_tail_element_solidus(glyph: char) -> StepKind {
+    if glyph.is_whitespace() {
+        return StepKind::TailElementSolidus;
+    }
+
+    match glyph {
+        '>' => StepKind::FragmentClosed,
+        _ => StepKind::TailTag,
+    }
+}
+
+fn get_kind_from_tail_tag(glyph: char) -> StepKind {
+    if glyph.is_whitespace() {
+        return StepKind::TailElementSpace;
+    }
+
+    match glyph {
+        '>' => StepKind::TailElementClosed,
+        _ => StepKind::TailTag,
+    }
+}
+
+
+fn get_kind_from_tail_element_space(glyph: char) -> StepKind {
+    match glyph {
+        '>' => StepKind::TailElementClosed,
+        _ => StepKind::TailElementSpace,
+    }
+}
+
+fn get_kind_from_initial(glyph: char) -> StepKind {
+    match glyph {
+        '<' => StepKind::Element,
+        '{' => StepKind::DescendantInjection,
+        _ => StepKind::Text,
+    }
+}
+

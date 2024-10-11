@@ -110,6 +110,13 @@ fn push_element(
         return;
     }
 
+    // edge case for start of document
+    if sieve.respect_indentation() && results.len() > 0 && tag_info.inline_el {
+        // edge case that requires reading from the results to prevent starting with \n
+        // not my favorite but works here
+        results.push(' ');
+    }
+
     if !sieve.respect_indentation() && tag_info.inline_el && !tag_info.void_el {
         if let Some(prev_tag_info) = stack.last() {
             if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
@@ -123,12 +130,6 @@ fn push_element(
         // not my favorite but works here
         results.push('\n');
         results.push_str(&"\t".repeat(tag_info.indent_count));
-    }
-
-    if sieve.respect_indentation() && results.len() > 0 && tag_info.inline_el {
-        // edge case that requires reading from the results to prevent starting with \n
-        // not my favorite but works here
-        results.push(' ');
     }
 
     if let Some(prev_tag_info) = stack.last_mut() {
