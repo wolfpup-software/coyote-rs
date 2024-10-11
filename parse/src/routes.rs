@@ -149,7 +149,6 @@ fn get_kind_from_tail_tag(glyph: char) -> StepKind {
     }
 }
 
-
 fn get_kind_from_tail_element_space(glyph: char) -> StepKind {
     match glyph {
         '>' => StepKind::TailElementClosed,
@@ -164,4 +163,3 @@ fn get_kind_from_initial(glyph: char) -> StepKind {
         _ => StepKind::Text,
     }
 }
-
