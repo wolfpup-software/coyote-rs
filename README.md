@@ -41,10 +41,6 @@ fn main() {
 }
 ```
 
-## UPDATE
-
-What if i just said hey it's all strings? we are going from string to strings.
-
 ## License
 
 `Coyote-rs` is released under the BSD 3-Clause License.

@@ -2,7 +2,7 @@ use coyote::{attr_val, list, text, tmpl, Component};
 use sieve::Sieve;
 
 use parse::StepKind;
-use txml_string::{compose, Results};
+use template_string::{compose, Results};
 
 // Test will not build if Function Components do not build
 
