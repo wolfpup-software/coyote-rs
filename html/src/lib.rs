@@ -101,7 +101,7 @@ fn push_element(
 
     if tag_info.banned_path {
         if let Some(prev_tag_info) = stack.last_mut() {
-            prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+            prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
                 true => DescendantStatus::InlineElement,
                 _ => DescendantStatus::Element,
             };
@@ -133,7 +133,7 @@ fn push_element(
     }
 
     if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElement,
             _ => DescendantStatus::Element,
         };
@@ -235,7 +235,7 @@ fn pop_element(
     stack.pop();
 
     if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElementClosed,
             _ => DescendantStatus::ElementClosed,
         };
@@ -295,6 +295,7 @@ fn push_text(
         return;
     }
 
+    // move this to add_text functions
     let mut texts: Vec<&str> = Vec::new();
     for line in text.split("\n") {
         let trimmed = line.trim();
