@@ -1,157 +1,59 @@
-use coyote::Component;
+use parse::{get_text_from_step, parse_str, Step, StepKind};
+
 use sieve::SieveImpl;
 
-use parse::StepKind;
-use txml_string::Results;
+/*
+    INTERMEDIATE RENDER FORMAT
 
-struct TemplateBit {
-    pub inj_index: usize,
+    Templates are converted to an array of content[] and injections[].
+
+    Coyote is focused on text / strings
+*/
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Results {
+    pub strs: Vec<String>,
+    pub injs: Vec<StepKind>,
 }
 
-enum StackBit<'a> {
-    Tmpl(&'a Component, Results, TemplateBit),
-    Cmpnt(&'a Component),
-    None,
-}
-
-pub trait BuilderImpl {
-    fn build(&mut self, sieve: &dyn SieveImpl, template_str: &str) -> Results;
-}
-
-pub fn compose(
-    builder: &mut dyn BuilderImpl,
-    sieve: &dyn SieveImpl,
-    component: &Component,
-) -> String {
-    let mut templ_str = "".to_string();
-
-    let sbit = match component {
-        Component::Text(_text) => StackBit::Cmpnt(component),
-        Component::List(_list) => StackBit::Cmpnt(component),
-        Component::Tmpl(tmpl) => {
-            let txml_literal = builder.build(sieve, &tmpl.template_str);
-            StackBit::Tmpl(component, txml_literal, TemplateBit { inj_index: 0 })
+impl Results {
+    pub fn new() -> Results {
+        Results {
+            strs: Vec::from(["".to_string()]),
+            injs: Vec::new(),
         }
-        _ => StackBit::None,
-    };
+    }
+}
 
-    let mut stack: Vec<StackBit> = Vec::from([sbit]);
-    while let Some(mut stack_bit) = stack.pop() {
-        match stack_bit {
-            // text or list
-            StackBit::Cmpnt(cmpnt) => match cmpnt {
-                Component::Text(text) => templ_str.push_str(text),
-                Component::List(list) => {
-                    for cmpnt in list.iter().rev() {
-                        let bit = match cmpnt {
-                            Component::Text(_text) => StackBit::Cmpnt(cmpnt),
-                            Component::List(_list) => StackBit::Cmpnt(cmpnt),
-                            Component::Tmpl(tmpl) => {
-                                let txml_literal = builder.build(sieve, &tmpl.template_str);
-                                StackBit::Tmpl(cmpnt, txml_literal, TemplateBit { inj_index: 0 })
-                            }
-                            _ => StackBit::None,
-                        };
-                        stack.push(bit);
-                    }
-                    continue;
-                }
-                _ => {}
-            },
-            StackBit::Tmpl(component, ref results, ref mut bit) => {
-                let index = bit.inj_index;
-                bit.inj_index += 1;
+pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> Results {
+    let mut results = Results::new();
 
-                // add template
-                if let Some(chunk) = results.strs.get(index) {
-                    templ_str.push_str(chunk);
-                }
-                // add injection
-                if let Component::Tmpl(template) = component {
-                    // if there is an injection
-                    if let (Some(inj_kind), Some(inj)) =
-                        (results.injs.get(index), template.injections.get(index))
-                    {
-                        match inj_kind {
-                            // add attribute injections to template
-                            StepKind::AttrMapInjection => {
-                                templ_str = add_attr_inj(templ_str, inj);
-                            }
-                            // queue descendant injections to queue
-                            StepKind::DescendantInjection => {
-                                // push template back and bail early
-                                stack.push(stack_bit);
-
-                                let bit = match inj {
-                                    Component::Text(_text) => StackBit::Cmpnt(inj),
-                                    Component::List(_list) => StackBit::Cmpnt(inj),
-                                    Component::Tmpl(tmpl) => {
-                                        // chance to cache templates here
-                                        let txml_literal = builder.build(sieve, &tmpl.template_str);
-                                        StackBit::Tmpl(
-                                            inj,
-                                            txml_literal,
-                                            TemplateBit { inj_index: 0 },
-                                        )
-                                    }
-                                    _ => StackBit::None,
-                                };
-                                stack.push(bit);
-                                continue;
-                            }
-                            _ => {}
-                        }
-                    }
-
-                    // don't forget the last part of the templates!
-                    if index < results.strs.len() {
-                        stack.push(stack_bit);
-                    }
-                }
-            }
-            _ => {}
+    for step in parse_str(sieve, template_str, StepKind::Initial) {
+        match step.kind {
+            StepKind::AttrMapInjection => push_attr_map_injection(&mut results),
+            StepKind::DescendantInjection => push_descendant_injection(&mut results),
+            StepKind::InjectionSpace => {}
+            StepKind::InjectionConfirmed => {}
+            _ => push_text(&mut results, template_str, step),
         }
     }
 
-    templ_str
+    results
 }
 
-fn add_attr_inj(mut template_str: String, component: &Component) -> String {
-    match component {
-        Component::Attr(attr) => add_attr(template_str, attr),
-        Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),
-        Component::List(attr_list) => {
-            for cmpnt in attr_list {
-                match cmpnt {
-                    Component::Attr(attr) => {
-                        template_str = add_attr(template_str, &attr);
-                    }
-                    Component::AttrVal(attr, val) => {
-                        template_str = add_attr_val(template_str, &attr, &val);
-                    }
-                    _ => {}
-                }
-            }
-            template_str
-        }
-        _ => template_str,
+fn push_text(results: &mut Results, template_str: &str, step: Step) {
+    let text = get_text_from_step(template_str, &step);
+    if let Some(last) = results.strs.last_mut() {
+        last.push_str(text);
     }
 }
 
-fn add_attr(mut templ_str: String, attr: &str) -> String {
-    templ_str.push_str(" ");
-    templ_str.push_str(attr);
-    templ_str.push_str(" ");
-
-    templ_str
+fn push_attr_map_injection(results: &mut Results) {
+    results.strs.push("".to_string());
+    results.injs.push(StepKind::AttrMapInjection);
 }
 
-fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
-    templ_str.push_str(" ");
-    templ_str.push_str(attr);
-    templ_str.push_str("=\"");
-    templ_str.push_str(val);
-    templ_str.push_str("\" ");
-
-    templ_str
+fn push_descendant_injection(results: &mut Results) {
+    results.strs.push("".to_string());
+    results.injs.push(StepKind::DescendantInjection);
 }

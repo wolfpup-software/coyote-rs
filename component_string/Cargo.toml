@@ -1,5 +1,5 @@
 [package]
-name = "txml_string"
+name = "component_string"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,3 +9,4 @@ edition = "2021"
 sieve = { path = "../sieve" }
 parse = { path = "../parse" }
 coyote = { path = "../coyote" }
+template_string = { path = "../template_string" }

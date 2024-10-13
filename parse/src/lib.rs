@@ -97,7 +97,7 @@ pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKin
         }
 
         // two edge cases for comments and alt text
-        if sieve.is_comment(tag) {
+        if sieve.tag_is_comment(tag) {
             if let Some(close_seq) = sieve.get_close_sequence_from_alt_text_tag(tag) {
                 let mut slider = SlidingWindow::new(close_seq);
                 slider.slide(glyph);

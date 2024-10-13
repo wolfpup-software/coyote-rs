@@ -101,13 +101,20 @@ fn push_element(
 
     if tag_info.banned_path {
         if let Some(prev_tag_info) = stack.last_mut() {
-            prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+            prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
                 true => DescendantStatus::InlineElement,
                 _ => DescendantStatus::Element,
             };
         }
         stack.push(tag_info);
         return;
+    }
+
+    // edge case for start of document
+    if sieve.respect_indentation() && results.len() > 0 && tag_info.inline_el {
+        // edge case that requires reading from the results to prevent starting with \n
+        // not my favorite but works here
+        results.push(' ');
     }
 
     if !sieve.respect_indentation() && tag_info.inline_el && !tag_info.void_el {
@@ -125,14 +132,8 @@ fn push_element(
         results.push_str(&"\t".repeat(tag_info.indent_count));
     }
 
-    if sieve.respect_indentation() && results.len() > 0 && tag_info.inline_el {
-        // edge case that requires reading from the results to prevent starting with \n
-        // not my favorite but works here
-        results.push(' ');
-    }
-
     if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElement,
             _ => DescendantStatus::Element,
         };
@@ -154,7 +155,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(">");
     }
 
-    if tag_info.namespace == "html" && tag_info.void_el {
+    if "html" == tag_info.namespace && tag_info.void_el {
         stack.pop();
     }
 }
@@ -170,16 +171,16 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         return;
     }
 
-    if tag_info.namespace != "html" {
+    if "html" != tag_info.namespace {
         results.push_str("/>");
     }
 
-    if tag_info.namespace == "html" && !tag_info.void_el {
+    if !tag_info.void_el && "html" == tag_info.namespace {
         results.push_str("></");
         results.push_str(&tag_info.tag);
     }
 
-    if tag_info.namespace == "html" {
+    if "html" == tag_info.namespace {
         results.push('>');
     }
 
@@ -234,7 +235,7 @@ fn pop_element(
     stack.pop();
 
     if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = match sieve.inline_el(tag) {
+        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElementClosed,
             _ => DescendantStatus::ElementClosed,
         };
@@ -294,6 +295,7 @@ fn push_text(
         return;
     }
 
+    // move this to add_text functions
     let mut texts: Vec<&str> = Vec::new();
     for line in text.split("\n") {
         let trimmed = line.trim();

@@ -9,5 +9,5 @@ edition = "2021"
 sieve = { path = "../sieve" }
 html = { path = "../html" }
 coyote = { path = "../coyote" }
-txml_string = { path = "../txml_string" }
 template_string = { path = "../template_string" }
+component_string = { path = "../component_string" }

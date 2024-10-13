@@ -1,7 +1,7 @@
+use component_string::{compose as compose_template, BuilderImpl};
 use coyote::{attr_val, list, text, tmpl, Component};
 use sieve::{Sieve, SieveImpl};
-use template_string::{compose as compose_template, BuilderImpl};
-use txml_string::{compose as compose_txml, Results};
+use template_string::{compose as compose_txml, Results};
 
 // Test will not build if Function Components do not build
 
