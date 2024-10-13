@@ -1,6 +1,5 @@
 use coyote::Component;
 use sieve::SieveImpl;
-
 use parse::StepKind;
 use txml_string::Results;
 
@@ -141,8 +140,6 @@ fn add_attr_inj(mut template_str: String, component: &Component) -> String {
 fn add_attr(mut templ_str: String, attr: &str) -> String {
     templ_str.push_str(" ");
     templ_str.push_str(attr);
-    // maybe only add attr
-    templ_str.push_str(" ");
 
     templ_str
 }
@@ -152,8 +149,7 @@ fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
     templ_str.push_str(attr);
     templ_str.push_str("=\"");
     templ_str.push_str(val);
-    // maybe no last space?
-    templ_str.push_str("\" ");
+    templ_str.push_str("\"");
 
     templ_str
 }

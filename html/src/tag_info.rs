@@ -47,7 +47,7 @@ impl TagInfo {
             void_el: sieve.tag_is_void_el(tag),
             inline_el: sieve.tag_is_inline_el(tag),
             // is preserved text element?
-            preserved_text_path: false,
+            preserved_text_path: sieve.tag_is_preserved_text_el(tag),
             banned_path: sieve.tag_is_banned_el(tag),
         }
     }
