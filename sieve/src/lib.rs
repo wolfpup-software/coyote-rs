@@ -1,30 +1,15 @@
-pub trait ParseSieveImpl {
-    fn is_comment(&self, tag: &str) -> bool;
-    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
-}
-
-pub trait CoyoteSieveImpl {
-    fn respect_indentation(&self) -> bool;
-    fn is_banned_el(&self, tag: &str) -> bool;
-    fn is_void_el(&self, tag: &str) -> bool;
-    fn is_namespace_el(&self, tag: &str) -> bool;
-    fn is_preserved_text_el(&self, tag: &str) -> bool;
-    fn is_inline_el(&self, tag: &str) -> bool;
-}
-
 pub trait SieveImpl {
     // parse
-    fn is_comment(&self, tag: &str) -> bool;
+    fn tag_is_comment(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
     // coyote
     fn respect_indentation(&self) -> bool;
-    fn is_banned_el(&self, tag: &str) -> bool;
-    fn is_void_el(&self, tag: &str) -> bool;
-    fn is_namespace_el(&self, tag: &str) -> bool;
-    fn is_preserved_text_el(&self, tag: &str) -> bool;
-    fn is_inline_el(&self, tag: &str) -> bool;
+    fn tag_is_banned_el(&self, tag: &str) -> bool;
+    fn tag_is_void_el(&self, tag: &str) -> bool;
+    fn tag_is_namespace_el(&self, tag: &str) -> bool;
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool;
+    fn tag_is_inline_el(&self, tag: &str) -> bool;
 }
 
 pub struct Sieve {}
@@ -35,43 +20,51 @@ impl Sieve {
     }
 }
 
-impl SieveImpl for Sieve {}
-
-impl ParseSieveImpl for Sieve {
-    fn is_comment(&self, tag: &str) -> bool {
+impl SieveImpl for Sieve {
+    fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
-        get_close_sequence_from_alt_text_tag(tag);
+        match tag {
+            "!--" => Some("-->"),
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            _ => None,
+        }
     }
 
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
-        get_tag_from_close_sequence(tag);
+        match tag {
+            "-->" => Some("!--"),
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            _ => None,
+        }
     }
 
     fn respect_indentation(&self) -> bool {
         true
     }
 
-    fn is_banned_el(&self, _tag: &str) -> bool {
+    fn tag_is_banned_el(&self, _tag: &str) -> bool {
         false
     }
 
-    fn is_void_el(&self, tag: &str) -> bool {
-        is_void_el(tag)
+    fn tag_is_void_el(&self, tag: &str) -> bool {
+        tag_is_void_el(tag)
     }
 
-    fn is_namespace_el(&self, tag: &str) -> bool {
-        is_namespace_el(tag)
+    fn tag_is_namespace_el(&self, tag: &str) -> bool {
+        tag_is_namespace_el(tag)
     }
 
-    fn is_preserved_text_el(&self, tag: &str) -> bool {
-        is_preserved_text_el(tag)
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
+        tag_is_preserved_text_el(tag)
     }
 
-    fn is_inline_el(&self, tag: &str) -> bool {
-        is_inline_el(tag)
+    fn tag_is_inline_el(&self, tag: &str) -> bool {
+        tag_is_inline_el(tag)
     }
 }
 
@@ -83,26 +76,34 @@ impl ClientSieve {
     }
 }
 
-impl SieveImpl for ClientSieve {}
-
-impl ParseSieveImpl for ClientSieve {
-    fn is_comment(&self, tag: &str) -> bool {
+impl SieveImpl for ClientSieve {
+    fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
-        get_close_sequence_from_alt_text_tag(tag);
+        match tag {
+            "!--" => Some("-->"),
+            "script" => Some("</script>"),
+            "style" => Some("</style>"),
+            _ => None,
+        }
     }
 
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
-        get_tag_from_close_sequence(tag);
+        match tag {
+            "-->" => Some("!--"),
+            "</script>" => Some("script"),
+            "</style>" => Some("style"),
+            _ => None,
+        }
     }
 
     fn respect_indentation(&self) -> bool {
         false
     }
 
-    fn is_banned_el(&self, tag: &str) -> bool {
+    fn tag_is_banned_el(&self, tag: &str) -> bool {
         match tag {
             "!--" => true,
             "script" => true,
@@ -111,47 +112,29 @@ impl ParseSieveImpl for ClientSieve {
         }
     }
 
-    fn is_void_el(&self, tag: &str) -> bool {
-        is_void_el(tag)
+    fn tag_is_void_el(&self, tag: &str) -> bool {
+        tag_is_void_el(tag)
     }
 
-    fn is_namespace_el(&self, tag: &str) -> bool {
-        is_namespace_el(tag)
+    fn tag_is_namespace_el(&self, tag: &str) -> bool {
+        tag_is_namespace_el(tag)
     }
 
-    fn is_preserved_text_el(&self, tag: &str) -> bool {
-        is_preserved_text_el(tag)
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
+        tag_is_preserved_text_el(tag)
     }
 
-    fn is_inline_el(&self, tag: &str) -> bool {
+    fn tag_is_inline_el(&self, tag: &str) -> bool {
         // is it?
         if tag == "a" {
             return true;
         }
 
-        is_inline_el(tag)
+        tag_is_inline_el(tag)
     }
 }
 
-fn get_close_sequence_from_alt_text_tag(tag: &str) -> Option<&str> {
-    match tag {
-        "!--" => Some("-->"),
-        "script" => Some("</script>"),
-        "style" => Some("</style>"),
-        _ => None,
-    }
-}
-
-fn get_tag_from_close_sequence(tag: &str) -> Option<&str> {
-    match tag {
-        "-->" => Some("!--"),
-        "</script>" => Some("script"),
-        "</style>" => Some("style"),
-        _ => None,
-    }
-}
-
-fn is_void_el(tag: &str) -> bool {
+fn tag_is_void_el(tag: &str) -> bool {
     match tag {
         "!--" => true,
         "!DOCTYPE" => true,
@@ -173,7 +156,7 @@ fn is_void_el(tag: &str) -> bool {
     }
 }
 
-fn is_namespace_el(tag: &str) -> bool {
+fn tag_is_namespace_el(tag: &str) -> bool {
     match tag {
         "html" => true,
         "math" => true,
@@ -182,11 +165,11 @@ fn is_namespace_el(tag: &str) -> bool {
     }
 }
 
-pub fn is_preserved_text_el(tag: &str) -> bool {
+pub fn tag_is_preserved_text_el(tag: &str) -> bool {
     return tag == "pre";
 }
 
-pub fn is_inline_el(tag: &str) -> bool {
+pub fn tag_is_inline_el(tag: &str) -> bool {
     match tag {
         "abbr" => true,
         "area" => true,

@@ -46,6 +46,7 @@ impl TagInfo {
             indent_count: 0,
             void_el: sieve.void_el(tag),
             inline_el: sieve.inline_el(tag),
+            // is preserved text element?
             preserved_text_path: false,
             banned_path: sieve.banned_el(tag),
         }
@@ -55,6 +56,8 @@ impl TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 
+        // could be easier to create a new one?
+        // not in the spirit of "from"
         if sieve.namespace_el(tag) {
             tag_info.namespace = tag.to_string();
         }

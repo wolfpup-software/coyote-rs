@@ -155,7 +155,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(">");
     }
 
-    if tag_info.namespace == "html" && tag_info.void_el {
+    if "html" == tag_info.namespace && tag_info.void_el {
         stack.pop();
     }
 }
@@ -171,16 +171,16 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         return;
     }
 
-    if tag_info.namespace != "html" {
+    if "html" != tag_info.namespace {
         results.push_str("/>");
     }
 
-    if tag_info.namespace == "html" && !tag_info.void_el {
+    if !tag_info.void_el && "html" == tag_info.namespace {
         results.push_str("></");
         results.push_str(&tag_info.tag);
     }
 
-    if tag_info.namespace == "html" {
+    if "html" == tag_info.namespace {
         results.push('>');
     }
 
