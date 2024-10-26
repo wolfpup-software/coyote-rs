@@ -43,49 +43,6 @@ pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> String {
     results
 }
 
-fn pop_closing_sequence(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    sieve: &dyn SieveImpl,
-    template_str: &str,
-    step: Step,
-) {
-    // need to get second to last element and then say this was a block element or an inline element
-    let closing_sequence = get_text_from_step(template_str, &step);
-
-    let tag = match sieve.get_tag_from_close_sequence(closing_sequence) {
-        Some(t) => t,
-        _ => return,
-    };
-
-    let tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    if tag != tag_info.tag {
-        return;
-    }
-
-    if tag_info.banned_path {
-        stack.pop();
-        return;
-    }
-
-    if sieve.respect_indentation()
-        && !tag_info.inline_el
-        && !tag_info.preserved_text_path
-        && tag_info.most_recent_descendant != DescendantStatus::Initial
-    {
-        results.push_str("\n");
-        results.push_str(&"\t".repeat(tag_info.indent_count));
-    }
-
-    results.push_str(closing_sequence);
-
-    stack.pop();
-}
-
 fn push_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
@@ -155,7 +112,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(">");
     }
 
-    if "html" == tag_info.namespace && tag_info.void_el {
+    if tag_info.void_el && "html" == tag_info.namespace {
         stack.pop();
     }
 }
@@ -210,7 +167,7 @@ fn pop_element(
         return;
     }
 
-    if tag_info.namespace == "html" && tag_info.void_el {
+    if tag_info.void_el && "html" == tag_info.namespace {
         results.push('>');
         stack.pop();
         if let Some(prev_tag_info) = stack.last_mut() {
@@ -222,7 +179,7 @@ fn pop_element(
     if sieve.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
-        && tag_info.most_recent_descendant != DescendantStatus::Initial
+        && DescendantStatus::Initial != tag_info.most_recent_descendant 
     {
         results.push_str("\n");
         results.push_str(&"\t".repeat(tag_info.indent_count));
@@ -312,53 +269,32 @@ fn push_text(
 
     if sieve.respect_indentation() {
         match tag_info.most_recent_descendant {
-            DescendantStatus::Element => add_element_text(results, texts, tag_info),
-            DescendantStatus::ElementClosed => add_element_closed_text(results, texts, tag_info),
             DescendantStatus::InlineElement => {
                 add_inline_element_text(results, texts);
             }
             DescendantStatus::InlineElementClosed => {
                 add_inline_element_closed_text(results, texts, tag_info)
             }
-            DescendantStatus::Text => add_text(results, texts, tag_info),
             DescendantStatus::Initial => {
                 if tag_info.inline_el {
                     add_inline_element_text(results, texts);
                 } else {
-                    add_element_text(results, texts, tag_info);
+                    add_text(results, texts, tag_info);
                 }
             }
+            _ => add_text(results, texts, tag_info)
         }
     } else {
         match tag_info.most_recent_descendant {
-            DescendantStatus::Element => add_inline_element_text(results, texts),
-            DescendantStatus::ElementClosed => add_inline_element_text(results, texts),
-            DescendantStatus::InlineElement => add_inline_element_text(results, texts),
             DescendantStatus::InlineElementClosed => {
                 add_unpretty_inline_element_closed_text(results, texts)
             }
             DescendantStatus::Text => add_inline_element_closed_text(results, texts, tag_info),
-            DescendantStatus::Initial => add_inline_element_text(results, texts),
+            _ => add_inline_element_text(results, texts)
         }
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
-}
-
-fn add_element_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
-    for line in texts {
-        results.push('\n');
-        results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
-        results.push_str(line);
-    }
-}
-
-fn add_element_closed_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
-    for line in texts {
-        results.push('\n');
-        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-        results.push_str(line);
-    }
 }
 
 fn add_inline_element_text(results: &mut String, texts: Vec<&str>) {
@@ -406,7 +342,7 @@ fn add_unpretty_inline_element_closed_text(results: &mut String, texts: Vec<&str
 fn add_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
     for line in texts {
         results.push('\n');
-        results.push_str(&"\t".repeat(&tag_info.indent_count + 1));
+        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
         results.push_str(line);
     }
 }
@@ -479,6 +415,49 @@ fn push_injection_kind(
 
     let glyph = get_text_from_step(template_str, &step);
     results.push_str(glyph);
+}
+
+fn pop_closing_sequence(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    sieve: &dyn SieveImpl,
+    template_str: &str,
+    step: Step,
+) {
+    // need to get second to last element and then say this was a block element or an inline element
+    let closing_sequence = get_text_from_step(template_str, &step);
+
+    let tag = match sieve.get_tag_from_close_sequence(closing_sequence) {
+        Some(t) => t,
+        _ => return,
+    };
+
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if tag != tag_info.tag {
+        return;
+    }
+
+    if tag_info.banned_path {
+        stack.pop();
+        return;
+    }
+
+    if sieve.respect_indentation()
+        && !tag_info.inline_el
+        && !tag_info.preserved_text_path
+        && DescendantStatus::Initial != tag_info.most_recent_descendant 
+    {
+        results.push_str("\n");
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+    }
+
+    results.push_str(closing_sequence);
+
+    stack.pop();
 }
 
 fn get_most_common_space_index(text: &str) -> usize {
