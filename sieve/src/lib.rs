@@ -47,8 +47,8 @@ impl SieveImpl for Sieve {
         true
     }
 
-    fn tag_is_banned_el(&self, _tag: &str) -> bool {
-        false
+    fn tag_is_banned_el(&self, tag: &str) -> bool {
+        tag_is_banned_el(tag)
     }
 
     fn tag_is_void_el(&self, tag: &str) -> bool {
@@ -108,7 +108,7 @@ impl SieveImpl for ClientSieve {
             "!--" => true,
             "script" => true,
             "style" => true,
-            _ => false,
+            _ => tag_is_banned_el(tag),
         }
     }
 
@@ -126,11 +126,38 @@ impl SieveImpl for ClientSieve {
 
     fn tag_is_inline_el(&self, tag: &str) -> bool {
         // is it?
-        if tag == "a" {
-            return true;
+        match tag {
+            "a" => true,
+            _ => tag_is_inline_el(tag),
         }
+    }
+}
 
-        tag_is_inline_el(tag)
+fn tag_is_banned_el(tag: &str) -> bool {
+    match tag {
+        "acronym" => true,
+        "big" => true,
+        "center" => true,
+        "content" => true,
+        "dir" => true,
+        "font" => true,
+        "frame" => true,
+        "framset" => true,
+        "image" => true,
+        "marquee" => true,
+        "menuitem" => true,
+        "nobr" => true,
+        "noembed" => true,
+        "noframes" => true,
+        "param" => true,
+        "plaintext" => true,
+        "rb" => true,
+        "rtc" => true,
+        "shadow" => true,
+        "strike" => true,
+        "tt" => true,
+        "xmp" => true,
+        _ => false,
     }
 }
 

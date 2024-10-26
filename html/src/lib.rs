@@ -179,7 +179,7 @@ fn pop_element(
     if sieve.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
-        && DescendantStatus::Initial != tag_info.most_recent_descendant 
+        && DescendantStatus::Initial != tag_info.most_recent_descendant
     {
         results.push_str("\n");
         results.push_str(&"\t".repeat(tag_info.indent_count));
@@ -282,7 +282,7 @@ fn push_text(
                     add_text(results, texts, tag_info);
                 }
             }
-            _ => add_text(results, texts, tag_info)
+            _ => add_text(results, texts, tag_info),
         }
     } else {
         match tag_info.most_recent_descendant {
@@ -290,7 +290,7 @@ fn push_text(
                 add_unpretty_inline_element_closed_text(results, texts)
             }
             DescendantStatus::Text => add_inline_element_closed_text(results, texts, tag_info),
-            _ => add_inline_element_text(results, texts)
+            _ => add_inline_element_text(results, texts),
         }
     }
 
@@ -449,7 +449,7 @@ fn pop_closing_sequence(
     if sieve.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
-        && DescendantStatus::Initial != tag_info.most_recent_descendant 
+        && DescendantStatus::Initial != tag_info.most_recent_descendant
     {
         results.push_str("\n");
         results.push_str(&"\t".repeat(tag_info.indent_count));
