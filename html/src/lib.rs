@@ -56,13 +56,12 @@ fn push_element(
         _ => TagInfo::new(sieve, tag),
     };
 
-    if tag_info.banned_path {
-        if let Some(prev_tag_info) = stack.last_mut() {
-            prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
-                true => DescendantStatus::InlineElement,
-                _ => DescendantStatus::Element,
-            };
-        }
+    // banned path
+    if let (true, Some(prev_tag_info)) = (tag_info.banned_path, stack.last_mut()) {
+        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
+            true => DescendantStatus::InlineElement,
+            _ => DescendantStatus::Element,
+        };
         stack.push(tag_info);
         return;
     }
