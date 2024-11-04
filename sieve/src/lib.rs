@@ -48,23 +48,23 @@ impl SieveImpl for Sieve {
     }
 
     fn tag_is_banned_el(&self, tag: &str) -> bool {
-        tag_is_banned_el(tag)
+        is_banned_el(tag)
     }
 
     fn tag_is_void_el(&self, tag: &str) -> bool {
-        tag_is_void_el(tag)
+        is_void_el(tag)
     }
 
     fn tag_is_namespace_el(&self, tag: &str) -> bool {
-        tag_is_namespace_el(tag)
+        is_namespace_el(tag)
     }
 
     fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
-        tag_is_preserved_text_el(tag)
+        is_preserved_text_el(tag)
     }
 
     fn tag_is_inline_el(&self, tag: &str) -> bool {
-        tag_is_inline_el(tag)
+        is_inline_el(tag)
     }
 }
 
@@ -108,32 +108,33 @@ impl SieveImpl for ClientSieve {
             "!--" => true,
             "script" => true,
             "style" => true,
-            _ => tag_is_banned_el(tag),
+            _ => is_banned_el(tag),
         }
     }
 
     fn tag_is_void_el(&self, tag: &str) -> bool {
-        tag_is_void_el(tag)
+        is_void_el(tag)
     }
 
     fn tag_is_namespace_el(&self, tag: &str) -> bool {
-        tag_is_namespace_el(tag)
+        is_namespace_el(tag)
     }
 
     fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
-        tag_is_preserved_text_el(tag)
+        is_preserved_text_el(tag)
     }
 
     fn tag_is_inline_el(&self, tag: &str) -> bool {
         // is it?
         match tag {
             "a" => true,
-            _ => tag_is_inline_el(tag),
+            _ => is_inline_el(tag),
         }
     }
 }
 
-fn tag_is_banned_el(tag: &str) -> bool {
+fn is_banned_el(tag: &str) -> bool {
+    // deprecated elements
     match tag {
         "acronym" => true,
         "big" => true,
@@ -161,7 +162,7 @@ fn tag_is_banned_el(tag: &str) -> bool {
     }
 }
 
-fn tag_is_void_el(tag: &str) -> bool {
+fn is_void_el(tag: &str) -> bool {
     match tag {
         "!--" => true,
         "!DOCTYPE" => true,
@@ -183,7 +184,7 @@ fn tag_is_void_el(tag: &str) -> bool {
     }
 }
 
-fn tag_is_namespace_el(tag: &str) -> bool {
+fn is_namespace_el(tag: &str) -> bool {
     match tag {
         "html" => true,
         "math" => true,
@@ -192,11 +193,11 @@ fn tag_is_namespace_el(tag: &str) -> bool {
     }
 }
 
-pub fn tag_is_preserved_text_el(tag: &str) -> bool {
+pub fn is_preserved_text_el(tag: &str) -> bool {
     return tag == "pre";
 }
 
-pub fn tag_is_inline_el(tag: &str) -> bool {
+pub fn is_inline_el(tag: &str) -> bool {
     match tag {
         "abbr" => true,
         "area" => true,

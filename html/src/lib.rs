@@ -461,25 +461,28 @@ fn pop_closing_sequence(
 }
 
 fn get_most_common_space_index(text: &str) -> usize {
-    let mut space_index = 0;
+    let mut prev_space_index = text.len();
+    let mut space_index = text.len();
+    let mut prev_line = "";
 
-    let mut prev_space;
-    let mut curr_space = "";
+    let mut texts = text.split("\n");
 
-    for line in text.split("\n") {
-        prev_space = curr_space;
+    if let Some(line) = texts.next() {
+        prev_line = line;
+    }
 
-        let curr_index = get_index_of_first_char(line);
-        if curr_index == line.len() {
+    while let Some(line) = texts.next() {
+        let first_char = get_index_of_first_char(line);
+        if line.len() == first_char {
             continue;
         }
 
-        curr_space = line;
-        if space_index == curr_index {
-            continue;
+        space_index = get_most_common_space_index_between_two_strings(prev_line, line);
+        if space_index < prev_space_index {
+            prev_space_index = space_index
         }
 
-        space_index = get_most_common_space_index_between_two_strings(prev_space, curr_space);
+        prev_line = line;
     }
 
     space_index

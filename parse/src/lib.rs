@@ -92,7 +92,7 @@ pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKin
         // record change
         front_step.target = index;
 
-        if front_step.kind == StepKind::Tag {
+        if StepKind::Tag == front_step.kind {
             tag = get_text_from_step(template_str, &front_step);
         }
 
@@ -107,7 +107,7 @@ pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKin
         }
 
         if let (true, Some(close_seq)) = (
-            front_step.kind == StepKind::ElementClosed,
+            StepKind::ElementClosed == front_step.kind,
             sieve.get_close_sequence_from_alt_text_tag(tag),
         ) {
             let mut slider = SlidingWindow::new(close_seq);
