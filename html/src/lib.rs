@@ -82,8 +82,6 @@ fn push_element(
 
     if let Some(prev_tag_info) = stack.last_mut() {
         if !sieve.respect_indentation()
-            && tag_info.inline_el
-            && !tag_info.void_el
             && prev_tag_info.most_recent_descendant == DescendantStatus::Text
         {
             results.push(' ');
