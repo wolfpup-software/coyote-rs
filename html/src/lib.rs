@@ -266,31 +266,26 @@ fn push_text(
         return;
     }
 
-    if sieve.respect_indentation() {
-        match tag_info.most_recent_descendant {
-            DescendantStatus::InlineElement => {
-                add_inline_element_text(results, texts);
-            }
-            DescendantStatus::InlineElementClosed => {
-                add_inline_element_closed_text(results, texts, tag_info)
-            }
-            DescendantStatus::Initial => {
-                if tag_info.inline_el {
-                    add_inline_element_text(results, texts);
-                } else {
-                    add_text(results, texts, tag_info);
-                }
-            }
+    match (
+        sieve.respect_indentation(),
+        &tag_info.most_recent_descendant,
+    ) {
+        (true, DescendantStatus::InlineElement) => {
+            add_inline_element_text(results, texts);
+        }
+        (true, DescendantStatus::InlineElementClosed) => {
+            add_inline_element_closed_text(results, texts, tag_info)
+        }
+        (true, DescendantStatus::Initial) => match tag_info.inline_el {
+            true => add_inline_element_text(results, texts),
             _ => add_text(results, texts, tag_info),
+        },
+        (true, _) => add_text(results, texts, tag_info),
+        (false, DescendantStatus::InlineElementClosed) => {
+            add_unpretty_inline_element_closed_text(results, texts)
         }
-    } else {
-        match tag_info.most_recent_descendant {
-            DescendantStatus::InlineElementClosed => {
-                add_unpretty_inline_element_closed_text(results, texts)
-            }
-            DescendantStatus::Text => add_inline_element_closed_text(results, texts, tag_info),
-            _ => add_inline_element_text(results, texts),
-        }
+        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, texts, tag_info),
+        (false, _) => add_inline_element_text(results, texts),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
