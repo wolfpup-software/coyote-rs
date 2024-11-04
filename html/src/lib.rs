@@ -491,10 +491,10 @@ fn get_index_of_first_char(text: &str) -> usize {
 
 fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -> usize {
     let mut source_chars = source.char_indices();
-    let mut target_chars = target.char_indices();
+    let mut target_chars = target.chars();
 
     let mut prev_index = 0;
-    while let (Some((src_index, src_chr)), Some((_, tgt_chr))) =
+    while let (Some((src_index, src_chr)), Some(tgt_chr)) =
         (source_chars.next(), target_chars.next())
     {
         if !src_chr.is_whitespace() || !tgt_chr.is_whitespace() || src_chr != tgt_chr {
