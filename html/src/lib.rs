@@ -126,16 +126,16 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 
     if "html" != tag_info.namespace {
         results.push_str("/>");
+        stack.pop();
+        return;
     }
 
-    if !tag_info.void_el && "html" == tag_info.namespace {
+    if !tag_info.void_el {
         results.push_str("></");
         results.push_str(&tag_info.tag);
     }
 
-    if "html" == tag_info.namespace {
-        results.push('>');
-    }
+    results.push('>');
 
     stack.pop();
 }
@@ -207,7 +207,7 @@ fn push_text(
         Some(curr) => curr,
         // text is first node
         _ => {
-            for line in text.trim().split("\n") {
+            for line in text.split("\n") {
                 let trimmed = line.trim();
                 if trimmed.len() == 0 {
                     continue;
@@ -251,12 +251,12 @@ fn push_text(
     // move this to add_text functions
     let mut texts: Vec<&str> = Vec::new();
     for line in text.split("\n") {
-        let trimmed = line.trim();
-        if trimmed.len() == 0 {
+        let first_char_index = get_index_of_first_char(line);
+        if line.len() == first_char_index {
             continue;
         }
 
-        texts.push(trimmed);
+        texts.push(line.trim());
     }
 
     if texts.len() == 0 {
