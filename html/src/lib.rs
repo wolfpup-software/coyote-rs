@@ -57,11 +57,14 @@ fn push_element(
     };
 
     // banned path
-    if let (true, Some(prev_tag_info)) = (tag_info.banned_path, stack.last_mut()) {
-        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
-            true => DescendantStatus::InlineElement,
-            _ => DescendantStatus::Element,
+    if tag_info.banned_path {
+        if let Some(prev_tag_info) = stack.last_mut() {
+            prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
+                true => DescendantStatus::InlineElement,
+                _ => DescendantStatus::Element,
+            };
         };
+
         stack.push(tag_info);
         return;
     }
@@ -77,15 +80,14 @@ fn push_element(
         }
     }
 
-    if !sieve.respect_indentation() && tag_info.inline_el && !tag_info.void_el {
-        if let Some(prev_tag_info) = stack.last() {
-            if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
-                results.push(' ');
-            }
-        }
-    }
-
     if let Some(prev_tag_info) = stack.last_mut() {
+        if !sieve.respect_indentation()
+            && tag_info.inline_el
+            && !tag_info.void_el
+            && prev_tag_info.most_recent_descendant == DescendantStatus::Text
+        {
+            results.push(' ');
+        }
         prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElement,
             _ => DescendantStatus::Element,

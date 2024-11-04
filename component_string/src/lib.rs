@@ -115,6 +115,8 @@ pub fn compose(
     templ_str
 }
 
+// function that recieves component and returns a stackbit
+
 fn add_attr_inj(mut template_str: String, component: &Component) -> String {
     match component {
         Component::Attr(attr) => add_attr(template_str, attr),
