@@ -9,4 +9,3 @@ edition = "2021"
 sieve = { path = "../sieve" }
 parse = { path = "../parse" }
 coyote = { path = "../coyote" }
-txml_string = { path = "../txml_string" }

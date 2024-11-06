@@ -1,9 +1,9 @@
 pub use html::compose as pretty_html;
 pub use sieve::{ClientSieve, Sieve, SieveImpl};
 
+use component_string::{compose as build_component, BuilderImpl};
 use coyote::Component;
-use template_string::{compose as compose_template, BuilderImpl};
-use txml_string::{compose as compose_txml, Results as TxmlResults};
+use template_string::{compose, Results as TxmlResults};
 
 pub struct Builder {
     // place to cache txml results
@@ -18,7 +18,7 @@ impl Builder {
 impl BuilderImpl for Builder {
     fn build(&mut self, sieve: &dyn SieveImpl, template_str: &str) -> TxmlResults {
         // chance to cache templates here
-        compose_txml(sieve, template_str)
+        compose(sieve, template_str)
     }
 }
 
@@ -38,7 +38,7 @@ impl Html {
     }
 
     pub fn build(&mut self, sieve: &dyn SieveImpl, component: &Component) -> String {
-        let template = compose_template(&mut self.builder, sieve, component);
+        let template = build_component(&mut self.builder, sieve, component);
         pretty_html(sieve, &template)
     }
 }

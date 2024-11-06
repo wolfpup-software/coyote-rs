@@ -1,19 +1,16 @@
-pub trait ParseSieveImpl {
-    fn is_comment(&self, tag: &str) -> bool;
+pub trait SieveImpl {
+    // parse
+    fn tag_is_comment(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
-}
-
-pub trait CoyoteSieveImpl {
+    // coyote
     fn respect_indentation(&self) -> bool;
-    fn banned_el(&self, tag: &str) -> bool;
-    fn void_el(&self, tag: &str) -> bool;
-    fn namespace_el(&self, tag: &str) -> bool;
-    fn preserved_text_el(&self, tag: &str) -> bool;
-    fn inline_el(&self, tag: &str) -> bool;
+    fn tag_is_banned_el(&self, tag: &str) -> bool;
+    fn tag_is_void_el(&self, tag: &str) -> bool;
+    fn tag_is_namespace_el(&self, tag: &str) -> bool;
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool;
+    fn tag_is_inline_el(&self, tag: &str) -> bool;
 }
-
-pub trait SieveImpl: ParseSieveImpl + CoyoteSieveImpl {}
 
 pub struct Sieve {}
 
@@ -23,49 +20,50 @@ impl Sieve {
     }
 }
 
-impl SieveImpl for Sieve {}
-
-impl ParseSieveImpl for Sieve {
-    fn is_comment(&self, tag: &str) -> bool {
+impl SieveImpl for Sieve {
+    fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
+            "!--" => Some("-->"),
             "script" => Some("</script>"),
             "style" => Some("</style>"),
-            "!--" => Some("-->"),
             _ => None,
         }
     }
 
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
+            "-->" => Some("!--"),
             "</script>" => Some("script"),
             "</style>" => Some("style"),
-            "-->" => Some("!--"),
             _ => None,
         }
     }
-}
 
-impl CoyoteSieveImpl for Sieve {
     fn respect_indentation(&self) -> bool {
         true
     }
-    fn banned_el(&self, _tag: &str) -> bool {
-        false
+
+    fn tag_is_banned_el(&self, tag: &str) -> bool {
+        is_banned_el(tag)
     }
-    fn void_el(&self, tag: &str) -> bool {
+
+    fn tag_is_void_el(&self, tag: &str) -> bool {
         is_void_el(tag)
     }
-    fn namespace_el(&self, tag: &str) -> bool {
+
+    fn tag_is_namespace_el(&self, tag: &str) -> bool {
         is_namespace_el(tag)
     }
-    fn preserved_text_el(&self, tag: &str) -> bool {
+
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
         is_preserved_text_el(tag)
     }
-    fn inline_el(&self, tag: &str) -> bool {
+
+    fn tag_is_inline_el(&self, tag: &str) -> bool {
         is_inline_el(tag)
     }
 }
@@ -78,65 +76,96 @@ impl ClientSieve {
     }
 }
 
-impl SieveImpl for ClientSieve {}
-
-impl ParseSieveImpl for ClientSieve {
-    fn is_comment(&self, tag: &str) -> bool {
+impl SieveImpl for ClientSieve {
+    fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
+            "!--" => Some("-->"),
             "script" => Some("</script>"),
             "style" => Some("</style>"),
-            "!--" => Some("-->"),
             _ => None,
         }
     }
 
     fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
+            "-->" => Some("!--"),
             "</script>" => Some("script"),
             "</style>" => Some("style"),
-            "-->" => Some("!--"),
             _ => None,
+        }
+    }
+
+    fn respect_indentation(&self) -> bool {
+        false
+    }
+
+    fn tag_is_banned_el(&self, tag: &str) -> bool {
+        match tag {
+            "!--" => true,
+            "script" => true,
+            "style" => true,
+            _ => is_banned_el(tag),
+        }
+    }
+
+    fn tag_is_void_el(&self, tag: &str) -> bool {
+        is_void_el(tag)
+    }
+
+    fn tag_is_namespace_el(&self, tag: &str) -> bool {
+        is_namespace_el(tag)
+    }
+
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
+        is_preserved_text_el(tag)
+    }
+
+    fn tag_is_inline_el(&self, tag: &str) -> bool {
+        // is it?
+        match tag {
+            "a" => true,
+            _ => is_inline_el(tag),
         }
     }
 }
 
-impl CoyoteSieveImpl for ClientSieve {
-    fn respect_indentation(&self) -> bool {
-        false
-    }
-    fn banned_el(&self, tag: &str) -> bool {
-        match tag {
-            "script" => true,
-            "style" => true,
-            _ => false,
-        }
-    }
-    fn void_el(&self, tag: &str) -> bool {
-        is_void_el(tag)
-    }
-    fn namespace_el(&self, tag: &str) -> bool {
-        is_namespace_el(tag)
-    }
-    fn preserved_text_el(&self, tag: &str) -> bool {
-        is_preserved_text_el(tag)
-    }
-    fn inline_el(&self, tag: &str) -> bool {
-        if tag == "a" {
-            return true;
-        }
-
-        is_inline_el(tag)
+fn is_banned_el(tag: &str) -> bool {
+    // deprecated elements
+    match tag {
+        "acronym" => true,
+        "big" => true,
+        "center" => true,
+        "content" => true,
+        "dir" => true,
+        "font" => true,
+        "frame" => true,
+        "framset" => true,
+        "image" => true,
+        "marquee" => true,
+        "menuitem" => true,
+        "nobr" => true,
+        "noembed" => true,
+        "noframes" => true,
+        "param" => true,
+        "plaintext" => true,
+        "rb" => true,
+        "rtc" => true,
+        "shadow" => true,
+        "strike" => true,
+        "tt" => true,
+        "xmp" => true,
+        _ => false,
     }
 }
 
 fn is_void_el(tag: &str) -> bool {
     match tag {
-        "!DOCTYPE" => true,
         "!--" => true,
+        "!DOCTYPE" => true,
         "area" => true,
         "base" => true,
         "br" => true,
@@ -158,8 +187,8 @@ fn is_void_el(tag: &str) -> bool {
 fn is_namespace_el(tag: &str) -> bool {
     match tag {
         "html" => true,
-        "svg" => true,
         "math" => true,
+        "svg" => true,
         _ => false,
     }
 }
@@ -171,6 +200,8 @@ pub fn is_preserved_text_el(tag: &str) -> bool {
 pub fn is_inline_el(tag: &str) -> bool {
     match tag {
         "abbr" => true,
+        "area" => true,
+        "audio" => true,
         "b" => true,
         "bdi" => true,
         "bdo" => true,
@@ -179,9 +210,16 @@ pub fn is_inline_el(tag: &str) -> bool {
         "data" => true,
         "dfn" => true,
         "em" => true,
+        "embed" => true,
         "i" => true,
+        "iframe" => true,
+        "img" => true,
         "kbd" => true,
+        "map" => true,
         "mark" => true,
+        "object" => true,
+        "picture" => true,
+        "portal" => true,
         "q" => true,
         "rp" => true,
         "rt" => true,
@@ -189,26 +227,17 @@ pub fn is_inline_el(tag: &str) -> bool {
         "s" => true,
         "samp" => true,
         "small" => true,
+        "source" => true,
         "span" => true,
         "strong" => true,
         "sub" => true,
         "sup" => true,
         "time" => true,
+        "track" => true,
         "u" => true,
         "var" => true,
-        "wbr" => true,
-        "area" => true,
-        "audio" => true,
-        "img" => true,
-        "map" => true,
-        "track" => true,
         "video" => true,
-        "embed" => true,
-        "iframe" => true,
-        "object" => true,
-        "picture" => true,
-        "portal" => true,
-        "source" => true,
+        "wbr" => true,
         _ => false,
     }
 }

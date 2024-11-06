@@ -15,7 +15,7 @@ pub struct Template {
 }
 
 // ergonomic functions to quickly create componets without the typical rust verbosity
-//  (improves readability of component code considerably)
+// (considerably improves readability of component code)
 pub fn tmpl<const N: usize>(template_str: &str, injections: [Component; N]) -> Component {
     Component::Tmpl(Template {
         template_str: template_str.to_string(),

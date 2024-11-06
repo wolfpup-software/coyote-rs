@@ -35,7 +35,7 @@ pub struct TagInfo {
 impl TagInfo {
     pub fn new(sieve: &dyn SieveImpl, tag: &str) -> TagInfo {
         let mut namespace = "html".to_string();
-        if sieve.namespace_el(tag) {
+        if sieve.tag_is_namespace_el(tag) {
             namespace = tag.to_string()
         }
 
@@ -44,10 +44,10 @@ impl TagInfo {
             tag: tag.to_string(),
             most_recent_descendant: DescendantStatus::Initial,
             indent_count: 0,
-            void_el: sieve.void_el(tag),
-            inline_el: sieve.inline_el(tag),
-            preserved_text_path: false,
-            banned_path: sieve.banned_el(tag),
+            void_el: sieve.tag_is_void_el(tag),
+            inline_el: sieve.tag_is_inline_el(tag),
+            preserved_text_path: sieve.tag_is_preserved_text_el(tag),
+            banned_path: sieve.tag_is_banned_el(tag),
         }
     }
 
@@ -55,28 +55,30 @@ impl TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 
-        if sieve.namespace_el(tag) {
+        // could be easier to create a new one?
+        // not in the spirit of "from"
+        if sieve.tag_is_namespace_el(tag) {
             tag_info.namespace = tag.to_string();
         }
 
         // preserved text happends _after_ tag
-        if sieve.preserved_text_el(&prev_tag_info.tag) {
+        if sieve.tag_is_preserved_text_el(&prev_tag_info.tag) {
             tag_info.preserved_text_path = true;
         }
 
-        if sieve.banned_el(tag) {
+        if sieve.tag_is_banned_el(tag) {
             tag_info.banned_path = true;
         }
 
         // problematic
-        if !sieve.void_el(&prev_tag_info.tag) && !sieve.inline_el(tag) {
+        if !sieve.tag_is_void_el(&prev_tag_info.tag) && !sieve.tag_is_inline_el(tag) {
             tag_info.indent_count += 1;
         }
 
-        tag_info.void_el = sieve.void_el(&tag);
+        tag_info.void_el = sieve.tag_is_void_el(&tag);
         tag_info.tag = tag.to_string();
         tag_info.most_recent_descendant = DescendantStatus::Initial;
-        tag_info.inline_el = sieve.inline_el(tag);
+        tag_info.inline_el = sieve.tag_is_inline_el(tag);
 
         tag_info
     }
