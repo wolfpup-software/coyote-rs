@@ -14,7 +14,7 @@ The example below creates an html document from a coyote component function.
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::Html
+use coyote_html::{Html, ServerRules}
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -24,36 +24,41 @@ fn main() {
     let hello_world = hai();
 
     let html = Html::new();
-    let sieve = Sieve::new();
+    let rules = ServerRules::new();
 
-    let document = html.compose(&sieve, &hello_world); 
+    let document = html.compose(&rules, &hello_world); 
 
-    println!("{}", document);
+    println!("{}", pretty_document);
 }
 ```
 
 ### Hello, safe world!
 
-The example below creates a _safer_ fragment for client-side renders. 
+The example below creates a _safer_ fragment for client-side renders using `ClientRules`. 
 
 ```rust
-use coyote_html::{ClientSieve, pretty_html};
+use coyote_html::{Html, ClientRules};
+
+fn dangerous_hai() -> Component {
+    tmpl("<p>omgawsh hai :3</p>", [])
+}
+
 
 fn main() {
-    let hello_world = "
-    <article><!-- bork bork! --><script>
-        console.log(\"do something dangerous\");</script>
-    <style>* { color: transparent }</style>
-    <p>hai :3
-    <p></article>";
+    let hello_world = hai();
+
+    let html = Html::new();    
+    let rules = ClientRules::new();
+
+    let document = html.compose(&rules, &hello_world); 
     
-    println!("{}", pretty_html(ClientSieve::new(), document);
+    println!("{}", document);
 }
 ```
 
-`Coyote Html` guides template composition with a `sieve`.
+`Coyote Html` guides template composition with `rulesets`.
 
-The `ClietSieve` rejects elements like `<script>` and `<style>`. It also removes unneccessary spaces.
+The `ClientRules` ruleset rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
 
 The output will be:
 ```html

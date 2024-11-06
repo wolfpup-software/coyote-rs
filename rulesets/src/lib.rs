@@ -1,4 +1,4 @@
-pub trait SieveImpl {
+pub trait RulesetImpl {
     // parse
     fn tag_is_comment(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
@@ -12,15 +12,15 @@ pub trait SieveImpl {
     fn tag_is_inline_el(&self, tag: &str) -> bool;
 }
 
-pub struct Sieve {}
+pub struct ServerRules {}
 
-impl Sieve {
-    pub fn new() -> Sieve {
-        Sieve {}
+impl ServerRules {
+    pub fn new() -> ServerRules {
+        ServerRules {}
     }
 }
 
-impl SieveImpl for Sieve {
+impl RulesetImpl for ServerRules {
     fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }
@@ -68,15 +68,15 @@ impl SieveImpl for Sieve {
     }
 }
 
-pub struct ClientSieve {}
+pub struct ClientRules {}
 
-impl ClientSieve {
-    pub fn new() -> ClientSieve {
-        ClientSieve {}
+impl ClientRules {
+    pub fn new() -> ClientRules {
+        ClientRules {}
     }
 }
 
-impl SieveImpl for ClientSieve {
+impl RulesetImpl for ClientRules {
     fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }

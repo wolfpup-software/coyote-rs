@@ -1,6 +1,6 @@
 use coyote::Component;
 use parse::StepKind;
-use sieve::SieveImpl;
+use rulesets::RulesetImpl;
 use template_string::Results;
 
 struct TemplateBit {
@@ -14,17 +14,17 @@ enum StackBit<'a> {
 }
 
 pub trait BuilderImpl {
-    fn build(&mut self, sieve: &dyn SieveImpl, template_str: &str) -> Results;
+    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> Results;
 }
 
 pub fn compose(
     builder: &mut dyn BuilderImpl,
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     component: &Component,
 ) -> String {
     let mut templ_str = "".to_string();
 
-    let sbit = get_stack_bit_from_component(builder, sieve, component);
+    let sbit = get_stack_bit_from_component(builder, rules, component);
 
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
@@ -34,7 +34,7 @@ pub fn compose(
                 Component::Text(text) => templ_str.push_str(text),
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
-                        let bit = get_stack_bit_from_component(builder, sieve, cmpnt);
+                        let bit = get_stack_bit_from_component(builder, rules, cmpnt);
                         stack.push(bit);
                     }
                     continue;
@@ -65,7 +65,7 @@ pub fn compose(
                                 // push template back and bail early
                                 stack.push(stack_bit);
 
-                                let bit = get_stack_bit_from_component(builder, sieve, inj);
+                                let bit = get_stack_bit_from_component(builder, rules, inj);
                                 stack.push(bit);
                                 continue;
                             }
@@ -88,14 +88,14 @@ pub fn compose(
 
 fn get_stack_bit_from_component<'a>(
     builder: &mut dyn BuilderImpl,
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     component: &'a Component,
 ) -> StackBit<'a> {
     match component {
         Component::Text(_text) => StackBit::Cmpnt(component),
         Component::List(_list) => StackBit::Cmpnt(component),
         Component::Tmpl(tmpl) => {
-            let txml_literal = builder.build(sieve, &tmpl.template_str);
+            let txml_literal = builder.build(rules, &tmpl.template_str);
             StackBit::Tmpl(component, txml_literal, TemplateBit { inj_index: 0 })
         }
         _ => StackBit::None,

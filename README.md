@@ -8,11 +8,12 @@ There are no dependencies. There are no macros.
 
 ```sh
 cargo install --git https://github.com/wolf-pup/coyote-rs coyote
+cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 ```
 
 ## Components
 
-Create documents with `coyote` [components](./coyote/README.md).
+Create documents with coyote [components](./coyote/README.md).
 
 ```rust
 use coyote::{Component, tmpl};
@@ -24,18 +25,18 @@ fn hai() -> Component {
 
 ## Html
 
-Render components as [html](./coyote_html/README.md) with `coyote_html`.
+Render components as `html` with [coyote_html]((./coyote_html/README.md)).
 
 ```rust
-use coyote_html::{Html, Sieve}
+use coyote_html::{Html, ServerRules}
 
 fn main() {
     let hello_world = hai();
 
     let html = Html::new();
-    let sieve = Sieve::new();
+    let rules = ServerRules::new();
 
-    let document = html.compose(&sieve, &hello_world); 
+    let document = html.compose(&rules, &hello_world); 
 
     println!("{}", document);
 }

@@ -3,7 +3,7 @@ mod sliding_window;
 
 use sliding_window::SlidingWindow;
 
-use sieve::SieveImpl;
+use rulesets::RulesetImpl;
 
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub enum StepKind {
@@ -46,7 +46,7 @@ pub struct Step {
 
 pub type Results = Vec<Step>;
 
-pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKind) -> Results {
+pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepKind) -> Results {
     let mut steps = Vec::from([Step {
         kind: intial_kind.clone(),
         origin: 0,
@@ -64,7 +64,7 @@ pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKin
                 continue;
             }
 
-            if let Err(_) = add_reserved_element_text(sieve, &mut steps, tag, index) {
+            if let Err(_) = add_reserved_element_text(rules, &mut steps, tag, index) {
                 return steps;
             };
 
@@ -97,8 +97,8 @@ pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKin
         }
 
         // two edge cases for comments and alt text
-        if sieve.tag_is_comment(tag) {
-            if let Some(close_seq) = sieve.get_close_sequence_from_alt_text_tag(tag) {
+        if rules.tag_is_comment(tag) {
+            if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
                 let mut slider = SlidingWindow::new(close_seq);
                 slider.slide(glyph);
                 sliding_window = Some(slider);
@@ -108,7 +108,7 @@ pub fn parse_str(sieve: &dyn SieveImpl, template_str: &str, intial_kind: StepKin
 
         if let (true, Some(close_seq)) = (
             StepKind::ElementClosed == front_step.kind,
-            sieve.get_close_sequence_from_alt_text_tag(tag),
+            rules.get_close_sequence_from_alt_text_tag(tag),
         ) {
             let mut slider = SlidingWindow::new(close_seq);
             slider.slide(glyph);
@@ -144,7 +144,7 @@ fn is_injection_kind(step_kind: &StepKind) -> bool {
 }
 
 fn add_reserved_element_text(
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     steps: &mut Vec<Step>,
     tag: &str,
     index: usize,
@@ -154,7 +154,7 @@ fn add_reserved_element_text(
         _ => return Err(()),
     };
 
-    let closing_sequence = match sieve.get_close_sequence_from_alt_text_tag(tag) {
+    let closing_sequence = match rules.get_close_sequence_from_alt_text_tag(tag) {
         Some(sequence) => sequence,
         _ => return Ok(()),
     };

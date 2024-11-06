@@ -1,6 +1,6 @@
 use parse::{get_text_from_step, parse_str, Step, StepKind};
 
-use sieve::SieveImpl;
+use rulesets::RulesetImpl;
 
 /*
     INTERMEDIATE RENDER FORMAT
@@ -25,10 +25,10 @@ impl Results {
     }
 }
 
-pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> Results {
+pub fn compose(ruleset: &dyn RulesetImpl, template_str: &str) -> Results {
     let mut results = Results::new();
 
-    for step in parse_str(sieve, template_str, StepKind::Initial) {
+    for step in parse_str(ruleset, template_str, StepKind::Initial) {
         match step.kind {
             StepKind::AttrMapInjection => push_attr_map_injection(&mut results),
             StepKind::DescendantInjection => push_descendant_injection(&mut results),

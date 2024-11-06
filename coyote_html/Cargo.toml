@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sieve = { path = "../sieve" }
+rulesets = { path = "../rulesets" }
 html = { path = "../html" }
 coyote = { path = "../coyote" }
 template_string = { path = "../template_string" }

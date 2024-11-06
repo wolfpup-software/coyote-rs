@@ -1,5 +1,5 @@
 use coyote::{attr_val, list, text, tmpl, Component};
-use sieve::Sieve;
+use rulesets::ServerRules;
 
 use parse::StepKind;
 use template_string::{compose, Results};
@@ -20,7 +20,7 @@ fn woof_woof() -> Component {
 
 #[test]
 fn test_txml_builder() {
-    let sieve = Sieve::new();
+    let rules = ServerRules::new();
 
     let template = woof_woof();
     let expected = Results {
@@ -29,7 +29,7 @@ fn test_txml_builder() {
     };
 
     if let Component::Tmpl(tmpl) = template {
-        let results = compose(&sieve, &tmpl.template_str);
+        let results = compose(&rules, &tmpl.template_str);
         assert_eq!(expected, results);
     }
 }

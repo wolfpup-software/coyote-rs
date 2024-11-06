@@ -1,6 +1,6 @@
 use component_string::{compose as compose_template, BuilderImpl};
 use coyote::{attr_val, list, text, tmpl, Component};
-use sieve::{Sieve, SieveImpl};
+use rulesets::{RulesetImpl, ServerRules};
 use template_string::{compose as compose_txml, Results};
 
 // Test will not build if Function Components do not build
@@ -14,8 +14,8 @@ impl TxmlBuilder {
 }
 
 impl BuilderImpl for TxmlBuilder {
-    fn build(&mut self, sieve: &dyn SieveImpl, template_str: &str) -> Results {
-        compose_txml(sieve, template_str)
+    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> Results {
+        compose_txml(rules, template_str)
     }
 }
 
@@ -33,9 +33,9 @@ fn woof_woof() -> Component {
 
 #[test]
 fn test_static_template_builder() {
-    let sieve = Sieve::new();
+    let rules = ServerRules::new();
 
     let mut builder = TxmlBuilder::new();
     let template = woof_woof();
-    let _results = compose_template(&mut builder, &sieve, &template);
+    let _results = compose_template(&mut builder, &rules, &template);
 }
