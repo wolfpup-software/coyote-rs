@@ -1,20 +1,21 @@
 use parse::{get_text_from_step, parse_str, Step, StepKind};
 
 mod tag_info;
-use sieve::SieveImpl;
+
+use rulesets::RulesetImpl;
 use tag_info::{DescendantStatus, TagInfo};
 
-pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> String {
+pub fn compose(rules: &dyn RulesetImpl, template_str: &str) -> String {
     let mut results = "".to_string();
     let mut stack: Vec<TagInfo> = Vec::new();
 
-    for step in parse_str(sieve, &template_str, StepKind::Initial) {
+    for step in parse_str(rules, &template_str, StepKind::Initial) {
         match step.kind {
-            StepKind::Tag => push_element(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::Tag => push_element(&mut results, &mut stack, rules, template_str, step),
             StepKind::ElementClosed => close_element(&mut results, &mut stack),
             StepKind::EmptyElementClosed => close_empty_element(&mut results, &mut stack),
-            StepKind::TailTag => pop_element(&mut results, &mut stack, sieve, template_str, step),
-            StepKind::Text => push_text(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::TailTag => pop_element(&mut results, &mut stack, rules, template_str, step),
+            StepKind::Text => push_text(&mut results, &mut stack, rules, template_str, step),
             StepKind::Attr => add_attr(&mut results, &mut stack, template_str, step),
             StepKind::AttrValue => add_attr_value(&mut results, &mut stack, template_str, step),
             StepKind::AttrValueUnquoted => {
@@ -31,10 +32,10 @@ pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> String {
                 push_injection_kind(&mut results, &mut stack, template_str, step)
             }
             // alt text
-            StepKind::CommentText => push_text(&mut results, &mut stack, sieve, template_str, step),
-            StepKind::AltText => push_text(&mut results, &mut stack, sieve, template_str, step),
+            StepKind::CommentText => push_text(&mut results, &mut stack, rules, template_str, step),
+            StepKind::AltText => push_text(&mut results, &mut stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
-                pop_closing_sequence(&mut results, &mut stack, sieve, template_str, step)
+                pop_closing_sequence(&mut results, &mut stack, rules, template_str, step)
             }
             _ => {}
         }
@@ -46,20 +47,20 @@ pub fn compose(sieve: &dyn SieveImpl, template_str: &str) -> String {
 fn push_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     template_str: &str,
     step: Step,
 ) {
     let tag = get_text_from_step(template_str, &step);
     let tag_info = match stack.last_mut() {
-        Some(prev_tag_info) => TagInfo::from(sieve, &prev_tag_info, tag),
-        _ => TagInfo::new(sieve, tag),
+        Some(prev_tag_info) => TagInfo::from(rules, &prev_tag_info, tag),
+        _ => TagInfo::new(rules, tag),
     };
 
     // banned path
     if tag_info.banned_path {
         if let Some(prev_tag_info) = stack.last_mut() {
-            prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
+            prev_tag_info.most_recent_descendant = match rules.tag_is_inline_el(tag) {
                 true => DescendantStatus::InlineElement,
                 _ => DescendantStatus::Element,
             };
@@ -70,7 +71,7 @@ fn push_element(
     }
 
     // edge case for start of document
-    if sieve.respect_indentation() && results.len() > 0 {
+    if rules.respect_indentation() && results.len() > 0 {
         match tag_info.inline_el {
             true => results.push(' '),
             _ => {
@@ -81,12 +82,12 @@ fn push_element(
     }
 
     if let Some(prev_tag_info) = stack.last_mut() {
-        if !sieve.respect_indentation()
+        if !rules.respect_indentation()
             && prev_tag_info.most_recent_descendant == DescendantStatus::Text
         {
             results.push(' ');
         }
-        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
+        prev_tag_info.most_recent_descendant = match rules.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElement,
             _ => DescendantStatus::Element,
         };
@@ -143,7 +144,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -172,7 +173,7 @@ fn pop_element(
         return;
     }
 
-    if sieve.respect_indentation()
+    if rules.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
         && DescendantStatus::Initial != tag_info.most_recent_descendant
@@ -188,7 +189,7 @@ fn pop_element(
     stack.pop();
 
     if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = match sieve.tag_is_inline_el(tag) {
+        prev_tag_info.most_recent_descendant = match rules.tag_is_inline_el(tag) {
             true => DescendantStatus::InlineElementClosed,
             _ => DescendantStatus::ElementClosed,
         };
@@ -198,7 +199,7 @@ fn pop_element(
 fn push_text(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     template_str: &str,
     step: Step,
 ) {
@@ -231,7 +232,7 @@ fn push_text(
     }
 
     // if alt text
-    if let Some(_) = sieve.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
+    if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         let common_index = get_most_common_space_index(text);
 
         for line in text.split("\n") {
@@ -264,7 +265,7 @@ fn push_text(
     }
 
     match (
-        sieve.respect_indentation(),
+        rules.respect_indentation(),
         &tag_info.most_recent_descendant,
     ) {
         (true, DescendantStatus::InlineElement) => {
@@ -411,14 +412,14 @@ fn push_injection_kind(
 fn pop_closing_sequence(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    sieve: &dyn SieveImpl,
+    rules: &dyn RulesetImpl,
     template_str: &str,
     step: Step,
 ) {
     // need to get second to last element and then say this was a block element or an inline element
     let closing_sequence = get_text_from_step(template_str, &step);
 
-    let tag = match sieve.get_tag_from_close_sequence(closing_sequence) {
+    let tag = match rules.get_tag_from_close_sequence(closing_sequence) {
         Some(t) => t,
         _ => return,
     };
@@ -437,7 +438,7 @@ fn pop_closing_sequence(
         return;
     }
 
-    if sieve.respect_indentation()
+    if rules.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
         && DescendantStatus::Initial != tag_info.most_recent_descendant

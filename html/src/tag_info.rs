@@ -1,6 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
-use sieve::SieveImpl;
+use rulesets::RulesetImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum DescendantStatus {
@@ -33,7 +33,7 @@ pub struct TagInfo {
 */
 
 impl TagInfo {
-    pub fn new(sieve: &dyn SieveImpl, tag: &str) -> TagInfo {
+    pub fn new(sieve: &dyn RulesetImpl, tag: &str) -> TagInfo {
         let mut namespace = "html".to_string();
         if sieve.tag_is_namespace_el(tag) {
             namespace = tag.to_string()
@@ -51,7 +51,7 @@ impl TagInfo {
         }
     }
 
-    pub fn from(sieve: &dyn SieveImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
+    pub fn from(sieve: &dyn RulesetImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 
