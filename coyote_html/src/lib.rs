@@ -16,9 +16,9 @@ impl Builder {
 }
 
 impl BuilderImpl for Builder {
-    fn build(&mut self, ruleset: &dyn RulesetImpl, template_str: &str) -> TemplateResults {
+    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateResults {
         // chance to cache templates here
-        compose(ruleset, template_str)
+        compose(rules, template_str)
     }
 }
 
@@ -37,8 +37,8 @@ impl Html {
         Html { builder: builder }
     }
 
-    pub fn build(&mut self, ruleset: &dyn RulesetImpl, component: &Component) -> String {
-        let template = build_component(&mut self.builder, ruleset, component);
-        pretty_html(ruleset, &template)
+    pub fn build(&mut self, rules: &dyn RulesetImpl, component: &Component) -> String {
+        let template = build_component(&mut self.builder, rules, component);
+        pretty_html(rules, &template)
     }
 }
