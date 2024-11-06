@@ -28,7 +28,7 @@ fn main() {
 
     let document = html.compose(&rules, &hello_world); 
 
-    println!("{}", pretty_document);
+    println!("{}", document);
 }
 ```
 
