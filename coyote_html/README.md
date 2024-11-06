@@ -56,14 +56,14 @@ fn main() {
 }
 ```
 
-`Coyote Html` guides template composition with `rulesets`.
-
-The `ClientRules` ruleset rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
-
 The output will be:
 ```html
 <article><p>hai :3</p></article>
 ```
+
+`Coyote Html` guides template composition with `rulesets`.
+
+The `ClientRules` ruleset rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
 
 ## License
 
