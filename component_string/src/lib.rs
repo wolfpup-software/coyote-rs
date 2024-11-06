@@ -24,15 +24,7 @@ pub fn compose(
 ) -> String {
     let mut templ_str = "".to_string();
 
-    let sbit = match component {
-        Component::Text(_text) => StackBit::Cmpnt(component),
-        Component::List(_list) => StackBit::Cmpnt(component),
-        Component::Tmpl(tmpl) => {
-            let txml_literal = builder.build(sieve, &tmpl.template_str);
-            StackBit::Tmpl(component, txml_literal, TemplateBit { inj_index: 0 })
-        }
-        _ => StackBit::None,
-    };
+    let sbit = get_stack_bit_from_component(builder, sieve, component);
 
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
@@ -42,15 +34,7 @@ pub fn compose(
                 Component::Text(text) => templ_str.push_str(text),
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
-                        let bit = match cmpnt {
-                            Component::Text(_text) => StackBit::Cmpnt(cmpnt),
-                            Component::List(_list) => StackBit::Cmpnt(cmpnt),
-                            Component::Tmpl(tmpl) => {
-                                let txml_literal = builder.build(sieve, &tmpl.template_str);
-                                StackBit::Tmpl(cmpnt, txml_literal, TemplateBit { inj_index: 0 })
-                            }
-                            _ => StackBit::None,
-                        };
+                        let bit = get_stack_bit_from_component(builder, sieve, cmpnt);
                         stack.push(bit);
                     }
                     continue;
@@ -81,20 +65,7 @@ pub fn compose(
                                 // push template back and bail early
                                 stack.push(stack_bit);
 
-                                let bit = match inj {
-                                    Component::Text(_text) => StackBit::Cmpnt(inj),
-                                    Component::List(_list) => StackBit::Cmpnt(inj),
-                                    Component::Tmpl(tmpl) => {
-                                        // chance to cache templates here
-                                        let txml_literal = builder.build(sieve, &tmpl.template_str);
-                                        StackBit::Tmpl(
-                                            inj,
-                                            txml_literal,
-                                            TemplateBit { inj_index: 0 },
-                                        )
-                                    }
-                                    _ => StackBit::None,
-                                };
+                                let bit = get_stack_bit_from_component(builder, sieve, inj);
                                 stack.push(bit);
                                 continue;
                             }
@@ -115,7 +86,21 @@ pub fn compose(
     templ_str
 }
 
-// function that recieves component and returns a stackbit
+fn get_stack_bit_from_component<'a>(
+    builder: &mut dyn BuilderImpl,
+    sieve: &dyn SieveImpl,
+    component: &'a Component,
+) -> StackBit<'a> {
+    match component {
+        Component::Text(_text) => StackBit::Cmpnt(component),
+        Component::List(_list) => StackBit::Cmpnt(component),
+        Component::Tmpl(tmpl) => {
+            let txml_literal = builder.build(sieve, &tmpl.template_str);
+            StackBit::Tmpl(component, txml_literal, TemplateBit { inj_index: 0 })
+        }
+        _ => StackBit::None,
+    }
+}
 
 fn add_attr_inj(mut template_str: String, component: &Component) -> String {
     match component {
