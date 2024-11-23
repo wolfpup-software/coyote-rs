@@ -273,13 +273,13 @@ fn push_text(
         &tag_info.most_recent_descendant,
     ) {
         (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text_str(results, text);
+            add_inline_element_text_str(results, text, tag_info);
         }
         (true, DescendantStatus::InlineElementClosed) => {
             add_inline_element_closed_text_str(results, text, tag_info)
         }
         (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text_str(results, text),
+            true => add_inline_element_text_str(results, text, tag_info),
             _ => add_text_str(results, text, tag_info),
         },
         (true, _) => add_text_str(results, text, tag_info),
@@ -289,7 +289,7 @@ fn push_text(
         (false, DescendantStatus::Text) => {
             add_inline_element_closed_text_str(results, text, tag_info)
         }
-        // (false, _) => add_inline_element_text_str(results, text),
+        // (false, _) => add_inline_element_text_str(results, text, tag_info),
         (false, _) => add_inline_element_text(results, texts),
     }
 
@@ -307,7 +307,7 @@ fn all_spaces(line: &str) -> bool {
     line.len() == get_index_of_first_char(line)
 }
 
-fn add_inline_element_text_str(results: &mut String, text: &str) {
+fn add_inline_element_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_itr = text.split("\n");
 
     if let Some(line) = text_itr.next() {
