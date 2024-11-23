@@ -249,6 +249,10 @@ fn push_text(
         return;
     }
 
+    if all_spaces(text) {
+        return;
+    }
+
     // move this to add_text functions
     let mut texts: Vec<&str> = Vec::new();
     for line in text.split("\n") {
@@ -269,24 +273,55 @@ fn push_text(
         &tag_info.most_recent_descendant,
     ) {
         (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text(results, texts);
+            add_inline_element_text_str(results, text);
         }
         (true, DescendantStatus::InlineElementClosed) => {
-            add_inline_element_closed_text(results, texts, tag_info)
+            add_inline_element_closed_text_str(results, text, tag_info)
         }
         (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text(results, texts),
-            _ => add_text(results, texts, tag_info),
+            true => add_inline_element_text_str(results, text),
+            _ => add_text_str(results, text, tag_info),
         },
-        (true, _) => add_text(results, texts, tag_info),
+        (true, _) => add_text_str(results, text, tag_info),
         (false, DescendantStatus::InlineElementClosed) => {
-            add_unpretty_inline_element_closed_text(results, texts)
+            add_unpretty_inline_element_closed_text_str(results, text)
         }
-        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, texts, tag_info),
+        (false, DescendantStatus::Text) => {
+            add_inline_element_closed_text_str(results, text, tag_info)
+        }
+        // (false, _) => add_inline_element_text_str(results, text),
         (false, _) => add_inline_element_text(results, texts),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
+}
+
+fn all_spaces(line: &str) -> bool {
+    let index = get_index_of_first_char(line);
+    println!("{} {}", line.len(), index);
+
+    if line.len() == 0 {
+        return true;
+    }
+
+    line.len() == get_index_of_first_char(line)
+}
+
+fn add_inline_element_text_str(results: &mut String, text: &str) {
+    let mut text_itr = text.split("\n");
+
+    if let Some(line) = text_itr.next() {
+        if !all_spaces(line) {
+            results.push_str(line.trim());
+        }
+    }
+
+    while let Some(line) = text_itr.next() {
+        if !all_spaces(line) {
+            results.push(' ');
+            results.push_str(line.trim());
+        }
+    }
 }
 
 fn add_inline_element_text(results: &mut String, texts: Vec<&str>) {
@@ -299,6 +334,25 @@ fn add_inline_element_text(results: &mut String, texts: Vec<&str>) {
     while let Some(line) = text_itr.next() {
         results.push(' ');
         results.push_str(line);
+    }
+}
+
+fn add_inline_element_closed_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
+    let mut text_itr = text.split("\n");
+
+    if let Some(line) = text_itr.next() {
+        if !all_spaces(line) {
+            results.push(' ');
+            results.push_str(line.trim());
+        }
+    }
+
+    while let Some(line) = text_itr.next() {
+        if !all_spaces(line) {
+            results.push('\n');
+            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(line.trim());
+        }
     }
 }
 
@@ -317,6 +371,24 @@ fn add_inline_element_closed_text(results: &mut String, texts: Vec<&str>, tag_in
     }
 }
 
+fn add_unpretty_inline_element_closed_text_str(results: &mut String, text: &str) {
+    let mut text_itr = text.split("\n");
+
+    if let Some(line) = text_itr.next() {
+        if !all_spaces(line) {
+            results.push(' ');
+            results.push_str(line.trim());
+        }
+    }
+
+    while let Some(line) = text_itr.next() {
+        if !all_spaces(line) {
+            results.push(' ');
+            results.push_str(line.trim());
+        }
+    }
+}
+
 fn add_unpretty_inline_element_closed_text(results: &mut String, texts: Vec<&str>) {
     let mut text_itr = texts.iter();
 
@@ -328,6 +400,16 @@ fn add_unpretty_inline_element_closed_text(results: &mut String, texts: Vec<&str
     while let Some(line) = text_itr.next() {
         results.push(' ');
         results.push_str(line);
+    }
+}
+
+fn add_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
+    for line in text.split("\n") {
+        if !all_spaces(line) {
+            results.push('\n');
+            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(line.trim());
+        }
     }
 }
 
@@ -452,6 +534,16 @@ fn pop_closing_sequence(
     stack.pop();
 }
 
+fn get_index_of_first_char(text: &str) -> usize {
+    for (index, glyph) in text.char_indices() {
+        if !glyph.is_whitespace() {
+            return index;
+        }
+    }
+
+    text.len()
+}
+
 fn get_most_common_space_index(text: &str) -> usize {
     let mut prev_space_index = text.len();
     let mut space_index = text.len();
@@ -480,16 +572,6 @@ fn get_most_common_space_index(text: &str) -> usize {
     space_index
 }
 
-fn get_index_of_first_char(text: &str) -> usize {
-    for (index, glyph) in text.char_indices() {
-        if !glyph.is_whitespace() {
-            return index;
-        }
-    }
-
-    text.len()
-}
-
 fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -> usize {
     let mut source_chars = source.char_indices();
     let mut target_chars = target.chars();
@@ -498,7 +580,7 @@ fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -
     while let (Some((src_index, src_chr)), Some(tgt_chr)) =
         (source_chars.next(), target_chars.next())
     {
-        if !src_chr.is_whitespace() || !tgt_chr.is_whitespace() || src_chr != tgt_chr {
+        if src_chr != tgt_chr || !src_chr.is_whitespace() || !tgt_chr.is_whitespace() {
             return src_index;
         }
         prev_index = src_index;
