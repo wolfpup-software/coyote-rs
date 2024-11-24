@@ -258,13 +258,13 @@ fn push_text(
         &tag_info.most_recent_descendant,
     ) {
         (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text_str(results, text, tag_info);
+            add_inline_element_text_str(results, text);
         }
         (true, DescendantStatus::InlineElementClosed) => {
             add_inline_element_closed_text_str(results, text, tag_info)
         }
         (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text_str(results, text, tag_info),
+            true => add_inline_element_text_str(results, text),
             _ => add_text_str(results, text, tag_info),
         },
         (true, _) => add_text_str(results, text, tag_info),
@@ -274,54 +274,31 @@ fn push_text(
         (false, DescendantStatus::Text) => {
             add_inline_element_closed_text_str(results, text, tag_info)
         }
-        (false, _) => add_inline_element_text_str_2(results, text, tag_info),
+        (false, _) => add_inline_element_text_str(results, text),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
 }
 
 fn all_spaces(line: &str) -> bool {
-    line.len() == get_index_of_first_char(line)
+    line.len() == 0 || line.len() == get_index_of_first_char(line)
 }
 
-fn add_inline_element_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
-    let mut text_itr = text.split("\n");
-    if let Some(line) = text_itr.next() {
-        if !all_spaces(line) {
-            results.push_str(line.trim());
-        }
-    }
+fn add_inline_element_text_str(results: &mut String, text: &str) {
+    let mut text_iter = text.split("\n");
+    let mut found = false;
 
-    while let Some(line) = text_itr.next() {
-        if !all_spaces(line) {
-            results.push(' ');
-            results.push_str(line.trim());
-        }
-    }
-}
-
-fn add_inline_element_text_str_2(results: &mut String, text: &str, tag_info: &TagInfo) {
-    // println!("text: {}", text);
-    let mut texts: Vec<&str> = Vec::new();
-    for line in text.split("\n") {
-        let first_char_index = get_index_of_first_char(line);
-        if line.len() == first_char_index {
+    while let Some(line) = text_iter.next() {
+        if all_spaces(line) {
             continue;
         }
 
-        texts.push(line.trim());
-    }
+        if found {
+            results.push(' ');
+        }
 
-    // let mut text_iter = text.split("\n");
-    let mut text_iter = texts.iter();
-
-    if let Some(line) = text_iter.next() {
         results.push_str(line.trim());
-    }
-
-    while let Some(line) = text_iter.next() {
-        results.push(' ');
-        results.push_str(line.trim());
+        found = true;
     }
 }
 
