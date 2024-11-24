@@ -253,21 +253,6 @@ fn push_text(
         return;
     }
 
-    // move this to add_text functions
-    let mut texts: Vec<&str> = Vec::new();
-    for line in text.split("\n") {
-        let first_char_index = get_index_of_first_char(line);
-        if line.len() == first_char_index {
-            continue;
-        }
-
-        texts.push(line.trim());
-    }
-
-    if texts.len() == 0 {
-        return;
-    }
-
     match (
         rules.respect_indentation(),
         &tag_info.most_recent_descendant,
@@ -289,27 +274,18 @@ fn push_text(
         (false, DescendantStatus::Text) => {
             add_inline_element_closed_text_str(results, text, tag_info)
         }
-        // (false, _) => add_inline_element_text_str(results, text, tag_info),
-        (false, _) => add_inline_element_text(results, texts),
+        (false, _) => add_inline_element_text_str_2(results, text, tag_info),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
 }
 
 fn all_spaces(line: &str) -> bool {
-    let index = get_index_of_first_char(line);
-    println!("{} {}", line.len(), index);
-
-    if line.len() == 0 {
-        return true;
-    }
-
     line.len() == get_index_of_first_char(line)
 }
 
 fn add_inline_element_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_itr = text.split("\n");
-
     if let Some(line) = text_itr.next() {
         if !all_spaces(line) {
             results.push_str(line.trim());
@@ -324,16 +300,28 @@ fn add_inline_element_text_str(results: &mut String, text: &str, tag_info: &TagI
     }
 }
 
-fn add_inline_element_text(results: &mut String, texts: Vec<&str>) {
-    let mut text_itr = texts.iter();
+fn add_inline_element_text_str_2(results: &mut String, text: &str, tag_info: &TagInfo) {
+    // println!("text: {}", text);
+    let mut texts: Vec<&str> = Vec::new();
+    for line in text.split("\n") {
+        let first_char_index = get_index_of_first_char(line);
+        if line.len() == first_char_index {
+            continue;
+        }
 
-    if let Some(line) = text_itr.next() {
-        results.push_str(line);
+        texts.push(line.trim());
     }
 
-    while let Some(line) = text_itr.next() {
+    // let mut text_iter = text.split("\n");
+    let mut text_iter = texts.iter();
+
+    if let Some(line) = text_iter.next() {
+        results.push_str(line.trim());
+    }
+
+    while let Some(line) = text_iter.next() {
         results.push(' ');
-        results.push_str(line);
+        results.push_str(line.trim());
     }
 }
 
@@ -356,21 +344,6 @@ fn add_inline_element_closed_text_str(results: &mut String, text: &str, tag_info
     }
 }
 
-fn add_inline_element_closed_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
-    let mut text_itr = texts.iter();
-
-    if let Some(line) = text_itr.next() {
-        results.push(' ');
-        results.push_str(line);
-    }
-
-    while let Some(line) = text_itr.next() {
-        results.push('\n');
-        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-        results.push_str(line);
-    }
-}
-
 fn add_unpretty_inline_element_closed_text_str(results: &mut String, text: &str) {
     let mut text_itr = text.split("\n");
 
@@ -389,20 +362,6 @@ fn add_unpretty_inline_element_closed_text_str(results: &mut String, text: &str)
     }
 }
 
-fn add_unpretty_inline_element_closed_text(results: &mut String, texts: Vec<&str>) {
-    let mut text_itr = texts.iter();
-
-    if let Some(line) = text_itr.next() {
-        results.push(' ');
-        results.push_str(line);
-    }
-
-    while let Some(line) = text_itr.next() {
-        results.push(' ');
-        results.push_str(line);
-    }
-}
-
 fn add_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
@@ -410,14 +369,6 @@ fn add_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
             results.push_str(&"\t".repeat(tag_info.indent_count + 1));
             results.push_str(line.trim());
         }
-    }
-}
-
-fn add_text(results: &mut String, texts: Vec<&str>, tag_info: &TagInfo) {
-    for line in texts {
-        results.push('\n');
-        results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-        results.push_str(line);
     }
 }
 
