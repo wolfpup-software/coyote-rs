@@ -279,7 +279,7 @@ fn push_text(
 }
 
 fn all_spaces(line: &str) -> bool {
-    line.len() == 0 || line.len() == get_index_of_first_char(line)
+    line.len() == get_index_of_first_char(line)
 }
 
 fn add_inline_element_text(results: &mut String, text: &str) {
@@ -301,16 +301,16 @@ fn add_inline_element_text(results: &mut String, text: &str) {
 }
 
 fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &TagInfo) {
-    let mut text_itr = text.split("\n");
+    let mut text_iter = text.split("\n");
 
-    if let Some(line) = text_itr.next() {
+    if let Some(line) = text_iter.next() {
         if !all_spaces(line) {
             results.push(' ');
             results.push_str(line.trim());
         }
     }
 
-    while let Some(line) = text_itr.next() {
+    while let Some(line) = text_iter.next() {
         if !all_spaces(line) {
             results.push('\n');
             results.push_str(&"\t".repeat(tag_info.indent_count + 1));
@@ -320,16 +320,7 @@ fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &T
 }
 
 fn add_unpretty_inline_element_closed_text(results: &mut String, text: &str) {
-    let mut text_itr = text.split("\n");
-
-    if let Some(line) = text_itr.next() {
-        if !all_spaces(line) {
-            results.push(' ');
-            results.push_str(line.trim());
-        }
-    }
-
-    while let Some(line) = text_itr.next() {
+    for line in text.split("\n") {
         if !all_spaces(line) {
             results.push(' ');
             results.push_str(line.trim());
