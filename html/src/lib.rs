@@ -258,23 +258,21 @@ fn push_text(
         &tag_info.most_recent_descendant,
     ) {
         (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text_str(results, text);
+            add_inline_element_text(results, text);
         }
         (true, DescendantStatus::InlineElementClosed) => {
-            add_inline_element_closed_text_str(results, text, tag_info)
+            add_inline_element_closed_text(results, text, tag_info)
         }
         (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text_str(results, text),
-            _ => add_text_str(results, text, tag_info),
+            true => add_inline_element_text(results, text),
+            _ => add_text(results, text, tag_info),
         },
-        (true, _) => add_text_str(results, text, tag_info),
+        (true, _) => add_text(results, text, tag_info),
         (false, DescendantStatus::InlineElementClosed) => {
-            add_unpretty_inline_element_closed_text_str(results, text)
+            add_unpretty_inline_element_closed_text(results, text)
         }
-        (false, DescendantStatus::Text) => {
-            add_inline_element_closed_text_str(results, text, tag_info)
-        }
-        (false, _) => add_inline_element_text_str(results, text),
+        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
+        (false, _) => add_inline_element_text(results, text),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
@@ -284,7 +282,7 @@ fn all_spaces(line: &str) -> bool {
     line.len() == 0 || line.len() == get_index_of_first_char(line)
 }
 
-fn add_inline_element_text_str(results: &mut String, text: &str) {
+fn add_inline_element_text(results: &mut String, text: &str) {
     let mut text_iter = text.split("\n");
     let mut found = false;
 
@@ -302,7 +300,7 @@ fn add_inline_element_text_str(results: &mut String, text: &str) {
     }
 }
 
-fn add_inline_element_closed_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
+fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_itr = text.split("\n");
 
     if let Some(line) = text_itr.next() {
@@ -321,7 +319,7 @@ fn add_inline_element_closed_text_str(results: &mut String, text: &str, tag_info
     }
 }
 
-fn add_unpretty_inline_element_closed_text_str(results: &mut String, text: &str) {
+fn add_unpretty_inline_element_closed_text(results: &mut String, text: &str) {
     let mut text_itr = text.split("\n");
 
     if let Some(line) = text_itr.next() {
@@ -339,7 +337,7 @@ fn add_unpretty_inline_element_closed_text_str(results: &mut String, text: &str)
     }
 }
 
-fn add_text_str(results: &mut String, text: &str, tag_info: &TagInfo) {
+fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
             results.push('\n');
