@@ -209,13 +209,12 @@ fn push_text(
         // text is first node
         _ => {
             for line in text.split("\n") {
-                let trimmed = line.trim();
-                if trimmed.len() == 0 {
+                if all_spaces(line) {
                     continue;
                 }
 
                 results.push('\n');
-                results.push_str(trimmed);
+                results.push_str(line.trim());
             }
             return;
         }
@@ -236,7 +235,7 @@ fn push_text(
         let common_index = get_most_common_space_index(text);
 
         for line in text.split("\n") {
-            if line.len() == get_index_of_first_char(line) {
+            if all_spaces(line) {
                 continue;
             }
 

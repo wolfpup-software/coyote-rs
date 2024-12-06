@@ -1,3 +1,5 @@
+[TODO] Combine html and coyote_html
+
 # Coyote-rs
 
 Create `HTML` with function components in Rust.

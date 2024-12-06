@@ -58,7 +58,7 @@ pub fn compose(
                         match inj_kind {
                             // add attribute injections to template
                             StepKind::AttrMapInjection => {
-                                templ_str = add_attr_inj(templ_str, inj);
+                                add_attr_inj(&mut templ_str, inj);
                             }
                             // queue descendant injections to queue
                             StepKind::DescendantInjection => {
@@ -102,7 +102,7 @@ fn get_stack_bit_from_component<'a>(
     }
 }
 
-fn add_attr_inj(mut template_str: String, component: &Component) -> String {
+fn add_attr_inj(template_str: &mut String, component: &Component) {
     match component {
         Component::Attr(attr) => add_attr(template_str, attr),
         Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),
@@ -110,33 +110,28 @@ fn add_attr_inj(mut template_str: String, component: &Component) -> String {
             for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
-                        template_str = add_attr(template_str, &attr);
+                        add_attr(template_str, &attr);
                     }
                     Component::AttrVal(attr, val) => {
-                        template_str = add_attr_val(template_str, &attr, &val);
+                        add_attr_val(template_str, &attr, &val);
                     }
                     _ => {}
                 }
             }
-            template_str
         }
-        _ => template_str,
+        _ => {}
     }
 }
 
-fn add_attr(mut templ_str: String, attr: &str) -> String {
+fn add_attr(templ_str: &mut String, attr: &str) {
     templ_str.push_str(" ");
     templ_str.push_str(attr);
-
-    templ_str
 }
 
-fn add_attr_val(mut templ_str: String, attr: &str, val: &str) -> String {
+fn add_attr_val(templ_str: &mut String, attr: &str, val: &str) {
     templ_str.push_str(" ");
     templ_str.push_str(attr);
     templ_str.push_str("=\"");
     templ_str.push_str(val);
     templ_str.push_str("\"");
-
-    templ_str
 }
