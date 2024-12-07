@@ -1,7 +1,6 @@
-use parse::{get_text_from_step, parse_str, Step, StepKind};
-
 mod tag_info;
 
+use parse::{get_text_from_step, parse_str, Step, StepKind};
 use rulesets::RulesetImpl;
 use tag_info::{DescendantStatus, TagInfo};
 
