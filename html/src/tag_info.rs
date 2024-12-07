@@ -24,14 +24,6 @@ pub struct TagInfo {
     pub banned_path: bool,
 }
 
-/*
-    instead of descendant tag
-    mark if last descendant is:
-    - text
-    - inline
-    - block
-*/
-
 impl TagInfo {
     pub fn new(sieve: &dyn RulesetImpl, tag: &str) -> TagInfo {
         let mut namespace = "html".to_string();
@@ -55,13 +47,10 @@ impl TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 
-        // could be easier to create a new one?
-        // not in the spirit of "from"
         if sieve.tag_is_namespace_el(tag) {
             tag_info.namespace = tag.to_string();
         }
 
-        // preserved text happends _after_ tag
         if sieve.tag_is_preserved_text_el(&prev_tag_info.tag) {
             tag_info.preserved_text_path = true;
         }
@@ -70,7 +59,6 @@ impl TagInfo {
             tag_info.banned_path = true;
         }
 
-        // problematic
         if !sieve.tag_is_void_el(&prev_tag_info.tag) && !sieve.tag_is_inline_el(tag) {
             tag_info.indent_count += 1;
         }
