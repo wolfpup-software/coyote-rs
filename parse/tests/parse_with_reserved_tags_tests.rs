@@ -1,4 +1,4 @@
-use parse::{parse_str, Results, Step, StepKind};
+use parse::{parse_str, Step, StepKind};
 
 use rulesets::ServerRules;
 
@@ -19,7 +19,7 @@ fn parse_text() {
     let rules = ServerRules::new();
 
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -84,7 +84,7 @@ fn parse_reserved_tag_comment() {
     let rules = ServerRules::new();
 
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
