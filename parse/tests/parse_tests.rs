@@ -1,4 +1,4 @@
-use parse::{parse_str, Results, Step, StepKind};
+use parse::{parse_str, Step, StepKind};
 
 use rulesets::ServerRules;
 
@@ -22,7 +22,7 @@ fn parse_readme_example() {
 
     let template_str: &str = "<fox>{}</fox>";
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -85,7 +85,7 @@ fn parse_text() {
 
     let template_str: &str = "hai :3";
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -107,7 +107,7 @@ fn parse_fragment() {
 
     let template_str: &str = "<>";
     let steps = parse_str(&rules, template_str, StepKind::Text);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Text,
             origin: 0,
@@ -134,7 +134,7 @@ fn parse_close_fragment() {
 
     let template_str: &str = "</>";
     let steps = parse_str(&rules, template_str, StepKind::FragmentClosed);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::FragmentClosed,
             origin: 0,
@@ -166,7 +166,7 @@ fn parse_node() {
 
     let template_str: &str = "<wolf>";
     let steps = parse_str(&rules, template_str, StepKind::TailElementClosed);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::TailElementClosed,
             origin: 0,
@@ -198,7 +198,7 @@ fn parse_close_node() {
 
     let template_str: &str = "</wolf>";
     let steps = parse_str(&rules, template_str, StepKind::FragmentClosed);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::FragmentClosed,
             origin: 0,
@@ -235,7 +235,7 @@ fn parse_void_node() {
 
     let template_str: &str = "<wolf/>";
     let steps = parse_str(&rules, template_str, StepKind::TailElementClosed);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::TailElementClosed,
             origin: 0,
@@ -282,7 +282,7 @@ fn parse_all_nodes() {
     	chase the sun
     ";
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -415,7 +415,7 @@ fn parse_attribute() {
 
     let template_str: &str = "<hello howdy>";
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -457,7 +457,7 @@ fn parse_multiple_attributes() {
 
     let template_str: &str = "<hello howdy look up occasionally>";
 
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -529,7 +529,7 @@ fn parse_attribute_declaration() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello red=\"blue\">";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -591,7 +591,7 @@ fn parse_attribute_value_unquoted() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello red=blue>";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -643,7 +643,7 @@ fn parse_multiple_attribute_value_unquoted() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello red=blue hia=:3 herro=!!!>";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -735,7 +735,7 @@ fn parse_multiple_attribute_declaration() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello red=\"blue\" orange=\"purple\" green=\"pink\">";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -857,7 +857,7 @@ fn parse_all_declarations() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello red=\"blue\" wolf orange=\"purple\" tiger crane>";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -980,7 +980,7 @@ fn parse_descendant_injection() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello>{}</hello>";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -1042,7 +1042,7 @@ fn parse_multiple_descendant_injections() {
     let rules = ServerRules::new();
 
     let template_str: &str = "{}<hello>{}</hello>{}";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -1124,7 +1124,7 @@ fn parse_attribute_injection() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello {}>";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -1171,7 +1171,7 @@ fn parse_multiple_attribute_injections() {
     let rules = ServerRules::new();
 
     let template_str: &str = "<hello {} {} world {}>";
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -1266,7 +1266,7 @@ fn parse_all_injections() {
 			</hello>
     ";
 
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,
@@ -1420,7 +1420,7 @@ clouds           big            opacity=\"0.9\"
 >
 ";
     let steps = parse_str(&rules, template_str, StepKind::Initial);
-    let expected: Results = Vec::from([
+    let expected = Vec::from([
         Step {
             kind: StepKind::Initial,
             origin: 0,

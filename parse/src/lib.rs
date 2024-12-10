@@ -1,9 +1,8 @@
 mod routes;
 mod sliding_window;
 
-use sliding_window::SlidingWindow;
-
 use rulesets::RulesetImpl;
+use sliding_window::SlidingWindow;
 
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub enum StepKind {
@@ -44,9 +43,7 @@ pub struct Step {
     pub target: usize,
 }
 
-pub type Results = Vec<Step>;
-
-pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepKind) -> Results {
+pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepKind) -> Vec<Step> {
     let mut steps = Vec::from([Step {
         kind: intial_kind.clone(),
         origin: 0,
@@ -73,27 +70,27 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
         }
 
         // route next step
-        let front_step = match steps.last_mut() {
+        let end_step = match steps.last_mut() {
             Some(step) => step,
             _ => return steps,
         };
-        let mut curr_kind = match front_step.kind {
+        let mut curr_kind = match end_step.kind {
             StepKind::InjectionConfirmed => routes::route(glyph, &prev_inj_kind),
-            _ => routes::route(glyph, &front_step.kind),
+            _ => routes::route(glyph, &end_step.kind),
         };
-        if curr_kind == front_step.kind {
+        if curr_kind == end_step.kind {
             continue;
         }
 
         if is_injection_kind(&curr_kind) {
-            prev_inj_kind = front_step.kind.clone();
+            prev_inj_kind = end_step.kind.clone();
         }
 
         // record change
-        front_step.target = index;
+        end_step.target = index;
 
-        if StepKind::Tag == front_step.kind {
-            tag = get_text_from_step(template_str, &front_step);
+        if StepKind::Tag == end_step.kind {
+            tag = get_text_from_step(template_str, &end_step);
         }
 
         // two edge cases for comments and alt text
@@ -102,12 +99,12 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
                 let mut slider = SlidingWindow::new(close_seq);
                 slider.slide(glyph);
                 sliding_window = Some(slider);
-                curr_kind = StepKind::CommentText
+                curr_kind = StepKind::CommentText;
             };
         }
 
         if let (true, Some(close_seq)) = (
-            StepKind::ElementClosed == front_step.kind,
+            StepKind::ElementClosed == end_step.kind,
             rules.get_close_sequence_from_alt_text_tag(tag),
         ) {
             let mut slider = SlidingWindow::new(close_seq);
