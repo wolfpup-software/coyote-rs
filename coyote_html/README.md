@@ -1,5 +1,4 @@
-
-## Coyote Html
+# Coyote Html
 
 ## Install
 
