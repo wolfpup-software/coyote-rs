@@ -26,20 +26,20 @@ fn hai() -> Component {
 
 ### Types of components
 
-`Components` are atomic pieces used to build a template:
+`Components` are used to build documents:
 
-| Component | Type | Description |
+| Component | Description | Type |
 | --------- | ---- | ----------- |
-| Attribute | `attr(&str) -> Component`| element attribute |
-| Attribute with value | `attr_val(&str, &str) -> Component` | element attribute and value |
-| Safer escaped text | `text(&str) -> Component` | text with glyphs like `<>` escaped as HTML
-| Unsafe unescaped text | `unescaped_text(&str) -> Component` | dangerously unescaped text |
-| Template | `tmpl(&str, [Component, ...]) -> Component` | a string template describing a document fragment |
-| List | `list([Component, ...]) -> Component` | a list of components |
-| Vector | `vlist(Vec::from([Component, ...])) -> Component` | a vector list of components |
-| None | `Component::None` | a component signifying the abscence of a component |
+| Attribute | an element attribute | `attr(&str) -> Component` |
+| Attribute with value | an element and attribute and value pair | `attr_val(&str, &str) -> Component` | 
+| Text | text with escaped HTML glyphs like `<` of `{`| `text(&str) -> Component` |
+| Unescaped text | dangerously unescaped text | `unescaped_text(&str) -> Component` |
+| List | a list of components | `list([Component, ...]) -> Component` |
+| Vector | a vector of components | `vlist(Vec::from([Component, ...])) -> Component` |
+| Template | a document fragment described by a string template and a list or vector of injections | `tmpl(&str, [Component, ...]) -> Component` |
+| None | the abscence of a component | `Component::None` |
 
-## Template Syntax
+## Templates
 
 ### Tags, void elements, fragments
 
@@ -58,16 +58,17 @@ fn syntax_story() -> Component {
         </article>
     ", [])
 }
-
 ```
 
 ### Injections
 
-`Injections` enable component nesting and attribute assignments.
+`Injections` create attribute assignments and nested templates.
 
-Likewise, there are only two valid _injections_ in a `tmpl` component:
+There are only two valid _injections_ in a `tmpl` component:
 - attributes
 - descendants
+
+Likewise there are only two valid injection locations in a `tmpl` component:
 
 ```rs
 fn injection_story() -> Component {
@@ -82,13 +83,13 @@ fn injection_story() -> Component {
 }
 ```
 
-Any other instance of `{}` will not be considered an injection.
+Any other instance of `{}` in a template component will not be considered an injection.
 
 ## Nested components
 
-The `list` component reflects the `node -> [node, text, node, ...]` heiarchy of an xml document.
+The `list` component reflects the `node -> [node, text, node, ...]` heiarchy of an xml-like document.
 
-The example below shows a form defined by lists of attributes, templates, and text.
+The example below creates a form defined by lists of attributes, templates, and text.
 
 ```rust
 use coyote::{Component, attr_val, list, text, tmpl};
@@ -115,8 +116,16 @@ fn woof_form() -> Component {
 }
 ```
 
+## Components as an IMR
+
+Components are not HTML or XML.
+
+Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _potential_  for a document like HTML or XML.
+
 ## Renders
 
 `Components` are not coupled to any particular markup language or output environment. This makes `coyote` an expressive way to create custom documents and object scenes from xml.
 
-Currently Coyote ships with support for [html](../coyote_html/README.md).
+### HTML
+
+Coyote supports [html](../coyote_html/README.md).
