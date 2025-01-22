@@ -1,3 +1,4 @@
+// get_namespace(): &str
 pub trait RulesetImpl {
     // parse
     fn tag_is_comment(&self, tag: &str) -> bool;

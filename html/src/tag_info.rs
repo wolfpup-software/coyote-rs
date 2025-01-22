@@ -25,9 +25,10 @@ pub struct TagInfo {
 }
 
 impl TagInfo {
-    pub fn new(sieve: &dyn RulesetImpl, tag: &str) -> TagInfo {
+    pub fn new(rules: &dyn RulesetImpl, tag: &str) -> TagInfo {
+        // rules.namespace
         let mut namespace = "html".to_string();
-        if sieve.tag_is_namespace_el(tag) {
+        if rules.tag_is_namespace_el(tag) {
             namespace = tag.to_string()
         }
 
@@ -36,37 +37,37 @@ impl TagInfo {
             tag: tag.to_string(),
             most_recent_descendant: DescendantStatus::Initial,
             indent_count: 0,
-            void_el: sieve.tag_is_void_el(tag),
-            inline_el: sieve.tag_is_inline_el(tag),
-            preserved_text_path: sieve.tag_is_preserved_text_el(tag),
-            banned_path: sieve.tag_is_banned_el(tag),
+            void_el: rules.tag_is_void_el(tag),
+            inline_el: rules.tag_is_inline_el(tag),
+            preserved_text_path: rules.tag_is_preserved_text_el(tag),
+            banned_path: rules.tag_is_banned_el(tag),
         }
     }
 
-    pub fn from(sieve: &dyn RulesetImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
+    pub fn from(rules: &dyn RulesetImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
         // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 
-        if sieve.tag_is_namespace_el(tag) {
+        if rules.tag_is_namespace_el(tag) {
             tag_info.namespace = tag.to_string();
         }
 
-        if sieve.tag_is_preserved_text_el(&prev_tag_info.tag) {
+        if rules.tag_is_preserved_text_el(&prev_tag_info.tag) {
             tag_info.preserved_text_path = true;
         }
 
-        if sieve.tag_is_banned_el(tag) {
+        if rules.tag_is_banned_el(tag) {
             tag_info.banned_path = true;
         }
 
-        if !sieve.tag_is_void_el(&prev_tag_info.tag) && !sieve.tag_is_inline_el(tag) {
+        if !rules.tag_is_void_el(&prev_tag_info.tag) && !rules.tag_is_inline_el(tag) {
             tag_info.indent_count += 1;
         }
 
-        tag_info.void_el = sieve.tag_is_void_el(&tag);
+        tag_info.void_el = rules.tag_is_void_el(&tag);
         tag_info.tag = tag.to_string();
         tag_info.most_recent_descendant = DescendantStatus::Initial;
-        tag_info.inline_el = sieve.tag_is_inline_el(tag);
+        tag_info.inline_el = rules.tag_is_inline_el(tag);
 
         tag_info
     }
