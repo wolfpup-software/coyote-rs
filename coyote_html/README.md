@@ -39,7 +39,12 @@ The example below creates a _safer_ fragment for client-side renders using `Clie
 use coyote_html::{Html, ClientRules};
 
 fn dangerous_hai() -> Component {
-    tmpl("<p>omgawsh hai :3</p>", [])
+    tmpl("
+        <script>
+            console.log('malicious script! danger! grrr rawr');
+        </script>
+        <p>omgawsh hai :3</p>
+    ", [])
 }
 
 
@@ -57,7 +62,7 @@ fn main() {
 
 The output will be:
 ```html
-<article><p>hai :3</p></article>
+<p>hai :3</p>
 ```
 
 `Coyote Html` guides template composition with `rulesets`.
