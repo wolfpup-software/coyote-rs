@@ -5,9 +5,22 @@ use component_string::{compose as build_component, BuilderImpl};
 use coyote::Component;
 use template_string::{compose, Results as TemplateResults};
 
-pub struct Builder {
-    // place to cache txml results
-}
+// The folowing should never change,
+// it's a handshake between coyote and devs.
+//
+// pub trait ComposerImpl {
+//     fn build(&mut self, component: &Component) -> String;
+// }
+//
+// HOWEVER
+// ComposerImpl is required as an import when ARCd.
+// and i don't like that >:(
+//
+// For now, this is where the contract ends betweeen coyote_html and devs.
+// And that should be enough.
+//
+
+struct Builder {}
 
 impl Builder {
     pub fn new() -> Builder {
@@ -23,22 +36,41 @@ impl BuilderImpl for Builder {
 }
 
 pub struct Html {
-    pub builder: Builder,
+    rules: ServerRules,
+    builder: Builder,
 }
 
 impl Html {
     pub fn new() -> Html {
         Html {
+            rules: ServerRules::new(),
             builder: Builder::new(),
         }
     }
 
-    pub fn from_builder(builder: Builder) -> Html {
-        Html { builder: builder }
+    pub fn build(&mut self, component: &Component) -> String {
+        let template = build_component(&mut self.builder, &self.rules, component);
+        pretty_html(&self.rules, &template)
+    }
+}
+
+// CLIENT HTML
+// safer without styles, scripts, or links
+pub struct ClientHtml {
+    rules: ClientRules,
+    builder: Builder,
+}
+
+impl ClientHtml {
+    pub fn new() -> ClientHtml {
+        ClientHtml {
+            rules: ClientRules::new(),
+            builder: Builder::new(),
+        }
     }
 
-    pub fn build(&mut self, rules: &dyn RulesetImpl, component: &Component) -> String {
-        let template = build_component(&mut self.builder, rules, component);
-        pretty_html(rules, &template)
+    pub fn build(&mut self, component: &Component) -> String {
+        let template = build_component(&mut self.builder, &self.rules, component);
+        pretty_html(&self.rules, &template)
     }
 }

@@ -13,6 +13,8 @@ enum StackBit<'a> {
     None,
 }
 
+// just pass trait?
+// just build builders around rulesets
 pub trait BuilderImpl {
     fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> Results;
 }

@@ -29,7 +29,7 @@ Render components as `html` with [coyote_html](./coyote_html/README.md).
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::{Html, ServerRules}
+use coyote_html::Html;
 
 fn hai() -> Component {
     tmpl("<p>hai :3</p>", [])
@@ -39,9 +39,7 @@ fn main() {
     let hello_world = hai();
 
     let html = Html::new();
-    let rules = ServerRules::new();
-
-    let document = html.compose(&rules, &hello_world); 
+    let document = html.compose(&hello_world); 
 
     println!("{}", document);
 }

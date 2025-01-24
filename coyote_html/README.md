@@ -13,7 +13,7 @@ The example below creates an html document from a coyote component function.
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::{Html, ServerRules}
+use coyote_html::Html;
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -23,12 +23,15 @@ fn main() {
     let hello_world = hai();
 
     let html = Html::new();
-    let rules = ServerRules::new();
-
     let document = html.compose(&rules, &hello_world); 
 
     println!("{}", document);
 }
+```
+
+The output will be:
+```html
+<p>hai :3</p>
 ```
 
 ### Hello, safe world!
@@ -36,20 +39,28 @@ fn main() {
 The example below creates a _safer_ fragment for client-side renders using `ClientRules`. 
 
 ```rust
-use coyote_html::{Html, ClientRules};
+use coyote::{Component, tmpl};
+use coyote_html::SaferHtml;
 
-fn dangerous_hai() -> Component {
-    tmpl("<p>omgawsh hai :3</p>", [])
+fn malicious_hai() -> Component {
+    tmpl("
+        <link rel=stylesheet href=a_dangerous_stylesheet.css>
+        <style>
+            * { color: blue; }
+        </style>
+        <script>
+            console.log('a malicious script! grrr rawr');
+        </script>
+        <p>omgawsh hai :3</p>
+    ", [])
 }
 
 
 fn main() {
-    let hello_world = hai();
+    let hello_world = malicious_hai();
 
-    let html = Html::new();    
-    let rules = ClientRules::new();
-
-    let document = html.compose(&rules, &hello_world); 
+    let safer_html = SaferHtml::new();    
+    let document = safer_html.compose(&hello_world); 
     
     println!("{}", document);
 }
@@ -57,12 +68,12 @@ fn main() {
 
 The output will be:
 ```html
-<article><p>hai :3</p></article>
+<p>hai :3</p>
 ```
 
 `Coyote Html` guides template composition with `rulesets`.
 
-The `ClientRules` ruleset rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
+`ClientRules` rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
 
 ## License
 

@@ -1,5 +1,6 @@
 use coyote::{attr_val, list, text, tmpl, Component};
-use coyote_html::{Builder, Html, ServerRules};
+use coyote_html::Html;
+// use coyote_html::ComposerImpl;
 
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -18,13 +19,12 @@ fn woof_woof() -> Component {
 
 #[test]
 fn test_coyote_html_with_arc_and_mutex() {
-    let html = Html::from_builder(Builder::new());
+    let html = Html::new();
     let arc = Arc::new(Mutex::new(html));
     let html_clone = arc.clone();
 
-    let rules = ServerRules::new();
     let woof_form = woof_woof();
     if let Ok(mut html_mutex) = html_clone.lock() {
-        let _results = html_mutex.build(&rules, &woof_form);
+        let _results = html_mutex.build(&woof_form);
     };
 }
