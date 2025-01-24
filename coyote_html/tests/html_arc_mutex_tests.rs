@@ -1,5 +1,6 @@
 use coyote::{attr_val, list, text, tmpl, Component};
 use coyote_html::Html;
+// use coyote_html::ComposerImpl;
 
 use std::sync::Arc;
 use std::sync::Mutex;

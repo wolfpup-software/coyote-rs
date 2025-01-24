@@ -5,6 +5,21 @@ use component_string::{compose as build_component, BuilderImpl};
 use coyote::Component;
 use template_string::{compose, Results as TemplateResults};
 
+// The folowing should never change,
+// it's a handshake between coyote and devs.
+//
+// pub trait ComposerImpl {
+//     fn build(&mut self, component: &Component) -> String;
+// }
+//
+// HOWEVER
+// ComposerImpl is required as an import when ARCd.
+// and i don't like that >:(
+//
+// For now, this is where the contract ends betweeen coyote_html and devs.
+// And that should be enough.
+//
+
 struct Builder {}
 
 impl Builder {
@@ -39,6 +54,8 @@ impl Html {
     }
 }
 
+// CLIENT HTML
+// safer without styles, scripts, or links
 pub struct ClientHtml {
     rules: ClientRules,
     builder: Builder,
