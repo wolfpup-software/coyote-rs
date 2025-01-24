@@ -16,13 +16,17 @@ enum StackBit<'a> {
 // just pass trait?
 // just build builders around rulesets
 pub trait BuilderImpl {
-    fn build(&mut self, template_str: &str) -> Results;
+    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> Results;
 }
 
-pub fn compose(builder: &mut dyn BuilderImpl, component: &Component) -> String {
+pub fn compose(
+    builder: &mut dyn BuilderImpl,
+    rules: &dyn RulesetImpl,
+    component: &Component,
+) -> String {
     let mut templ_str = "".to_string();
 
-    let sbit = get_stack_bit_from_component(builder, component);
+    let sbit = get_stack_bit_from_component(builder, rules, component);
 
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
@@ -32,7 +36,7 @@ pub fn compose(builder: &mut dyn BuilderImpl, component: &Component) -> String {
                 Component::Text(text) => templ_str.push_str(text),
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
-                        let bit = get_stack_bit_from_component(builder, cmpnt);
+                        let bit = get_stack_bit_from_component(builder, rules, cmpnt);
                         stack.push(bit);
                     }
                     continue;
@@ -63,7 +67,7 @@ pub fn compose(builder: &mut dyn BuilderImpl, component: &Component) -> String {
                                 // push template back and bail early
                                 stack.push(stack_bit);
 
-                                let bit = get_stack_bit_from_component(builder, inj);
+                                let bit = get_stack_bit_from_component(builder, rules, inj);
                                 stack.push(bit);
                                 continue;
                             }
@@ -86,13 +90,14 @@ pub fn compose(builder: &mut dyn BuilderImpl, component: &Component) -> String {
 
 fn get_stack_bit_from_component<'a>(
     builder: &mut dyn BuilderImpl,
+    rules: &dyn RulesetImpl,
     component: &'a Component,
 ) -> StackBit<'a> {
     match component {
         Component::Text(_text) => StackBit::Cmpnt(component),
         Component::List(_list) => StackBit::Cmpnt(component),
         Component::Tmpl(tmpl) => {
-            let txml_literal = builder.build(&tmpl.template_str);
+            let txml_literal = builder.build(rules, &tmpl.template_str);
             StackBit::Tmpl(component, txml_literal, TemplateBit { inj_index: 0 })
         }
         _ => StackBit::None,

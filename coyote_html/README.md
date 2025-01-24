@@ -13,7 +13,7 @@ The example below creates an html document from a coyote component function.
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::{Html, ServerRules}
+use coyote_html::Html;
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -40,7 +40,7 @@ The example below creates a _safer_ fragment for client-side renders using `Clie
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::{Html, ClientRules};
+use coyote_html::SaferHtml;
 
 fn malicious_hai() -> Component {
     tmpl("
@@ -59,10 +59,8 @@ fn malicious_hai() -> Component {
 fn main() {
     let hello_world = malicious_hai();
 
-    let rules = ClientRules::new();
-    let safe_html = Html::from(rules);    
-
-    let document = safe_html.compose(&hello_world); 
+    let safer_html = SaferHtml::new();    
+    let document = safer_html.compose(&hello_world); 
     
     println!("{}", document);
 }
