@@ -23,7 +23,7 @@ fn main() {
     let hello_world = hai();
 
     let html = Html::new();
-    let document = html.compose(&rules, &hello_world); 
+    let document = html.build(&hello_world); 
 
     println!("{}", document);
 }
@@ -34,15 +34,15 @@ The output will be:
 <p>hai :3</p>
 ```
 
-### Hello, safe world!
+### Hello, safer world!
 
 The example below creates a _safer_ fragment for client-side renders using `ClientRules`. 
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::SaferHtml;
+use coyote_html::ClientHtml;
 
-fn malicious_hai() -> Component {
+fn malicious_component() -> Component {
     tmpl("
         <link rel=stylesheet href=a_dangerous_stylesheet.css>
         <style>
@@ -55,11 +55,17 @@ fn malicious_hai() -> Component {
     ", [])
 }
 
+fn hai() -> Component {
+    tmpl(
+        "{}<p>omgawsh hai :3</p>",
+        [malicious_component()],
+    )
+}
 
 fn main() {
-    let hello_world = malicious_hai();
+    let hello_world = hai();
 
-    let safer_html = SaferHtml::new();    
+    let safer_html = ClientHtml::new();    
     let document = safer_html.compose(&hello_world); 
     
     println!("{}", document);

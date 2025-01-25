@@ -10,6 +10,10 @@ use rulesets::RulesetImpl;
     Coyote is focused on text / strings
 */
 
+// Could just keep the step kind.
+// builds will involve the string
+// caches will involve the string?
+// 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Results {
     pub strs: Vec<String>,
