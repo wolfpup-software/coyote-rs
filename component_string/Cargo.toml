@@ -9,4 +9,4 @@ edition = "2021"
 rulesets = { path = "../rulesets" }
 parse = { path = "../parse" }
 coyote = { path = "../coyote" }
-template_string = { path = "../template_string" }
+template_steps = { path = "../template_steps" }
