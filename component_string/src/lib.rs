@@ -48,6 +48,9 @@ pub fn compose(
                 bit.inj_index += 1;
 
                 // add template
+                // BUT NOW get template chunks via steps
+                // pass results and tags
+                //
                 if let Some(chunk) = results.strs.get(index) {
                     templ_str.push_str(chunk);
                 }

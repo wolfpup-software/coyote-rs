@@ -4,10 +4,14 @@ use parse::{get_text_from_step, parse_str, Step, StepKind};
 use rulesets::RulesetImpl;
 use tag_info::{DescendantStatus, TagInfo};
 
-pub fn compose(rules: &dyn RulesetImpl, template_str: &str) -> String {
-    let mut results = "".to_string();
-    let mut stack: Vec<TagInfo> = Vec::new();
-
+// let mut results = "".to_string();
+// let mut stack: Vec<TagInfo> = Vec::new();
+pub fn compose(
+    rules: &dyn RulesetImpl,
+    results: &mut String,
+    tag_info_stack: &mut Vec<TagInfo>,
+    template_str: &str,
+) -> String {
     for step in parse_str(rules, &template_str, StepKind::Initial) {
         match step.kind {
             StepKind::Tag => push_element(&mut results, &mut stack, rules, template_str, step),
@@ -20,17 +24,6 @@ pub fn compose(rules: &dyn RulesetImpl, template_str: &str) -> String {
             StepKind::AttrValueUnquoted => {
                 add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
             }
-            // injections
-            StepKind::DescendantInjection => {
-                push_injection_kind(&mut results, &mut stack, template_str, step)
-            }
-            StepKind::InjectionSpace => {
-                push_injection_kind(&mut results, &mut stack, template_str, step)
-            }
-            StepKind::InjectionConfirmed => {
-                push_injection_kind(&mut results, &mut stack, template_str, step)
-            }
-            // alt text
             StepKind::CommentText => push_text(&mut results, &mut stack, rules, template_str, step),
             StepKind::AltText => push_text(&mut results, &mut stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
@@ -385,25 +378,6 @@ fn add_attr_value_unquoted(
     let val = get_text_from_step(template_str, &step);
     results.push('=');
     results.push_str(val);
-}
-
-fn push_injection_kind(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    template_str: &str,
-    step: Step,
-) {
-    let tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    if tag_info.banned_path {
-        return;
-    }
-
-    let glyph = get_text_from_step(template_str, &step);
-    results.push_str(glyph);
 }
 
 fn pop_closing_sequence(

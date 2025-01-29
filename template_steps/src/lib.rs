@@ -1,7 +1,3 @@
-use parse::{parse_str, Step, StepKind};
-
-use rulesets::RulesetImpl;
-
 /*
     INTERMEDIATE RENDER FORMAT
 
@@ -10,10 +6,9 @@ use rulesets::RulesetImpl;
     Coyote is focused on text / strings
 */
 
-// Could just keep the step kind.
-// builds will involve the string
-// caches will involve the string?
-//
+use parse::{parse_str, Step, StepKind};
+use rulesets::RulesetImpl;
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Results {
     pub steps: Vec<Vec<Step>>,

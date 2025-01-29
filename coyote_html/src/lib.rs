@@ -49,6 +49,9 @@ impl Html {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
+        // start new stack
+        // let results = "".to_string;
+        // let tag_info_stack = Vec::from([tag_info])
         let template = build_component(&mut self.builder, &self.rules, component);
         pretty_html(&self.rules, &template)
     }
