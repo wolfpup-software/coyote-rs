@@ -77,13 +77,11 @@ pub fn compose(
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
-                // add template
-                // BUT NOW get template chunks via steps
-                // pass results and tags
+                // verify results
                 //
-                // if let Some(chunk) = results.steps.get(index) {
-                //     templ_str.push_str(chunk);
-                // }
+                // second step is text | node_open | descendant_injection
+                // last step is Text | node closed | independed_node_closed
+
                 // add injection
                 if let Component::Tmpl(template) = component {
                     // add text by getting index of and index of results
