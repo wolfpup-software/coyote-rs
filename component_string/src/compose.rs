@@ -1,39 +1,198 @@
-mod tag_info;
-
-use parse::{get_text_from_step, parse_str, Step, StepKind};
+use crate::tag_info::{DescendantStatus, TagInfo};
+use parse::{get_text_from_step, Step, StepKind};
 use rulesets::RulesetImpl;
-use tag_info::{DescendantStatus, TagInfo};
 
-// let mut results = "".to_string();
-// let mut stack: Vec<TagInfo> = Vec::new();
-pub fn compose(
+pub fn compose_steps(
     rules: &dyn RulesetImpl,
     results: &mut String,
     tag_info_stack: &mut Vec<TagInfo>,
     template_str: &str,
-) -> String {
-    for step in parse_str(rules, &template_str, StepKind::Initial) {
+    steps: &Vec<Step>,
+) {
+    for step in steps {
         match step.kind {
-            StepKind::Tag => push_element(&mut results, &mut stack, rules, template_str, step),
-            StepKind::ElementClosed => close_element(&mut results, &mut stack),
-            StepKind::EmptyElementClosed => close_empty_element(&mut results, &mut stack),
-            StepKind::TailTag => pop_element(&mut results, &mut stack, rules, template_str, step),
-            StepKind::Text => push_text(&mut results, &mut stack, rules, template_str, step),
-            StepKind::Attr => add_attr(&mut results, &mut stack, template_str, step),
-            StepKind::AttrValue => add_attr_value(&mut results, &mut stack, template_str, step),
+            StepKind::Tag => push_element(results, tag_info_stack, rules, template_str, step),
+            StepKind::ElementClosed => close_element(results, tag_info_stack),
+            StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack),
+            StepKind::TailTag => pop_element(results, tag_info_stack, rules, template_str, step),
+            StepKind::Text => push_text(results, tag_info_stack, rules, template_str, step),
+            StepKind::Attr => add_attr(results, tag_info_stack, template_str, step),
+            StepKind::AttrValue => add_attr_value(results, tag_info_stack, template_str, step),
             StepKind::AttrValueUnquoted => {
-                add_attr_value_unquoted(&mut results, &mut stack, template_str, step)
+                add_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            StepKind::CommentText => push_text(&mut results, &mut stack, rules, template_str, step),
-            StepKind::AltText => push_text(&mut results, &mut stack, rules, template_str, step),
+            StepKind::CommentText => push_text(results, tag_info_stack, rules, template_str, step),
+            StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
-                pop_closing_sequence(&mut results, &mut stack, rules, template_str, step)
+                pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
             }
             _ => {}
         }
     }
+}
 
-    results
+fn push_text(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    rules: &dyn RulesetImpl,
+    template_str: &str,
+    step: &Step,
+) {
+    let text = get_text_from_step(template_str, step);
+    let tag_info = match stack.last_mut() {
+        Some(curr) => curr,
+        // text is first node
+        _ => {
+            for line in text.split("\n") {
+                if all_spaces(line) {
+                    continue;
+                }
+
+                results.push('\n');
+                results.push_str(line.trim());
+            }
+            return;
+        }
+    };
+
+    if tag_info.banned_path || tag_info.void_el {
+        return;
+    }
+
+    if tag_info.preserved_text_path {
+        tag_info.most_recent_descendant = DescendantStatus::Text;
+        results.push_str(text);
+        return;
+    }
+
+    // if alt text
+    if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
+        let common_index = get_most_common_space_index(text);
+
+        for line in text.split("\n") {
+            if all_spaces(line) {
+                continue;
+            }
+
+            results.push('\n');
+            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(line[common_index..].trim_end());
+        }
+
+        tag_info.most_recent_descendant = DescendantStatus::Text;
+        return;
+    }
+
+    if all_spaces(text) {
+        return;
+    }
+
+    match (
+        rules.respect_indentation(),
+        &tag_info.most_recent_descendant,
+    ) {
+        (true, DescendantStatus::InlineElement) => {
+            add_inline_element_text(results, text);
+        }
+        (true, DescendantStatus::InlineElementClosed) => {
+            add_inline_element_closed_text(results, text, tag_info)
+        }
+        (true, DescendantStatus::Initial) => match tag_info.inline_el {
+            true => add_inline_element_text(results, text),
+            _ => add_text(results, text, tag_info),
+        },
+        // (true, _) => add_text(results, text, tag_info),
+        (false, DescendantStatus::InlineElementClosed) => {
+            add_unpretty_inline_element_closed_text(results, text)
+        }
+        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
+        (true, _) => add_text(results, text, tag_info),
+        // (false, _) => add_inline_element_text(results, text),
+        (_, _) => add_inline_element_text(results, text),
+    }
+
+    tag_info.most_recent_descendant = DescendantStatus::Text;
+}
+
+pub fn push_text_logic(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    rules: &dyn RulesetImpl,
+    text: &str,
+) {
+    let tag_info = match stack.last_mut() {
+        Some(curr) => curr,
+        // text is first node
+        _ => {
+            for line in text.split("\n") {
+                if all_spaces(line) {
+                    continue;
+                }
+
+                results.push('\n');
+                results.push_str(line.trim());
+            }
+            return;
+        }
+    };
+
+    if tag_info.banned_path || tag_info.void_el {
+        return;
+    }
+
+    if tag_info.preserved_text_path {
+        tag_info.most_recent_descendant = DescendantStatus::Text;
+        results.push_str(text);
+        return;
+    }
+
+    // if alt text
+    if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
+        let common_index = get_most_common_space_index(text);
+
+        for line in text.split("\n") {
+            if all_spaces(line) {
+                continue;
+            }
+
+            results.push('\n');
+            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(line[common_index..].trim_end());
+        }
+
+        tag_info.most_recent_descendant = DescendantStatus::Text;
+        return;
+    }
+
+    if all_spaces(text) {
+        return;
+    }
+
+    match (
+        rules.respect_indentation(),
+        &tag_info.most_recent_descendant,
+    ) {
+        (true, DescendantStatus::InlineElement) => {
+            add_inline_element_text(results, text);
+        }
+        (true, DescendantStatus::InlineElementClosed) => {
+            add_inline_element_closed_text(results, text, tag_info)
+        }
+        (true, DescendantStatus::Initial) => match tag_info.inline_el {
+            true => add_inline_element_text(results, text),
+            _ => add_text(results, text, tag_info),
+        },
+        // (true, _) => add_text(results, text, tag_info),
+        (false, DescendantStatus::InlineElementClosed) => {
+            add_unpretty_inline_element_closed_text(results, text)
+        }
+        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
+        (true, _) => add_text(results, text, tag_info),
+        // (false, _) => add_inline_element_text(results, text),
+        (_, _) => add_inline_element_text(results, text),
+    }
+
+    tag_info.most_recent_descendant = DescendantStatus::Text;
 }
 
 fn push_element(
@@ -41,9 +200,9 @@ fn push_element(
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
     template_str: &str,
-    step: Step,
+    step: &Step,
 ) {
-    let tag = get_text_from_step(template_str, &step);
+    let tag = get_text_from_step(template_str, step);
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => TagInfo::from(rules, &prev_tag_info, tag),
         _ => TagInfo::new(rules, tag),
@@ -138,9 +297,9 @@ fn pop_element(
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
     template_str: &str,
-    step: Step,
+    step: &Step,
 ) {
-    let tag = get_text_from_step(template_str, &step);
+    let tag = get_text_from_step(template_str, step);
 
     let tag_info = match stack.last() {
         Some(curr) => curr,
@@ -186,87 +345,6 @@ fn pop_element(
             _ => DescendantStatus::ElementClosed,
         };
     }
-}
-
-fn push_text(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    rules: &dyn RulesetImpl,
-    template_str: &str,
-    step: Step,
-) {
-    let text = get_text_from_step(template_str, &step);
-    let tag_info = match stack.last_mut() {
-        Some(curr) => curr,
-        // text is first node
-        _ => {
-            for line in text.split("\n") {
-                if all_spaces(line) {
-                    continue;
-                }
-
-                results.push('\n');
-                results.push_str(line.trim());
-            }
-            return;
-        }
-    };
-
-    if tag_info.banned_path || tag_info.void_el {
-        return;
-    }
-
-    if tag_info.preserved_text_path {
-        tag_info.most_recent_descendant = DescendantStatus::Text;
-        results.push_str(text);
-        return;
-    }
-
-    // if alt text
-    if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
-        let common_index = get_most_common_space_index(text);
-
-        for line in text.split("\n") {
-            if all_spaces(line) {
-                continue;
-            }
-
-            results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-            results.push_str(line[common_index..].trim_end());
-        }
-
-        tag_info.most_recent_descendant = DescendantStatus::Text;
-        return;
-    }
-
-    if all_spaces(text) {
-        return;
-    }
-
-    match (
-        rules.respect_indentation(),
-        &tag_info.most_recent_descendant,
-    ) {
-        (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text(results, text);
-        }
-        (true, DescendantStatus::InlineElementClosed) => {
-            add_inline_element_closed_text(results, text, tag_info)
-        }
-        (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text(results, text),
-            _ => add_text(results, text, tag_info),
-        },
-        (true, _) => add_text(results, text, tag_info),
-        (false, DescendantStatus::InlineElementClosed) => {
-            add_unpretty_inline_element_closed_text(results, text)
-        }
-        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
-        (false, _) => add_inline_element_text(results, text),
-    }
-
-    tag_info.most_recent_descendant = DescendantStatus::Text;
 }
 
 fn all_spaces(line: &str) -> bool {
@@ -329,7 +407,7 @@ fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: Step) {
+fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -339,12 +417,12 @@ fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, 
         return;
     }
 
-    let attr = get_text_from_step(template_str, &step);
+    let attr = get_text_from_step(template_str, step);
     results.push(' ');
     results.push_str(attr);
 }
 
-fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: Step) {
+fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -354,7 +432,7 @@ fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: 
         return;
     }
 
-    let val = get_text_from_step(template_str, &step);
+    let val = get_text_from_step(template_str, step);
     results.push_str("=\"");
     results.push_str(val);
     results.push('"');
@@ -364,7 +442,7 @@ fn add_attr_value_unquoted(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     template_str: &str,
-    step: Step,
+    step: &Step,
 ) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
@@ -375,7 +453,7 @@ fn add_attr_value_unquoted(
         return;
     }
 
-    let val = get_text_from_step(template_str, &step);
+    let val = get_text_from_step(template_str, step);
     results.push('=');
     results.push_str(val);
 }
@@ -385,10 +463,10 @@ fn pop_closing_sequence(
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
     template_str: &str,
-    step: Step,
+    step: &Step,
 ) {
     // need to get second to last element and then say this was a block element or an inline element
-    let closing_sequence = get_text_from_step(template_str, &step);
+    let closing_sequence = get_text_from_step(template_str, step);
 
     let tag = match rules.get_tag_from_close_sequence(closing_sequence) {
         Some(t) => t,

@@ -29,7 +29,8 @@ Render components as `html` with [coyote_html](./coyote_html/README.md).
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::Html;
+use coyote::html::{ClientHtml, Html};
+use coyote::xml::Xml;
 
 fn hai() -> Component {
     tmpl("<p>hai :3</p>", [])

@@ -1,5 +1,3 @@
 [workspace]
 members = ["parse", "coyote", "template_steps", "component_string", "coyote_html", "rulesets",]
 resolver = "2"
-
-[workspace.dependencies]
