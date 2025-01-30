@@ -27,7 +27,7 @@ pub struct TagInfo {
 impl TagInfo {
     pub fn new(rules: &dyn RulesetImpl, tag: &str) -> TagInfo {
         // rules.namespace
-        let mut namespace = "html".to_string();
+        let mut namespace = rules.get_initial_namespace().to_string();
         if rules.tag_is_namespace_el(tag) {
             namespace = tag.to_string()
         }

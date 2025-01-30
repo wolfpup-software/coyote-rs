@@ -1,14 +1,21 @@
 use coyote::Component;
 use parse::StepKind;
 use rulesets::RulesetImpl;
-use template_string::Results;
+use template_steps::{compose as compose_steps, Results as TemplateSteps};
+
+mod compose;
+mod tag_info;
+
+use crate::compose::compose_steps as compose_by_steps;
+use crate::compose::push_text_logic;
+use crate::tag_info::TagInfo;
 
 struct TemplateBit {
     pub inj_index: usize,
 }
 
 enum StackBit<'a> {
-    Tmpl(&'a Component, Results, TemplateBit),
+    Tmpl(&'a Component, TemplateSteps, TemplateBit),
     Cmpnt(&'a Component),
     None,
 }
@@ -16,7 +23,23 @@ enum StackBit<'a> {
 // just pass trait?
 // just build builders around rulesets
 pub trait BuilderImpl {
-    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> Results;
+    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateSteps;
+}
+
+pub struct Builder {}
+
+impl Builder {
+    pub fn new() -> Builder {
+        Builder {}
+    }
+}
+
+impl BuilderImpl for Builder {
+    // build steps
+    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateSteps {
+        // chance to cache templates here
+        compose_steps(rules, template_str)
+    }
 }
 
 pub fn compose(
@@ -28,12 +51,19 @@ pub fn compose(
 
     let sbit = get_stack_bit_from_component(builder, rules, component);
 
+    let mut results = "".to_string();
+    let mut tag_info_stack: Vec<TagInfo> = Vec::new();
+
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
         match stack_bit {
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
-                Component::Text(text) => templ_str.push_str(text),
+                // add text with compose::push_text
+                Component::Text(text) => {
+                    // templ_str.push_str(text)
+                    push_text_logic(&mut results, &mut tag_info_stack, rules, text);
+                }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
                         let bit = get_stack_bit_from_component(builder, rules, cmpnt);
@@ -47,17 +77,30 @@ pub fn compose(
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
-                // add template
-                if let Some(chunk) = results.strs.get(index) {
-                    templ_str.push_str(chunk);
-                }
+                // verify results
+                //
+                // second step is text | node_open | descendant_injection
+                // last step is Text | node closed | independed_node_closed
+
                 // add injection
                 if let Component::Tmpl(template) = component {
+                    // add text by getting index of and index of results
+                    if let Some(chunk) = results.steps.get(index) {
+                        // for each step in steps add to
+                        //
+                        compose_by_steps(
+                            rules,
+                            &mut templ_str,
+                            &mut tag_info_stack,
+                            &template.template_str,
+                            chunk,
+                        );
+                    }
                     // if there is an injection
-                    if let (Some(inj_kind), Some(inj)) =
+                    if let (Some(inj_step), Some(inj)) =
                         (results.injs.get(index), template.injections.get(index))
                     {
-                        match inj_kind {
+                        match inj_step.kind {
                             // add attribute injections to template
                             StepKind::AttrMapInjection => {
                                 add_attr_inj(&mut templ_str, inj);
@@ -76,7 +119,7 @@ pub fn compose(
                     }
 
                     // don't forget the last part of the templates!
-                    if index < results.strs.len() {
+                    if index < results.steps.len() {
                         stack.push(stack_bit);
                     }
                 }
@@ -97,8 +140,8 @@ fn get_stack_bit_from_component<'a>(
         Component::Text(_text) => StackBit::Cmpnt(component),
         Component::List(_list) => StackBit::Cmpnt(component),
         Component::Tmpl(tmpl) => {
-            let txml_literal = builder.build(rules, &tmpl.template_str);
-            StackBit::Tmpl(component, txml_literal, TemplateBit { inj_index: 0 })
+            let template_steps = builder.build(rules, &tmpl.template_str);
+            StackBit::Tmpl(component, template_steps, TemplateBit { inj_index: 0 })
         }
         _ => StackBit::None,
     }

@@ -1,9 +1,7 @@
-pub use html::compose as pretty_html;
 pub use rulesets::{ClientRules, RulesetImpl, ServerRules};
 
-use component_string::{compose as build_component, BuilderImpl};
+use component_string::{compose as build_component, Builder};
 use coyote::Component;
-use template_string::{compose, Results as TemplateResults};
 
 // The folowing should never change,
 // it's a handshake between coyote and devs.
@@ -20,21 +18,6 @@ use template_string::{compose, Results as TemplateResults};
 // And that should be enough.
 //
 
-struct Builder {}
-
-impl Builder {
-    pub fn new() -> Builder {
-        Builder {}
-    }
-}
-
-impl BuilderImpl for Builder {
-    fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateResults {
-        // chance to cache templates here
-        compose(rules, template_str)
-    }
-}
-
 pub struct Html {
     rules: ServerRules,
     builder: Builder,
@@ -49,8 +32,7 @@ impl Html {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        let template = build_component(&mut self.builder, &self.rules, component);
-        pretty_html(&self.rules, &template)
+        build_component(&mut self.builder, &self.rules, component)
     }
 }
 
@@ -70,7 +52,6 @@ impl ClientHtml {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        let template = build_component(&mut self.builder, &self.rules, component);
-        pretty_html(&self.rules, &template)
+        build_component(&mut self.builder, &self.rules, component)
     }
 }

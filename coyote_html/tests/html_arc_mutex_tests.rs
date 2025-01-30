@@ -1,6 +1,5 @@
 use coyote::{attr_val, list, text, tmpl, Component};
 use coyote_html::Html;
-// use coyote_html::ComposerImpl;
 
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -26,5 +25,6 @@ fn test_coyote_html_with_arc_and_mutex() {
     let woof_form = woof_woof();
     if let Ok(mut html_mutex) = html_clone.lock() {
         let _results = html_mutex.build(&woof_form);
+        println!("{}", _results);
     };
 }

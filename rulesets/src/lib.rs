@@ -1,5 +1,6 @@
 // get_namespace(): &str
 pub trait RulesetImpl {
+    fn get_initial_namespace(&self) -> &str;
     // parse
     fn tag_is_comment(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
@@ -22,6 +23,10 @@ impl ServerRules {
 }
 
 impl RulesetImpl for ServerRules {
+    fn get_initial_namespace(&self) -> &str {
+        "html"
+    }
+
     fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }
@@ -78,6 +83,10 @@ impl ClientRules {
 }
 
 impl RulesetImpl for ClientRules {
+    fn get_initial_namespace(&self) -> &str {
+        "html"
+    }
+
     fn tag_is_comment(&self, tag: &str) -> bool {
         tag == "!--"
     }

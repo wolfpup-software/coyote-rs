@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 rulesets = { path = "../rulesets" }
-html = { path = "../html" }
 coyote = { path = "../coyote" }
-template_string = { path = "../template_string" }
+template_steps = { path = "../template_steps" }
 component_string = { path = "../component_string" }
