@@ -79,7 +79,7 @@ pub fn compose(
                 // last step is Text | node closed | independed_node_closed
 
                 if let Component::Tmpl(template) = component {
-                    // add current template chunk 
+                    // add current template chunk
                     if let Some(chunk) = results.steps.get(index) {
                         compose_by_steps(
                             rules,
