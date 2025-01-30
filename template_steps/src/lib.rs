@@ -1,7 +1,7 @@
 /*
     INTERMEDIATE RENDER FORMAT
 
-    Templates are converted to an array of content[] and injections[].
+    Templates are converted to an array of template steps[][] and and injection steps[].
 
     Coyote is focused on text / strings
 */

@@ -1,4 +1,3 @@
-// get_namespace(): &str
 pub trait RulesetImpl {
     fn get_initial_namespace(&self) -> &str;
     // parse
@@ -144,8 +143,8 @@ impl RulesetImpl for ClientRules {
     }
 }
 
+// deprecated elements
 fn is_banned_el(tag: &str) -> bool {
-    // deprecated elements
     match tag {
         "acronym" => true,
         "big" => true,

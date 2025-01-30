@@ -20,8 +20,6 @@ enum StackBit<'a> {
     None,
 }
 
-// just pass trait?
-// just build builders around rulesets
 pub trait BuilderImpl {
     fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateSteps;
 }
@@ -35,7 +33,6 @@ impl Builder {
 }
 
 impl BuilderImpl for Builder {
-    // build steps
     fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateSteps {
         // chance to cache templates here
         compose_steps(rules, template_str)
@@ -59,9 +56,7 @@ pub fn compose(
         match stack_bit {
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
-                // add text with compose::push_text
                 Component::Text(text) => {
-                    // templ_str.push_str(text)
                     push_text_logic(&mut results, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
@@ -77,17 +72,15 @@ pub fn compose(
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
+                // [TODO]
                 // verify results
                 //
                 // second step is text | node_open | descendant_injection
                 // last step is Text | node closed | independed_node_closed
 
-                // add injection
                 if let Component::Tmpl(template) = component {
-                    // add text by getting index of and index of results
+                    // add current template chunk
                     if let Some(chunk) = results.steps.get(index) {
-                        // for each step in steps add to
-                        //
                         compose_by_steps(
                             rules,
                             &mut templ_str,
@@ -96,6 +89,7 @@ pub fn compose(
                             chunk,
                         );
                     }
+
                     // if there is an injection
                     if let (Some(inj_step), Some(inj)) =
                         (results.injs.get(index), template.injections.get(index))
@@ -105,13 +99,14 @@ pub fn compose(
                             StepKind::AttrMapInjection => {
                                 add_attr_inj(&mut templ_str, inj);
                             }
-                            // queue descendant injections to queue
+                            // add descendant injections to the stack
                             StepKind::DescendantInjection => {
                                 // push template back and bail early
                                 stack.push(stack_bit);
 
                                 let bit = get_stack_bit_from_component(builder, rules, inj);
                                 stack.push(bit);
+
                                 continue;
                             }
                             _ => {}

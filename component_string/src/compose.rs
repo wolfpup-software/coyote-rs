@@ -1,6 +1,7 @@
-use crate::tag_info::{DescendantStatus, TagInfo};
 use parse::{get_text_from_step, Step, StepKind};
 use rulesets::RulesetImpl;
+
+use crate::tag_info::{DescendantStatus, TagInfo};
 
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
