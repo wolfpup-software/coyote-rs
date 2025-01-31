@@ -92,7 +92,7 @@ The `list` component reflects the `node -> [node, text, node, ...]` heiarchy of 
 The example below creates a form defined by lists of attributes, templates, and text.
 
 ```rust
-use coyote::components::{Component, attr_val, list, text, tmpl};
+use coyote::{Component, attr_val, list, text, tmpl};
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])

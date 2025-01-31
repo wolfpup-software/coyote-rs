@@ -1,6 +1,4 @@
-// use coyote::html::Html;
-use coyote::{attr_val, list, text, tmpl, Component};
-use coyote::html::Html;
+use coyote::{attr_val, list, text, tmpl, Component, Html};
 use std::sync::Arc;
 use std::sync::Mutex;
 
