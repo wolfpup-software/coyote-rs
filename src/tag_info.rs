@@ -1,6 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
-use rulesets::RulesetImpl;
+use crate::rulesets::RulesetImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum DescendantStatus {

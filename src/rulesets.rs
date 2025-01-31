@@ -143,6 +143,64 @@ impl RulesetImpl for ClientRules {
     }
 }
 
+pub struct XmlRules {}
+
+impl XmlRules {
+    pub fn new() -> XmlRules {
+        XmlRules {}
+    }
+}
+
+impl RulesetImpl for XmlRules {
+    fn get_initial_namespace(&self) -> &str {
+        "xml"
+    }
+
+    fn tag_is_comment(&self, tag: &str) -> bool {
+        tag == "!--"
+    }
+
+    fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "!--" => Some("-->"),
+            "![CDATA[" => Some("]]>"),
+            _ => None,
+        }
+    }
+
+    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+        match tag {
+            "-->" => Some("!--"),
+            "]]>" => Some("!CDATA[["),
+            _ => None,
+        }
+    }
+
+    fn respect_indentation(&self) -> bool {
+        true
+    }
+
+    fn tag_is_banned_el(&self, _tag: &str) -> bool {
+        false
+    }
+
+    fn tag_is_void_el(&self, _tag: &str) -> bool {
+        false
+    }
+
+    fn tag_is_namespace_el(&self, _tag: &str) -> bool {
+        false
+    }
+
+    fn tag_is_preserved_text_el(&self, _tag: &str) -> bool {
+        false
+    }
+
+    fn tag_is_inline_el(&self, _tag: &str) -> bool {
+        false
+    }
+}
+
 // deprecated elements
 fn is_banned_el(tag: &str) -> bool {
     match tag {

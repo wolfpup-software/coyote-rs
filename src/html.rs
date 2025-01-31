@@ -1,8 +1,3 @@
-pub use rulesets::{ClientRules, RulesetImpl, ServerRules};
-
-use component_string::{compose as build_component, Builder};
-use coyote::Component;
-
 // The folowing should never change,
 // it's a handshake between coyote and devs.
 //
@@ -18,6 +13,10 @@ use coyote::Component;
 // And that should be enough.
 //
 
+use crate::component_string::{compose, Builder};
+use crate::components::Component;
+use crate::rulesets::{ClientRules, ServerRules};
+
 pub struct Html {
     rules: ServerRules,
     builder: Builder,
@@ -32,7 +31,7 @@ impl Html {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        build_component(&mut self.builder, &self.rules, component)
+        compose(&mut self.builder, &self.rules, component)
     }
 }
 
@@ -52,6 +51,6 @@ impl ClientHtml {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        build_component(&mut self.builder, &self.rules, component)
+        compose(&mut self.builder, &self.rules, component)
     }
 }

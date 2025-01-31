@@ -6,8 +6,9 @@
     Coyote is focused on text / strings
 */
 
-use parse::{parse_str, Step, StepKind};
-use rulesets::RulesetImpl;
+use crate::parse::{parse_str, Step};
+use crate::routes::StepKind;
+use crate::rulesets::RulesetImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Results {

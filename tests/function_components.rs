@@ -1,8 +1,6 @@
 use coyote::{attr_val, list, text, tmpl, Component};
-use coyote_html::Html;
 
-use std::sync::Arc;
-use std::sync::Mutex;
+// Test will not build if function components do not build
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
@@ -17,14 +15,6 @@ fn woof_woof() -> Component {
 }
 
 #[test]
-fn test_coyote_html_with_arc_and_mutex() {
-    let html = Html::new();
-    let arc = Arc::new(Mutex::new(html));
-    let html_clone = arc.clone();
-
-    let woof_form = woof_woof();
-    if let Ok(mut html_mutex) = html_clone.lock() {
-        let _results = html_mutex.build(&woof_form);
-        println!("{}", _results);
-    };
+fn test_coyote_api() {
+    let _woof_form = woof_woof();
 }

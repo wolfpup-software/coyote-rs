@@ -8,12 +8,11 @@ There are no dependencies. There are no macros.
 
 ```sh
 cargo install --git https://github.com/wolf-pup/coyote-rs coyote
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 ```
 
 ## Components
 
-Create documents with [coyote components](./coyote/README.md).
+Create documents with coyote [components](./components.md).
 
 ```rust
 use coyote::{Component, tmpl};
@@ -25,13 +24,12 @@ fn hai() -> Component {
 
 ## Html
 
-Render components as `html` with [coyote_html](./coyote_html/README.md).
+Render components as `html` with document [builders](./document_builders.md).
 
 ```rust
-use coyote::{Component, tmpl};
-use coyote::html::Html;
+use coyote::{Component, Html, tmpl};
 
-fn hai() -> Component<'static> {
+fn hai() -> Component {
     tmpl("<p>hai :3</p>", [])
 }
 

@@ -1,10 +1,9 @@
-# Coyote Html
+# Component Builders
 
 ## Install
 
 ```sh
 cargo install --git https://github.com/wolf-pup/coyote-rs coyote
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 ```
 
 ### Hello, world!
@@ -12,8 +11,7 @@ cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 The example below creates an html document from a coyote component function.
 
 ```rust
-use coyote::{Component, tmpl};
-use coyote_html::Html;
+use coyote::{Component, Html, tmpl};
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -36,28 +34,26 @@ The output will be:
 
 ### Hello, safer world!
 
-The example below creates a _safer_ fragment for client-side renders using `ClientRules`. 
+The example below creates a _safer_ fragment for client-side renders using `ClientHtml`. 
 
 ```rust
-use coyote::{Component, tmpl};
-use coyote_html::ClientHtml;
+use coyote::{ClientHtml, Component, tmpl};
 
 fn malicious_component() -> Component {
     tmpl("
         <link rel=stylesheet href=a_dangerous_stylesheet.css>
         <style>
-            * { color: blue; }
+            * { color: malicious-blue; }
         </style>
         <script>
             console.log('a malicious script! grrr rawr');
         </script>
-        <p>omgawsh hai :3</p>
     ", [])
 }
 
 fn hai() -> Component {
     tmpl(
-        "{}<p>omgawsh hai :3</p>",
+        "{}<p>omgawsh hai >:3</p>",
         [malicious_component()],
     )
 }
@@ -74,12 +70,13 @@ fn main() {
 
 The output will be:
 ```html
-<p>hai :3</p>
+<p>hai >:3</p>
 ```
 
-`Coyote Html` guides template composition with `rulesets`.
+`Coyote` composes templates with `rulesets`.
 
-`ClientRules` rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
+The `ruleset` for `ClientHtml` rejects elements like `<script>`, `<style>`, and `<link>` elements.
+It also removes unneccessary spaces.
 
 ## License
 

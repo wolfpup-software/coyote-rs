@@ -1,13 +1,10 @@
-use coyote::Component;
-use parse::StepKind;
-use rulesets::RulesetImpl;
-use template_steps::{compose as compose_steps, Results as TemplateSteps};
+use crate::components::Component;
+use crate::routes::StepKind;
+use crate::rulesets::RulesetImpl;
+use crate::template_steps::{compose as compose_steps, Results as TemplateSteps};
 
-mod compose;
-mod tag_info;
-
-use crate::compose::compose_steps as compose_by_steps;
-use crate::compose::push_text_logic;
+use crate::compose_steps::compose_steps as compose_by_steps;
+use crate::compose_steps::push_text_logic;
 use crate::tag_info::TagInfo;
 
 struct TemplateBit {

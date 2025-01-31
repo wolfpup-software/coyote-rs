@@ -1,40 +1,7 @@
-mod routes;
-mod sliding_window;
-
-use rulesets::RulesetImpl;
-use sliding_window::SlidingWindow;
-
-#[derive(Debug, Eq, Clone, PartialEq)]
-pub enum StepKind {
-    AttrQuoteClosed,
-    AttrQuote,
-    AttrMapInjection,
-    AttrSetter,
-    AttrValue,
-    AttrValueUnquoted,
-    Attr,
-    TailElementClosed,
-    TailElementSolidus,
-    TailElementSpace,
-    TailTag,
-    DescendantInjection,
-    FragmentClosed,
-    Fragment,
-    EmptyElementClosed,
-    EmptyElement,
-    Initial,
-    InjectionConfirmed,
-    InjectionSpace,
-    ElementClosed,
-    ElementSpace,
-    Element,
-    Tag,
-    Text,
-    // needed for comments and scripts
-    AltText,
-    AltTextCloseSequence,
-    CommentText,
-}
+use crate::routes;
+use crate::routes::StepKind;
+use crate::rulesets::RulesetImpl;
+use crate::sliding_window::SlidingWindow;
 
 #[derive(Debug, Eq, Clone, PartialEq)]
 pub struct Step {

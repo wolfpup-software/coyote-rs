@@ -1,4 +1,34 @@
-use crate::StepKind;
+#[derive(Debug, Eq, Clone, PartialEq)]
+pub enum StepKind {
+    AttrQuoteClosed,
+    AttrQuote,
+    AttrMapInjection,
+    AttrSetter,
+    AttrValue,
+    AttrValueUnquoted,
+    Attr,
+    TailElementClosed,
+    TailElementSolidus,
+    TailElementSpace,
+    TailTag,
+    DescendantInjection,
+    FragmentClosed,
+    Fragment,
+    EmptyElementClosed,
+    EmptyElement,
+    Initial,
+    InjectionConfirmed,
+    InjectionSpace,
+    ElementClosed,
+    ElementSpace,
+    Element,
+    Tag,
+    Text,
+    // needed for comments and scripts
+    AltText,
+    AltTextCloseSequence,
+    CommentText,
+}
 
 // Names based roughly on:
 // https://html.spec.whatwg.org/multipage/parsing.html

@@ -17,7 +17,7 @@ cargo install --git https://github.com/wolf-pup/coyote-rs coyote
 Function components are functions that return components!
 
 ```rust
-use coyote::{Component, tmpl};
+use coyote::components::{Component, tmpl};
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -30,7 +30,7 @@ fn hai() -> Component {
 
 | Component | Description | Type |
 | --------- | ---- | ----------- |
-| Attribute | an element attribute | `attr(&str) -> Component` |
+| `Attribute` | an element attribute | `attr(attribute_name: &str) -> Component` |
 | Attribute with value | an element and attribute and value pair | `attr_val(&str, &str) -> Component` | 
 | Text | text with escaped HTML glyphs like `<` of `{`| `text(&str) -> Component` |
 | Unescaped text | dangerously unescaped text | `unescaped_text(&str) -> Component` |
@@ -62,7 +62,7 @@ fn syntax_story() -> Component {
 
 ### Injections
 
-`Injections` create attribute assignments and nested templates.
+`Injections` create nested templates and attribute assignments.
 
 There are only two valid _injections_ in a `tmpl` component:
 - attributes
@@ -128,4 +128,4 @@ Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _pote
 
 ### HTML
 
-Coyote supports [html](../coyote_html/README.md).
+Coyote supports [html](../document_builders.md).

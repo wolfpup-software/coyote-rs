@@ -1,5 +1,6 @@
-use parse::{get_text_from_step, Step, StepKind};
-use rulesets::RulesetImpl;
+use crate::parse::{get_text_from_step, Step};
+use crate::routes::StepKind;
+use crate::rulesets::RulesetImpl;
 
 use crate::tag_info::{DescendantStatus, TagInfo};
 
