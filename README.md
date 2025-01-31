@@ -37,7 +37,7 @@ fn main() {
     let hello_world = hai();
 
     let html = Html::new();
-    let document = html.compose(&hello_world); 
+    let document = html.build(&hello_world); 
 
     println!("{}", document);
 }

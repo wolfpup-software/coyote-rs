@@ -1,11 +1,9 @@
 use crate::components::Component;
+use crate::compose_steps::{compose_steps, push_text};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
-use crate::template_steps::{compose as compose_steps, Results as TemplateSteps};
-
-use crate::compose_steps::compose_steps as compose_by_steps;
-use crate::compose_steps::push_text_logic;
 use crate::tag_info::TagInfo;
+use crate::template_steps::{compose, Results as TemplateSteps};
 
 struct TemplateBit {
     pub inj_index: usize,
@@ -32,11 +30,11 @@ impl Builder {
 impl BuilderImpl for Builder {
     fn build(&mut self, rules: &dyn RulesetImpl, template_str: &str) -> TemplateSteps {
         // chance to cache templates here
-        compose_steps(rules, template_str)
+        compose(rules, template_str)
     }
 }
 
-pub fn compose(
+pub fn compose_string(
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &Component,
@@ -54,7 +52,7 @@ pub fn compose(
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
                 Component::Text(text) => {
-                    push_text_logic(&mut results, &mut tag_info_stack, rules, text);
+                    push_text(&mut results, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
@@ -78,7 +76,7 @@ pub fn compose(
                 if let Component::Tmpl(template) = component {
                     // add current template chunk
                     if let Some(chunk) = results.steps.get(index) {
-                        compose_by_steps(
+                        compose_steps(
                             rules,
                             &mut templ_str,
                             &mut tag_info_stack,

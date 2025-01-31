@@ -30,7 +30,7 @@ fn hai() -> Component {
 
 | Component | Description | Type |
 | --------- | ---- | ----------- |
-| `Attribute` | an element attribute | `attr(attribute_name: &str) -> Component` |
+| Attribute | an element attribute | `attr(attribute_name: &str) -> Component` |
 | Attribute with value | an element and attribute and value pair | `attr_val(&str, &str) -> Component` | 
 | Text | text with escaped HTML glyphs like `<` of `{`| `text(&str) -> Component` |
 | Unescaped text | dangerously unescaped text | `unescaped_text(&str) -> Component` |
@@ -120,7 +120,7 @@ fn woof_form() -> Component {
 
 Components are not HTML or XML.
 
-Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _potential_  for a document like HTML or XML.
+Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _potential_ for a document like HTML or XML.
 
 ## Renders
 

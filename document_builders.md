@@ -62,7 +62,7 @@ fn main() {
     let hello_world = hai();
 
     let safer_html = ClientHtml::new();    
-    let document = safer_html.compose(&hello_world); 
+    let document = safer_html.build(&hello_world); 
     
     println!("{}", document);
 }

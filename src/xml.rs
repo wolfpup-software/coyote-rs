@@ -1,4 +1,4 @@
-use crate::component_string::{compose, Builder};
+use crate::component_string::{compose_string, Builder};
 use crate::components::Component;
 use crate::rulesets::XmlRules;
 
@@ -16,6 +16,6 @@ impl Xml {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        compose(&mut self.builder, &self.rules, component)
+        compose_string(&mut self.builder, &self.rules, component)
     }
 }
