@@ -1,8 +1,11 @@
-// use coyote::{attr_val, list, text, tmpl, Component};
-// use crate::rulesets::ServerRules;
+// technically an integration test
+//
 
+// use crate::coyote::{attr_val, list, text, tmpl, Component};
+// use crate::rulesets::ServerRules;
+// use crate::routes::StepKind;
 // use crate::parse::{Step};
-// use template_steps::{compose, Results};
+// use crate::template_steps::{compose, Results};
 
 // // Test will not build if Function Components do not build
 

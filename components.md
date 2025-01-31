@@ -30,7 +30,7 @@ fn hai() -> Component {
 
 | Component | Description | Type |
 | --------- | ---- | ----------- |
-| Attribute | an element attribute | `attr(&str) -> Component` |
+| `Attribute` | an element attribute | `attr(attribute_name: &str) -> Component` |
 | Attribute with value | an element and attribute and value pair | `attr_val(&str, &str) -> Component` | 
 | Text | text with escaped HTML glyphs like `<` of `{`| `text(&str) -> Component` |
 | Unescaped text | dangerously unescaped text | `unescaped_text(&str) -> Component` |
@@ -128,4 +128,4 @@ Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _pote
 
 ### HTML
 
-Coyote supports [html](../coyote_html/README.md).
+Coyote supports [html](../document_builders.md).
