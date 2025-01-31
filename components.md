@@ -62,7 +62,7 @@ fn syntax_story() -> Component {
 
 ### Injections
 
-`Injections` create attribute assignments and nested templates.
+`Injections` create nested templates and attribute assignments.
 
 There are only two valid _injections_ in a `tmpl` component:
 - attributes

@@ -43,18 +43,17 @@ fn malicious_component() -> Component {
     tmpl("
         <link rel=stylesheet href=a_dangerous_stylesheet.css>
         <style>
-            * { color: blue; }
+            * { color: malicious-blue; }
         </style>
         <script>
             console.log('a malicious script! grrr rawr');
         </script>
-        <p>omgawsh hai :3</p>
     ", [])
 }
 
 fn hai() -> Component {
     tmpl(
-        "{}<p>omgawsh hai :3</p>",
+        "{}<p>omgawsh hai >:3</p>",
         [malicious_component()],
     )
 }
@@ -71,12 +70,13 @@ fn main() {
 
 The output will be:
 ```html
-<p>hai :3</p>
+<p>hai >:3</p>
 ```
 
-`Coyote Html` guides template composition with `rulesets`.
+`Coyote` composes templates with `rulesets`.
 
-`ClientHtml` rejects elements like `<script>`, `<style>`, and `<link>` elements. It also removes unneccessary spaces.
+The `ruleset` for `ClientHtml` rejects elements like `<script>`, `<style>`, and `<link>` elements.
+It also removes unneccessary spaces.
 
 ## License
 
