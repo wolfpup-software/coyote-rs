@@ -1,19 +1,4 @@
-// The folowing should never change,
-// it's a handshake between coyote and devs.
-//
-// pub trait ComposerImpl {
-//     fn build(&mut self, component: &Component) -> String;
-// }
-//
-// HOWEVER
-// ComposerImpl is required as an import when ARCd.
-// and i don't like that >:(
-//
-// For now, this is where the contract ends betweeen coyote_html and devs.
-// And that should be enough.
-//
-
-use crate::component_string::{compose, Builder};
+use crate::component_string::{compose_string, Builder};
 use crate::components::Component;
 use crate::rulesets::{ClientRules, ServerRules};
 
@@ -31,7 +16,7 @@ impl Html {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        compose(&mut self.builder, &self.rules, component)
+        compose_string(&mut self.builder, &self.rules, component)
     }
 }
 
@@ -51,6 +36,6 @@ impl ClientHtml {
     }
 
     pub fn build(&mut self, component: &Component) -> String {
-        compose(&mut self.builder, &self.rules, component)
+        compose_string(&mut self.builder, &self.rules, component)
     }
 }

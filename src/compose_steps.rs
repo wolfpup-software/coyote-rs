@@ -1,7 +1,6 @@
 use crate::parse::{get_text_from_step, Step};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
-
 use crate::tag_info::{DescendantStatus, TagInfo};
 
 pub fn compose_steps(
@@ -17,14 +16,14 @@ pub fn compose_steps(
             StepKind::ElementClosed => close_element(results, tag_info_stack),
             StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack),
             StepKind::TailTag => pop_element(results, tag_info_stack, rules, template_str, step),
-            StepKind::Text => push_text(results, tag_info_stack, rules, template_str, step),
+            StepKind::Text => push_text_component(results, tag_info_stack, rules, template_str, step),
             StepKind::Attr => add_attr(results, tag_info_stack, template_str, step),
             StepKind::AttrValue => add_attr_value(results, tag_info_stack, template_str, step),
             StepKind::AttrValueUnquoted => {
                 add_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            StepKind::CommentText => push_text(results, tag_info_stack, rules, template_str, step),
-            StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
+            StepKind::CommentText => push_text_component(results, tag_info_stack, rules, template_str, step),
+            StepKind::AltText => push_text_component(results, tag_info_stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
             }
@@ -33,7 +32,7 @@ pub fn compose_steps(
     }
 }
 
-fn push_text(
+fn push_text_component(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
@@ -41,82 +40,10 @@ fn push_text(
     step: &Step,
 ) {
     let text = get_text_from_step(template_str, step);
-    let tag_info = match stack.last_mut() {
-        Some(curr) => curr,
-        // text is first node
-        _ => {
-            for line in text.split("\n") {
-                if all_spaces(line) {
-                    continue;
-                }
-
-                results.push('\n');
-                results.push_str(line.trim());
-            }
-            return;
-        }
-    };
-
-    if tag_info.banned_path || tag_info.void_el {
-        return;
-    }
-
-    if tag_info.preserved_text_path {
-        tag_info.most_recent_descendant = DescendantStatus::Text;
-        results.push_str(text);
-        return;
-    }
-
-    // if alt text
-    if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
-        let common_index = get_most_common_space_index(text);
-
-        for line in text.split("\n") {
-            if all_spaces(line) {
-                continue;
-            }
-
-            results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-            results.push_str(line[common_index..].trim_end());
-        }
-
-        tag_info.most_recent_descendant = DescendantStatus::Text;
-        return;
-    }
-
-    if all_spaces(text) {
-        return;
-    }
-
-    match (
-        rules.respect_indentation(),
-        &tag_info.most_recent_descendant,
-    ) {
-        (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text(results, text);
-        }
-        (true, DescendantStatus::InlineElementClosed) => {
-            add_inline_element_closed_text(results, text, tag_info)
-        }
-        (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text(results, text),
-            _ => add_text(results, text, tag_info),
-        },
-        // (true, _) => add_text(results, text, tag_info),
-        (false, DescendantStatus::InlineElementClosed) => {
-            add_unpretty_inline_element_closed_text(results, text)
-        }
-        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
-        (true, _) => add_text(results, text, tag_info),
-        // (false, _) => add_inline_element_text(results, text),
-        (_, _) => add_inline_element_text(results, text),
-    }
-
-    tag_info.most_recent_descendant = DescendantStatus::Text;
+    push_text(results, stack, rules, text)
 }
 
-pub fn push_text_logic(
+pub fn push_text(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
