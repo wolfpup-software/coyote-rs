@@ -8,7 +8,6 @@ There are no dependencies. There are no macros.
 
 ```sh
 cargo install --git https://github.com/wolf-pup/coyote-rs coyote
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 ```
 
 ## Components

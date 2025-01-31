@@ -4,7 +4,6 @@
 
 ```sh
 cargo install --git https://github.com/wolf-pup/coyote-rs coyote
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote_html
 ```
 
 ### Hello, world!
@@ -36,11 +35,11 @@ The output will be:
 
 ### Hello, safer world!
 
-The example below creates a _safer_ fragment for client-side renders using `ClientRules`. 
+The example below creates a _safer_ fragment for client-side renders using `ClientHtml`. 
 
 ```rust
 use coyote::{Component, tmpl};
-use coyote_html::ClientHtml;
+use coyote::html::ClientHtml;
 
 fn malicious_component() -> Component {
     tmpl("
@@ -79,7 +78,7 @@ The output will be:
 
 `Coyote Html` guides template composition with `rulesets`.
 
-`ClientRules` rejects elements like `<script>` and `<style>` and removes unneccessary spaces.
+`ClientHtml` rejects elements like `<script>`, `<style>`, and `<link>` elements. It also removes unneccessary spaces.
 
 ## License
 

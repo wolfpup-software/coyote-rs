@@ -1,3 +1,10 @@
-[workspace]
-members = ["parse", "coyote", "template_steps", "component_string", "coyote_html", "rulesets",]
-resolver = "2"
+# [workspace]
+# members = ["parse", "coyote", "template_steps", "component_string", "coyote_html", "rulesets",]
+# resolver = "2"
+
+
+[package]
+name = "coyote"
+version = "0.1.0"
+edition = "2021"
+
