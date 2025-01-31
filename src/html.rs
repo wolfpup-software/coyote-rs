@@ -14,7 +14,7 @@
 //
 
 use crate::component_string::{compose, Builder};
-use crate::coyote::Component;
+use crate::components::Component;
 use crate::rulesets::{ClientRules, ServerRules};
 
 pub struct Html {

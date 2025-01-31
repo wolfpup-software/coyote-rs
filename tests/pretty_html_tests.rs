@@ -1,4 +1,6 @@
-use coyote::{tmpl, ClientHtml, Html};
+use coyote::tmpl;
+use coyote::html::{ClientHtml, Html};
+
 
 #[test]
 fn test_pretty_html_no_empty_space() {

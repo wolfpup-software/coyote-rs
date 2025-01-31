@@ -11,7 +11,8 @@ cargo install --git https://github.com/wolf-pup/coyote-rs coyote
 The example below creates an html document from a coyote component function.
 
 ```rust
-use coyote::{Component, Html, tmpl};
+use coyote::{Component, tmpl};
+use coyote::html::Html;
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -37,7 +38,8 @@ The output will be:
 The example below creates a _safer_ fragment for client-side renders using `ClientHtml`. 
 
 ```rust
-use coyote::{ClientHtml, Component, tmpl};
+use coyote::{Component, tmpl};
+use coyote::html::{ClientHtml};
 
 fn malicious_component() -> Component {
     tmpl("

@@ -1,4 +1,4 @@
-use crate::coyote::Component;
+use crate::components::Component;
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::template_steps::{compose as compose_steps, Results as TemplateSteps};

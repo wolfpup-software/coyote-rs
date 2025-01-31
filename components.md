@@ -17,7 +17,7 @@ cargo install --git https://github.com/wolf-pup/coyote-rs coyote
 Function components are functions that return components!
 
 ```rust
-use coyote::{Component, tmpl};
+use coyote::components::{Component, tmpl};
 
 fn hai() -> Component {
     tmpl("<p>omgawsh hai :3</p>", [])
@@ -92,7 +92,7 @@ The `list` component reflects the `node -> [node, text, node, ...]` heiarchy of 
 The example below creates a form defined by lists of attributes, templates, and text.
 
 ```rust
-use coyote::{Component, attr_val, list, text, tmpl};
+use coyote::components::{Component, attr_val, list, text, tmpl};
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])

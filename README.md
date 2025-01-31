@@ -15,7 +15,7 @@ cargo install --git https://github.com/wolf-pup/coyote-rs coyote
 Create documents with coyote [components](./components.md).
 
 ```rust
-use coyote::{Component, tmpl};
+use coyote::components::{Component, tmpl};
 
 fn hai() -> Component {
     tmpl("<p>hai :3</p>", [])
@@ -27,7 +27,8 @@ fn hai() -> Component {
 Render components as `html` with document [builders](./document_builders.md).
 
 ```rust
-use coyote::{Component, Html, tmpl};
+use coyote::components::{Component, Html, tmpl};
+use coyote::html::Html;
 
 fn hai() -> Component {
     tmpl("<p>hai :3</p>", [])
