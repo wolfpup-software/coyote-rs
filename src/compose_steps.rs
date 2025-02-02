@@ -16,14 +16,20 @@ pub fn compose_steps(
             StepKind::ElementClosed => close_element(results, tag_info_stack),
             StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack),
             StepKind::TailTag => pop_element(results, tag_info_stack, rules, template_str, step),
-            StepKind::Text => push_text_component(results, tag_info_stack, rules, template_str, step),
+            StepKind::Text => {
+                push_text_component(results, tag_info_stack, rules, template_str, step)
+            }
             StepKind::Attr => add_attr(results, tag_info_stack, template_str, step),
             StepKind::AttrValue => add_attr_value(results, tag_info_stack, template_str, step),
             StepKind::AttrValueUnquoted => {
                 add_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            StepKind::CommentText => push_text_component(results, tag_info_stack, rules, template_str, step),
-            StepKind::AltText => push_text_component(results, tag_info_stack, rules, template_str, step),
+            StepKind::CommentText => {
+                push_text_component(results, tag_info_stack, rules, template_str, step)
+            }
+            StepKind::AltText => {
+                push_text_component(results, tag_info_stack, rules, template_str, step)
+            }
             StepKind::AltTextCloseSequence => {
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
             }
