@@ -1,5 +1,3 @@
-// https://developer.mozilla.org/en-US/docs/Web/HTML/Element
-
 use crate::rulesets::RulesetImpl;
 
 #[derive(Debug, Clone, Eq, PartialEq)]

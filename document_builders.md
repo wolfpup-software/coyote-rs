@@ -1,10 +1,6 @@
-# Component Builders
+# Document Builders
 
-## Install
-
-```sh
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote
-```
+## Html
 
 ### Hello, world!
 
@@ -14,7 +10,7 @@ The example below creates an html document from a coyote component function.
 use coyote::{Component, Html, tmpl};
 
 fn hai() -> Component {
-    tmpl("<p>omgawsh hai :3</p>", [])
+    tmpl("<p>hai :3</p>", [])
 }
 
 fn main() {
@@ -31,6 +27,8 @@ The output will be:
 ```html
 <p>hai :3</p>
 ```
+
+## Client Html
 
 ### Hello, safer world!
 
@@ -53,7 +51,7 @@ fn malicious_component() -> Component {
 
 fn hai() -> Component {
     tmpl(
-        "{}<p>omgawsh hai >:3</p>",
+        "{}<p>hai >:3</p>",
         [malicious_component()],
     )
 }

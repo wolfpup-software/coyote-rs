@@ -1,6 +1,6 @@
-use coyote::{attr_val, list, text, tmpl, Component};
-
 // Test will not build if function components do not build
+
+use coyote::{attr_val, list, text, tmpl, Component};
 
 fn woof() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
