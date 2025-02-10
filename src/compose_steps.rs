@@ -403,7 +403,7 @@ fn pop_closing_sequence(
     // need to get second to last element and then say this was a block element or an inline element
     let closing_sequence = get_text_from_step(template_str, step);
 
-    let tag = match rules.get_tag_from_close_sequence(closing_sequence) {
+    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
         Some(t) => t,
         _ => return,
     };

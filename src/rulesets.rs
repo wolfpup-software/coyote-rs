@@ -3,7 +3,7 @@ pub trait RulesetImpl {
     // parse
     fn tag_is_comment(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
+    fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
     // coyote
     fn respect_indentation(&self) -> bool;
     fn tag_is_banned_el(&self, tag: &str) -> bool;
@@ -39,7 +39,7 @@ impl RulesetImpl for ServerRules {
         }
     }
 
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+    fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
             "-->" => Some("!--"),
             "</script>" => Some("script"),
@@ -99,7 +99,7 @@ impl RulesetImpl for ClientRules {
         }
     }
 
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+    fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
             "-->" => Some("!--"),
             "</script>" => Some("script"),
@@ -168,7 +168,7 @@ impl RulesetImpl for XmlRules {
         }
     }
 
-    fn get_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
+    fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
             "-->" => Some("!--"),
             "]]>" => Some("!CDATA[["),
