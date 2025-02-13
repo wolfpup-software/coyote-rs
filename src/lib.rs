@@ -9,8 +9,6 @@ mod sliding_window;
 mod tag_info;
 mod template_steps;
 
-// A very limited API
-//
 pub use crate::components::attr;
 pub use crate::components::attr_val;
 pub use crate::components::list;

@@ -1,13 +1,14 @@
 use crate::rulesets::RulesetImpl;
 
+// describing how to handle next elemnts and spaces
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum DescendantStatus {
-    Text,
-    Element,
-    ElementClosed,
-    InlineElement,
-    InlineElementClosed,
-    Initial,
+    Text,    // space, element chooses spacing
+    Element, // next line no matter  if it's inline or text
+    // ElementClosed, // next line if it's inline or closed
+    InlineElement,       // if previous is text or inline use ' ', otherwise next line
+    InlineElementClosed, // if previous is text or inline use ' ', otherwise next line
+    Initial,             // no '\s' or '\n' spacingElement chooses spacing
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -24,7 +25,6 @@ pub struct TagInfo {
 
 impl TagInfo {
     pub fn new(rules: &dyn RulesetImpl, tag: &str) -> TagInfo {
-        // rules.namespace
         let mut namespace = rules.get_initial_namespace().to_string();
         if rules.tag_is_namespace_el(tag) {
             namespace = tag.to_string()
