@@ -212,7 +212,6 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         results.push_str(">");
     }
 
-    let is_inline_el = tag_info.inline_el;
     if tag_info.void_el && "html" == tag_info.namespace {
         stack.pop();
     }
@@ -269,15 +268,11 @@ fn pop_element(
     step: &Step,
 ) {
     let tag = get_text_from_step(template_str, step);
-
-    let tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
+    if let Some(tag_info) = stack.last() {
+        if tag != tag_info.tag {
+            return;
+        }
     };
-
-    if tag != tag_info.tag {
-        return;
-    }
 
     let tag_info = match stack.pop() {
         Some(ti) => ti,
@@ -303,30 +298,17 @@ fn pop_element(
     };
 
     // if respect indentatrion
-    if rules.respect_indentation() {
-        // block element
-        if tag_info.inline_el {
-        } else {
-            println!("pop block element");
-            println!("{:?}", prev_tag_info);
-
-            if tag_info.most_recent_descendant != DescendantStatus::Initial {
-                results.push('\n');
-                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-            }
-        }
-    } else {
-        // no formatting
+    if rules.respect_indentation()
+        && !tag_info.inline_el
+        && tag_info.most_recent_descendant != DescendantStatus::Initial
+    {
+        results.push('\n');
+        results.push_str(&"\t".repeat(prev_tag_info.indent_count));
     }
 
     results.push_str("</");
     results.push_str(tag);
     results.push('>');
-
-    match rules.tag_is_inline_el(tag) {
-        true => update_most_recent_descendant_status(stack, DescendantStatus::InlineElementClosed),
-        _ => update_most_recent_descendant_status(stack, DescendantStatus::ElementClosed),
-    }
 }
 
 fn all_spaces(line: &str) -> bool {
@@ -335,19 +317,13 @@ fn all_spaces(line: &str) -> bool {
 
 fn add_inline_element_text(results: &mut String, text: &str) {
     let mut text_iter = text.split("\n");
-    let mut found = false;
 
     while let Some(line) = text_iter.next() {
         if all_spaces(line) {
             continue;
         }
 
-        if found {
-            results.push(' ');
-        }
-
         results.push_str(line.trim());
-        // found = true;
     }
 }
 
