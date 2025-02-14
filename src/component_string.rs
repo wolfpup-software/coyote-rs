@@ -44,7 +44,10 @@ pub fn compose_string(
     let sbit = get_stack_bit_from_component(builder, rules, component);
 
     let mut results = "".to_string();
-    let mut tag_info_stack: Vec<TagInfo> = Vec::new();
+
+    // create a :root TagInfo node here, it never matters the length of this stack,
+    // just that it provides info to the StackBit stack
+    let mut tag_info_stack: Vec<TagInfo> = Vec::from([TagInfo::new(rules, ":root")]);
 
     let mut stack: Vec<StackBit> = Vec::from([sbit]);
     while let Some(mut stack_bit) = stack.pop() {
