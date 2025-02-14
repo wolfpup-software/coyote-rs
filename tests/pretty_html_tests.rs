@@ -44,6 +44,36 @@ fn test_pretty_html_void_el_with_attributes() {
 }
 
 #[test]
+fn test_pretty_html_inline_el() {
+    let template = tmpl(
+        "
+        <span>hai <span>:3</span></span> ",
+        [],
+    );
+    let expected = "<span>hai <span>:3</span></span>";
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(expected, results);
+}
+
+#[test]
+fn test_unpretty_html_inline_el() {
+    let template = tmpl(
+        "
+        <span>
+            hai
+        <span> :3 </span> </span> ",
+        [],
+    );
+    let expected = "<span>hai <span>:3</span></span>";
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(expected, results);
+}
+
+#[test]
 fn test_pretty_html_void_el_and_others() {
     let template = tmpl(
         "
@@ -220,17 +250,17 @@ fn test_pretty_html_doc() {
 // /* complicated inline cases */
 // // there should be some logic for img tags
 // //
-// #[test]
-// fn test_pretty_html_without_indents_and_text() {
-//     let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
+#[test]
+fn test_pretty_html_without_indents_and_text() {
+    let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
 
-//     let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n\t<img>\n</a>";
+    let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n\t<img>\n</a>";
 
-//     let mut html = Html::new();
-//     let results = html.build(&template);
+    let mut html = Html::new();
+    let results = html.build(&template);
 
-//     assert_eq!(expected, results);
-// }
+    assert_eq!(expected, results);
+}
 
 // #[test]
 // fn test_pretty_html_without_indents_and_text_client() {

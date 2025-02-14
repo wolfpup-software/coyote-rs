@@ -172,8 +172,9 @@ fn push_element(
     // if respect indentatrion
     if rules.respect_indentation() {
         // indent formatting
-        if tag_info.inline_el {
+        if prev_tag_info.inline_el {
             // do some inline stuff
+            // results.push(' ');
         } else {
             if stack.len() > 1 || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
             {
