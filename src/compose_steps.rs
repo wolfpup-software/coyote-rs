@@ -79,11 +79,6 @@ pub fn push_text(
         return;
     }
 
-    // if let Some(prev_tag_info) = stack.last_mut() {
-    //     prev_tag_info.most_recent_descendant = DescendantStatus::Text;
-    // };
-
-    // if stack is 1
     let tag_info = match stack.last_mut() {
         Some(curr) => curr,
         _ => {
@@ -123,9 +118,6 @@ pub fn push_text(
         rules.respect_indentation(),
         &tag_info.most_recent_descendant,
     ) {
-        (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text(results, text);
-        }
         (true, DescendantStatus::InlineElementClosed) => {
             add_inline_element_closed_text(results, text, tag_info)
         }
@@ -133,14 +125,10 @@ pub fn push_text(
             true => add_inline_element_text(results, text),
             _ => add_text(results, text, tag_info),
         },
-        // (true, _) => add_text(results, text, tag_info),
-        (false, DescendantStatus::InlineElement) => add_inline_element_text(results, text),
-        (false, DescendantStatus::Text) => add_inline_element_text(results, text),
         (false, DescendantStatus::InlineElementClosed) => {
             add_unpretty_inline_element_closed_text(results, text)
         }
         (true, _) => add_text(results, text, tag_info),
-        // (false, _) => add_inline_element_text(results, text),
         (_, _) => add_inline_element_text(results, text),
     }
 
@@ -173,19 +161,17 @@ fn push_element(
 
     // if respect indentatrion
     if rules.respect_indentation() {
-        // indent formatting
         match (
             prev_tag_info.most_recent_descendant.clone(),
-            prev_tag_info.inline_el,
             tag_info.inline_el,
         ) {
-            (DescendantStatus::Text, _, true) => {
+            (DescendantStatus::Text, true) => {
                 results.push(' ');
             }
-            (DescendantStatus::InlineElementClosed, _, true) => {
+            (DescendantStatus::InlineElementClosed, true) => {
                 results.push(' ');
             }
-            (_, _, _) => {
+            (_, _) => {
                 if stack.len() > 1
                     || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
                 {
@@ -196,10 +182,7 @@ fn push_element(
             }
         }
     } else {
-        if prev_tag_info.most_recent_descendant == DescendantStatus::Text
-            || prev_tag_info.most_recent_descendant == DescendantStatus::InlineElement
-            || prev_tag_info.most_recent_descendant == DescendantStatus::InlineElementClosed
-        {
+        if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
             results.push(' ');
         }
     }
