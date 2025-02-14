@@ -79,9 +79,9 @@ pub fn push_text(
         return;
     }
 
-    if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = DescendantStatus::Text;
-    };
+    // if let Some(prev_tag_info) = stack.last_mut() {
+    //     prev_tag_info.most_recent_descendant = DescendantStatus::Text;
+    // };
 
     // if stack is 1
     let tag_info = match stack.last_mut() {
@@ -98,6 +98,7 @@ pub fn push_text(
 
     if tag_info.preserved_text_path {
         results.push_str(text);
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
 
@@ -114,7 +115,7 @@ pub fn push_text(
             results.push_str(&"\t".repeat(tag_info.indent_count));
             results.push_str(line[common_index..].trim_end());
         }
-
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
 
@@ -133,16 +134,17 @@ pub fn push_text(
             _ => add_text(results, text, tag_info),
         },
         // (true, _) => add_text(results, text, tag_info),
-        (false, DescendantStatus::InlineElement) => {
+        (false, DescendantStatus::InlineElement) => add_inline_element_text(results, text),
+        (false, DescendantStatus::Text) => add_inline_element_text(results, text),
+        (false, DescendantStatus::InlineElementClosed) => {
             add_unpretty_inline_element_closed_text(results, text)
         }
-        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
         (true, _) => add_text(results, text, tag_info),
         // (false, _) => add_inline_element_text(results, text),
         (_, _) => add_inline_element_text(results, text),
     }
 
-    // tag_info.most_recent_descendant = DescendantStatus::Text;
+    tag_info.most_recent_descendant = DescendantStatus::Text;
 }
 
 fn push_element(
@@ -172,19 +174,34 @@ fn push_element(
     // if respect indentatrion
     if rules.respect_indentation() {
         // indent formatting
-        if prev_tag_info.inline_el {
-            // do some inline stuff
-            // results.push(' ');
-        } else {
-            if stack.len() > 1 || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
-            {
-                results.push('\n');
+        match (
+            prev_tag_info.most_recent_descendant.clone(),
+            prev_tag_info.inline_el,
+            tag_info.inline_el,
+        ) {
+            (DescendantStatus::Text, _, true) => {
+                results.push(' ');
             }
+            (DescendantStatus::InlineElementClosed, _, true) => {
+                results.push(' ');
+            }
+            (_, _, _) => {
+                if stack.len() > 1
+                    || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
+                {
+                    results.push('\n');
+                }
 
-            results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+            }
         }
     } else {
-        // no formatting
+        if prev_tag_info.most_recent_descendant == DescendantStatus::Text
+            || prev_tag_info.most_recent_descendant == DescendantStatus::InlineElement
+            || prev_tag_info.most_recent_descendant == DescendantStatus::InlineElementClosed
+        {
+            results.push(' ');
+        }
     }
 
     match tag_info.inline_el {
@@ -347,7 +364,7 @@ fn add_inline_element_text(results: &mut String, text: &str) {
         }
 
         results.push_str(line.trim());
-        found = true;
+        // found = true;
     }
 }
 
@@ -364,7 +381,7 @@ fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &T
     while let Some(line) = text_iter.next() {
         if !all_spaces(line) {
             results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(&"\t".repeat(tag_info.indent_count));
             results.push_str(line.trim());
         }
     }
