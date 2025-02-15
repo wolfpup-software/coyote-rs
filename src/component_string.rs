@@ -1,5 +1,5 @@
 use crate::components::Component;
-use crate::compose_steps::{compose_steps, push_text};
+use crate::compose_steps::{compose_steps, push_attr, push_text};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::TagInfo;
@@ -87,7 +87,7 @@ pub fn compose_string(
                 ) {
                     match inj_step.kind {
                         StepKind::AttrMapInjection => {
-                            add_attr_inj(&mut tmpl_str, inj);
+                            add_attr_inj(&mut tag_info_stack, &mut tmpl_str, inj);
                         }
                         StepKind::DescendantInjection => {
                             // push template back and bail early
@@ -130,15 +130,15 @@ fn get_bit_from_component_stack<'a>(
     }
 }
 
-fn add_attr_inj(template_str: &mut String, component: &Component) {
+fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, component: &Component) {
     match component {
-        Component::Attr(attr) => add_attr(template_str, attr),
+        Component::Attr(attr) => push_attr(template_str, stack, attr),
         Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),
         Component::List(attr_list) => {
             for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
-                        add_attr(template_str, &attr);
+                        push_attr(template_str, stack, &attr);
                     }
                     Component::AttrVal(attr, val) => {
                         add_attr_val(template_str, &attr, &val);
@@ -149,11 +149,6 @@ fn add_attr_inj(template_str: &mut String, component: &Component) {
         }
         _ => {}
     }
-}
-
-fn add_attr(tmpl_str: &mut String, attr: &str) {
-    tmpl_str.push_str(" ");
-    tmpl_str.push_str(attr);
 }
 
 fn add_attr_val(tmpl_str: &mut String, attr: &str, val: &str) {

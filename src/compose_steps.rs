@@ -38,7 +38,7 @@ pub fn compose_steps(
             StepKind::Text => {
                 push_text_component(results, tag_info_stack, rules, template_str, step)
             }
-            StepKind::Attr => add_attr(results, tag_info_stack, template_str, step),
+            StepKind::Attr => push_attr_component(results, tag_info_stack, template_str, step),
             StepKind::AttrValue => add_attr_value(results, tag_info_stack, template_str, step),
             StepKind::AttrValueUnquoted => {
                 add_attr_value_unquoted(results, tag_info_stack, template_str, step)
@@ -366,7 +366,17 @@ fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
+fn push_attr_component(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    template_str: &str,
+    step: &Step,
+) {
+    let attr = get_text_from_step(template_str, step);
+    push_attr(results, stack, attr)
+}
+
+pub fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -376,7 +386,6 @@ fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, 
         return;
     }
 
-    let attr = get_text_from_step(template_str, step);
     results.push(' ');
     results.push_str(attr);
 }
