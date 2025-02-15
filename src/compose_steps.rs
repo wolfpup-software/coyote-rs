@@ -489,9 +489,7 @@ fn update_most_recent_descendant_status(
 ) {
     if let Some(prev_tag_info) = stack.last_mut() {
         prev_tag_info.most_recent_descendant = descendant_status;
-        return;
     }
-    println!("no tag_info in stack!")
 }
 
 fn get_index_of_first_char(text: &str) -> usize {
