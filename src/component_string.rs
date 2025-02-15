@@ -1,5 +1,5 @@
 use crate::components::Component;
-use crate::compose_steps::{compose_steps, push_attr, push_text};
+use crate::compose_steps::{compose_steps, push_attr, push_attr_value, push_text};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::TagInfo;
@@ -133,15 +133,19 @@ fn get_bit_from_component_stack<'a>(
 fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, component: &Component) {
     match component {
         Component::Attr(attr) => push_attr(template_str, stack, attr),
-        Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),
+        Component::AttrVal(attr, val) => {
+            push_attr(template_str, stack, attr);
+            push_attr_value(template_str, stack, val);
+        }
         Component::List(attr_list) => {
             for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
-                        push_attr(template_str, stack, &attr);
+                        push_attr(template_str, stack, attr);
                     }
                     Component::AttrVal(attr, val) => {
-                        add_attr_val(template_str, &attr, &val);
+                        push_attr(template_str, stack, attr);
+                        push_attr_value(template_str, stack, val);
                     }
                     _ => {}
                 }
@@ -149,12 +153,4 @@ fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, component: 
         }
         _ => {}
     }
-}
-
-fn add_attr_val(tmpl_str: &mut String, attr: &str, val: &str) {
-    tmpl_str.push_str(" ");
-    tmpl_str.push_str(attr);
-    tmpl_str.push_str("=\"");
-    tmpl_str.push_str(val);
-    tmpl_str.push_str("\"");
 }
