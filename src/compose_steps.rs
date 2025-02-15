@@ -39,9 +39,11 @@ pub fn compose_steps(
                 push_text_component(results, tag_info_stack, rules, template_str, step)
             }
             StepKind::Attr => push_attr_component(results, tag_info_stack, template_str, step),
-            StepKind::AttrValue => add_attr_value(results, tag_info_stack, template_str, step),
+            StepKind::AttrValue => {
+                push_attr_value_component(results, tag_info_stack, template_str, step)
+            }
             StepKind::AttrValueUnquoted => {
-                add_attr_value_unquoted(results, tag_info_stack, template_str, step)
+                push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
             StepKind::CommentText => {
                 push_text_component(results, tag_info_stack, rules, template_str, step)
@@ -81,10 +83,8 @@ pub fn push_text(
 
     let tag_info = match stack.last_mut() {
         Some(curr) => curr,
-        _ => {
-            // this should never happen
-            return;
-        }
+        // this should never happen
+        _ => return,
     };
 
     if tag_info.banned_path || tag_info.void_el {
@@ -390,7 +390,17 @@ pub fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
     results.push_str(attr);
 }
 
-fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
+fn push_attr_value_component(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    template_str: &str,
+    step: &Step,
+) {
+    let val = get_text_from_step(template_str, step);
+    push_attr_value(results, stack, val)
+}
+
+pub fn push_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, val: &str) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -400,13 +410,12 @@ fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: 
         return;
     }
 
-    let val = get_text_from_step(template_str, step);
     results.push_str("=\"");
     results.push_str(val);
     results.push('"');
 }
 
-fn add_attr_value_unquoted(
+fn push_attr_value_unquoted(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     template_str: &str,
