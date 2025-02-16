@@ -3,25 +3,6 @@ use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::{DescendantStatus, TagInfo};
 
-// Text,
-// Element,
-// ElementClosed,
-// InlineElement,
-// InlineElementClosed,
-// Initial,
-//
-
-// need to track a base layer of the descendant status of the document itself
-// initial
-// element
-// etc ...
-//
-
-// Stack {
-//   descendant_status_at_root
-//   stack: Vec<TagInfo>,
-// }
-
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
     results: &mut String,
@@ -52,7 +33,6 @@ pub fn compose_steps(
                 push_text_component(results, tag_info_stack, rules, template_str, step)
             }
             StepKind::AltTextCloseSequence => {
-                // pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
             }
             _ => {}
@@ -122,14 +102,14 @@ pub fn push_text(
             add_inline_element_closed_text(results, text, tag_info)
         }
         (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text(results, text),
+            true => add_inline_element_text(results, text, tag_info),
             _ => add_text(results, text, tag_info),
         },
         (false, DescendantStatus::InlineElementClosed) => {
-            add_unpretty_inline_element_closed_text(results, text)
+            add_no_indents_inline_element_closed_text(results, text)
         }
         (true, _) => add_text(results, text, tag_info),
-        (_, _) => add_inline_element_text(results, text),
+        (false, _) => add_text_no_indents(results, text),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
@@ -187,10 +167,12 @@ fn push_element(
         }
     }
 
-    match tag_info.inline_el {
-        true => update_most_recent_descendant_status(stack, DescendantStatus::InlineElement),
-        _ => update_most_recent_descendant_status(stack, DescendantStatus::Element),
-    }
+    // put this ins a function
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElement,
+        _ => DescendantStatus::Element,
+    };
+    update_most_recent_descendant_status(stack, descendant_status);
 
     results.push('<');
     results.push_str(tag);
@@ -232,6 +214,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     if "html" != tag_info.namespace {
         results.push_str("/>");
         let is_inline_el = tag_info.inline_el;
+
         stack.pop();
 
         match is_inline_el {
@@ -315,14 +298,23 @@ fn all_spaces(line: &str) -> bool {
     line.len() == get_index_of_first_char(line)
 }
 
-fn add_inline_element_text(results: &mut String, text: &str) {
+fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
+
+    while let Some(line) = text_iter.next() {
+        if !all_spaces(line) {
+            results.push_str(line.trim());
+            break;
+        }
+    }
 
     while let Some(line) = text_iter.next() {
         if all_spaces(line) {
             continue;
         }
 
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
         results.push_str(line.trim());
     }
 }
@@ -330,10 +322,11 @@ fn add_inline_element_text(results: &mut String, text: &str) {
 fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
 
-    if let Some(line) = text_iter.next() {
+    while let Some(line) = text_iter.next() {
         if !all_spaces(line) {
             results.push(' ');
             results.push_str(line.trim());
+            break;
         }
     }
 
@@ -346,7 +339,25 @@ fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &T
     }
 }
 
-fn add_unpretty_inline_element_closed_text(results: &mut String, text: &str) {
+fn add_text_no_indents(results: &mut String, text: &str) {
+    let mut text_iter = text.split("\n");
+
+    while let Some(line) = text_iter.next() {
+        if !all_spaces(line) {
+            results.push_str(line.trim());
+            break;
+        }
+    }
+
+    while let Some(line) = text_iter.next() {
+        if !all_spaces(line) {
+            results.push(' ');
+            results.push_str(line.trim());
+        }
+    }
+}
+
+fn add_no_indents_inline_element_closed_text(results: &mut String, text: &str) {
     for line in text.split("\n") {
         if !all_spaces(line) {
             results.push(' ');
@@ -387,7 +398,7 @@ pub fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
     }
 
     results.push(' ');
-    results.push_str(attr);
+    results.push_str(attr.trim());
 }
 
 fn push_attr_value_component(
@@ -411,7 +422,7 @@ pub fn push_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, val: &str
     }
 
     results.push_str("=\"");
-    results.push_str(val);
+    results.push_str(val.trim());
     results.push('"');
 }
 
@@ -490,6 +501,14 @@ fn update_most_recent_descendant_status(
     if let Some(prev_tag_info) = stack.last_mut() {
         prev_tag_info.most_recent_descendant = descendant_status;
     }
+}
+
+fn update_element_descendant_status(stack: &mut Vec<TagInfo>, tag_info: &TagInfo) {
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElement,
+        _ => DescendantStatus::Element,
+    };
+    update_most_recent_descendant_status(stack, descendant_status);
 }
 
 fn get_index_of_first_char(text: &str) -> usize {
