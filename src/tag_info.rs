@@ -43,7 +43,6 @@ impl TagInfo {
     }
 
     pub fn from(rules: &dyn RulesetImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
-        // clone, then update values, then return
         let mut tag_info = prev_tag_info.clone();
 
         if rules.tag_is_namespace_el(tag) {

@@ -43,7 +43,9 @@ pub fn compose_string(
 
     let component_bit = get_bit_from_component_stack(builder, rules, component);
     let mut component_stack: Vec<StackBit> = Vec::from([component_bit]);
-    let mut tag_info_stack: Vec<TagInfo> = Vec::from([TagInfo::new(rules, ":root")]);
+
+    let root_tag_info = TagInfo::new(rules, ":root");
+    let mut tag_info_stack: Vec<TagInfo> = Vec::from([root_tag_info]);
 
     while let Some(mut component_bit) = component_stack.pop() {
         match component_bit {
@@ -89,8 +91,8 @@ pub fn compose_string(
                         StepKind::AttrMapInjection => {
                             add_attr_inj(&mut tag_info_stack, &mut tmpl_str, inj);
                         }
+                        // push template back and bail early
                         StepKind::DescendantInjection => {
-                            // push template back and bail early
                             component_stack.push(component_bit);
 
                             let bit = get_bit_from_component_stack(builder, rules, inj);

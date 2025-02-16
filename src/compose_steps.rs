@@ -79,17 +79,7 @@ pub fn push_text(
 
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
-        let common_index = get_most_common_space_index(text);
-
-        for line in text.split("\n") {
-            if all_spaces(line) {
-                continue;
-            }
-
-            results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count));
-            results.push_str(line[common_index..].trim_end());
-        }
+        add_alt_element_text(results, text, tag_info);
         tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
@@ -167,7 +157,7 @@ fn push_element(
         }
     }
 
-    // put this ins a function
+    // update descendant status
     let descendant_status = match tag_info.inline_el {
         true => DescendantStatus::InlineElement,
         _ => DescendantStatus::Element,
@@ -180,10 +170,6 @@ fn push_element(
     stack.push(tag_info);
 }
 
-//  I THINK THERES A PROBLEM HERE
-//      when i close an element, i should add "element closed " to most recent descendant
-
-// close element keeps on the stack unless inline element
 fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     let tag_info = match stack.last_mut() {
         Some(prev_tag_info) => prev_tag_info,
@@ -195,11 +181,11 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     }
 
     if tag_info.void_el && "html" == tag_info.namespace {
+        // void element
         stack.pop();
     }
 }
 
-// most recent descendant
 fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
@@ -213,16 +199,14 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 
     if "html" != tag_info.namespace {
         results.push_str("/>");
-        let is_inline_el = tag_info.inline_el;
+        let descendant_status = match tag_info.inline_el {
+            true => DescendantStatus::InlineElementClosed,
+            _ => DescendantStatus::ElementClosed,
+        };
 
         stack.pop();
 
-        match is_inline_el {
-            true => {
-                update_most_recent_descendant_status(stack, DescendantStatus::InlineElementClosed)
-            }
-            _ => update_most_recent_descendant_status(stack, DescendantStatus::ElementClosed),
-        }
+        update_most_recent_descendant_status(stack, descendant_status);
         return;
     }
 
@@ -233,13 +217,14 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 
     results.push('>');
 
-    let is_inline_el = tag_info.inline_el;
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElementClosed,
+        _ => DescendantStatus::ElementClosed,
+    };
+
     stack.pop();
 
-    match is_inline_el {
-        true => update_most_recent_descendant_status(stack, DescendantStatus::InlineElementClosed),
-        _ => update_most_recent_descendant_status(stack, DescendantStatus::ElementClosed),
-    }
+    update_most_recent_descendant_status(stack, descendant_status);
 }
 
 // most recent descendant
@@ -265,10 +250,12 @@ fn pop_element(
         }
     };
 
-    match rules.tag_is_inline_el(tag) {
-        true => update_most_recent_descendant_status(stack, DescendantStatus::InlineElementClosed),
-        _ => update_most_recent_descendant_status(stack, DescendantStatus::ElementClosed),
-    }
+    // update descendant status
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElementClosed,
+        _ => DescendantStatus::ElementClosed,
+    };
+    update_most_recent_descendant_status(stack, descendant_status);
 
     if tag_info.void_el && "html" == tag_info.namespace {
         results.push('>');
@@ -296,6 +283,20 @@ fn pop_element(
 
 fn all_spaces(line: &str) -> bool {
     line.len() == get_index_of_first_char(line)
+}
+
+fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
+    let common_index = get_most_common_space_index(text);
+
+    for line in text.split("\n") {
+        if all_spaces(line) {
+            continue;
+        }
+
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push_str(line[common_index..].trim_end());
+    }
 }
 
 fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
@@ -446,7 +447,6 @@ fn push_attr_value_unquoted(
     results.push_str(val);
 }
 
-// set most recent descendant
 fn pop_closing_sequence(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
@@ -454,7 +454,6 @@ fn pop_closing_sequence(
     template_str: &str,
     step: &Step,
 ) {
-    // need to get second to last element and then say this was a block element or an inline element
     let closing_sequence = get_text_from_step(template_str, step);
     let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
         Some(t) => t,
@@ -501,14 +500,6 @@ fn update_most_recent_descendant_status(
     if let Some(prev_tag_info) = stack.last_mut() {
         prev_tag_info.most_recent_descendant = descendant_status;
     }
-}
-
-fn update_element_descendant_status(stack: &mut Vec<TagInfo>, tag_info: &TagInfo) {
-    let descendant_status = match tag_info.inline_el {
-        true => DescendantStatus::InlineElement,
-        _ => DescendantStatus::Element,
-    };
-    update_most_recent_descendant_status(stack, descendant_status);
 }
 
 fn get_index_of_first_char(text: &str) -> usize {
