@@ -1,5 +1,5 @@
 use crate::components::Component;
-use crate::compose_steps::{compose_steps, push_text};
+use crate::compose_steps::{compose_steps, push_attr, push_attr_value, push_text};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::TagInfo;
@@ -39,89 +39,84 @@ pub fn compose_string(
     rules: &dyn RulesetImpl,
     component: &Component,
 ) -> String {
-    let mut templ_str = "".to_string();
+    let mut tmpl_str = "".to_string();
 
-    let sbit = get_stack_bit_from_component(builder, rules, component);
+    let component_bit = get_bit_from_component_stack(builder, rules, component);
+    let mut component_stack: Vec<StackBit> = Vec::from([component_bit]);
 
-    let mut results = "".to_string();
-    let mut tag_info_stack: Vec<TagInfo> = Vec::new();
+    let root_tag_info = TagInfo::new(rules, ":root");
+    let mut tag_info_stack: Vec<TagInfo> = Vec::from([root_tag_info]);
 
-    let mut stack: Vec<StackBit> = Vec::from([sbit]);
-    while let Some(mut stack_bit) = stack.pop() {
-        match stack_bit {
+    while let Some(mut component_bit) = component_stack.pop() {
+        match component_bit {
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
                 Component::Text(text) => {
-                    push_text(&mut results, &mut tag_info_stack, rules, text);
+                    push_text(&mut tmpl_str, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
-                        let bit = get_stack_bit_from_component(builder, rules, cmpnt);
-                        stack.push(bit);
+                        let bit = get_bit_from_component_stack(builder, rules, cmpnt);
+                        component_stack.push(bit);
                     }
-                    continue;
                 }
                 _ => {}
             },
-            StackBit::Tmpl(component, ref results, ref mut bit) => {
+            StackBit::Tmpl(component, ref template, ref mut bit) => {
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
-                // [TODO]
-                // verify results
-                //
-                // second step is text | node_open | descendant_injection
-                // last step is Text | node closed | independed_node_closed
+                let tmpl_component = match component {
+                    Component::Tmpl(cmpnt) => cmpnt,
+                    _ => continue,
+                };
 
-                if let Component::Tmpl(template) = component {
-                    // add current template chunk
-                    if let Some(chunk) = results.steps.get(index) {
-                        compose_steps(
-                            rules,
-                            &mut templ_str,
-                            &mut tag_info_stack,
-                            &template.template_str,
-                            chunk,
-                        );
-                    }
+                // add current template chunk
+                if let Some(chunk) = template.steps.get(index) {
+                    compose_steps(
+                        rules,
+                        &mut tmpl_str,
+                        &mut tag_info_stack,
+                        &tmpl_component.template_str,
+                        chunk,
+                    );
+                }
 
-                    // if there is an injection
-                    if let (Some(inj_step), Some(inj)) =
-                        (results.injs.get(index), template.injections.get(index))
-                    {
-                        match inj_step.kind {
-                            // add attribute injections to template
-                            StepKind::AttrMapInjection => {
-                                add_attr_inj(&mut templ_str, inj);
-                            }
-                            // add descendant injections to the stack
-                            StepKind::DescendantInjection => {
-                                // push template back and bail early
-                                stack.push(stack_bit);
-
-                                let bit = get_stack_bit_from_component(builder, rules, inj);
-                                stack.push(bit);
-
-                                continue;
-                            }
-                            _ => {}
+                // add injections
+                if let (Some(inj_step), Some(inj)) = (
+                    template.injs.get(index),
+                    tmpl_component.injections.get(index),
+                ) {
+                    match inj_step.kind {
+                        StepKind::AttrMapInjection => {
+                            add_attr_inj(&mut tag_info_stack, &mut tmpl_str, inj);
                         }
-                    }
+                        // push template back and bail early
+                        StepKind::DescendantInjection => {
+                            component_stack.push(component_bit);
 
-                    // don't forget the last part of the templates!
-                    if index < results.steps.len() {
-                        stack.push(stack_bit);
+                            let bit = get_bit_from_component_stack(builder, rules, inj);
+                            component_stack.push(bit);
+
+                            continue;
+                        }
+                        _ => {}
                     }
+                }
+
+                // don't forget the last part of the templates!
+                if index < template.steps.len() {
+                    component_stack.push(component_bit);
                 }
             }
             _ => {}
         }
     }
 
-    templ_str
+    tmpl_str
 }
 
-fn get_stack_bit_from_component<'a>(
+fn get_bit_from_component_stack<'a>(
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &'a Component,
@@ -137,18 +132,22 @@ fn get_stack_bit_from_component<'a>(
     }
 }
 
-fn add_attr_inj(template_str: &mut String, component: &Component) {
+fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, component: &Component) {
     match component {
-        Component::Attr(attr) => add_attr(template_str, attr),
-        Component::AttrVal(attr, val) => add_attr_val(template_str, attr, val),
+        Component::Attr(attr) => push_attr(template_str, stack, attr),
+        Component::AttrVal(attr, val) => {
+            push_attr(template_str, stack, attr);
+            push_attr_value(template_str, stack, val);
+        }
         Component::List(attr_list) => {
             for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
-                        add_attr(template_str, &attr);
+                        push_attr(template_str, stack, attr);
                     }
                     Component::AttrVal(attr, val) => {
-                        add_attr_val(template_str, &attr, &val);
+                        push_attr(template_str, stack, attr);
+                        push_attr_value(template_str, stack, val);
                     }
                     _ => {}
                 }
@@ -156,17 +155,4 @@ fn add_attr_inj(template_str: &mut String, component: &Component) {
         }
         _ => {}
     }
-}
-
-fn add_attr(templ_str: &mut String, attr: &str) {
-    templ_str.push_str(" ");
-    templ_str.push_str(attr);
-}
-
-fn add_attr_val(templ_str: &mut String, attr: &str, val: &str) {
-    templ_str.push_str(" ");
-    templ_str.push_str(attr);
-    templ_str.push_str("=\"");
-    templ_str.push_str(val);
-    templ_str.push_str("\"");
 }

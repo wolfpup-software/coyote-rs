@@ -19,10 +19,12 @@ pub fn compose_steps(
             StepKind::Text => {
                 push_text_component(results, tag_info_stack, rules, template_str, step)
             }
-            StepKind::Attr => add_attr(results, tag_info_stack, template_str, step),
-            StepKind::AttrValue => add_attr_value(results, tag_info_stack, template_str, step),
+            StepKind::Attr => push_attr_component(results, tag_info_stack, template_str, step),
+            StepKind::AttrValue => {
+                push_attr_value_component(results, tag_info_stack, template_str, step)
+            }
             StepKind::AttrValueUnquoted => {
-                add_attr_value_unquoted(results, tag_info_stack, template_str, step)
+                push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
             StepKind::CommentText => {
                 push_text_component(results, tag_info_stack, rules, template_str, step)
@@ -55,20 +57,14 @@ pub fn push_text(
     rules: &dyn RulesetImpl,
     text: &str,
 ) {
+    if all_spaces(text) {
+        return;
+    }
+
     let tag_info = match stack.last_mut() {
         Some(curr) => curr,
-        // text is first node
-        _ => {
-            for line in text.split("\n") {
-                if all_spaces(line) {
-                    continue;
-                }
-
-                results.push('\n');
-                results.push_str(line.trim());
-            }
-            return;
-        }
+        // this should never happen
+        _ => return,
     };
 
     if tag_info.banned_path || tag_info.void_el {
@@ -76,30 +72,15 @@ pub fn push_text(
     }
 
     if tag_info.preserved_text_path {
-        tag_info.most_recent_descendant = DescendantStatus::Text;
         results.push_str(text);
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
 
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
-        let common_index = get_most_common_space_index(text);
-
-        for line in text.split("\n") {
-            if all_spaces(line) {
-                continue;
-            }
-
-            results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
-            results.push_str(line[common_index..].trim_end());
-        }
-
+        add_alt_element_text(results, text, tag_info);
         tag_info.most_recent_descendant = DescendantStatus::Text;
-        return;
-    }
-
-    if all_spaces(text) {
         return;
     }
 
@@ -107,24 +88,18 @@ pub fn push_text(
         rules.respect_indentation(),
         &tag_info.most_recent_descendant,
     ) {
-        (true, DescendantStatus::InlineElement) => {
-            add_inline_element_text(results, text);
-        }
         (true, DescendantStatus::InlineElementClosed) => {
             add_inline_element_closed_text(results, text, tag_info)
         }
         (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text(results, text),
+            true => add_inline_element_text(results, text, tag_info),
             _ => add_text(results, text, tag_info),
         },
-        // (true, _) => add_text(results, text, tag_info),
         (false, DescendantStatus::InlineElementClosed) => {
-            add_unpretty_inline_element_closed_text(results, text)
+            add_no_indents_inline_element_closed_text(results, text)
         }
-        (false, DescendantStatus::Text) => add_inline_element_closed_text(results, text, tag_info),
         (true, _) => add_text(results, text, tag_info),
-        // (false, _) => add_inline_element_text(results, text),
-        (_, _) => add_inline_element_text(results, text),
+        (false, _) => add_text_no_indents(results, text),
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
@@ -137,47 +112,57 @@ fn push_element(
     template_str: &str,
     step: &Step,
 ) {
-    let tag = get_text_from_step(template_str, step);
-    let tag_info = match stack.last_mut() {
-        Some(prev_tag_info) => TagInfo::from(rules, &prev_tag_info, tag),
-        _ => TagInfo::new(rules, tag),
+    let prev_tag_info = match stack.last() {
+        Some(pti) => pti,
+        _ => {
+            // this never happens
+            return;
+        }
     };
+
+    let tag = get_text_from_step(template_str, step);
+    let tag_info = TagInfo::from(rules, prev_tag_info, tag);
 
     // banned path
     if tag_info.banned_path {
-        if let Some(prev_tag_info) = stack.last_mut() {
-            prev_tag_info.most_recent_descendant = match rules.tag_is_inline_el(tag) {
-                true => DescendantStatus::InlineElement,
-                _ => DescendantStatus::Element,
-            };
-        };
-
         stack.push(tag_info);
         return;
     }
 
-    // edge case for start of document
-    if rules.respect_indentation() && results.len() > 0 {
-        match tag_info.inline_el {
-            true => results.push(' '),
-            _ => {
-                results.push('\n');
-                results.push_str(&"\t".repeat(tag_info.indent_count));
+    // if respect indentatrion
+    if rules.respect_indentation() {
+        match (
+            prev_tag_info.most_recent_descendant.clone(),
+            tag_info.inline_el,
+        ) {
+            (DescendantStatus::Text, true) => {
+                results.push(' ');
             }
+            (DescendantStatus::InlineElementClosed, true) => {
+                results.push(' ');
+            }
+            (_, _) => {
+                if stack.len() > 1
+                    || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
+                {
+                    results.push('\n');
+                }
+
+                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+            }
+        }
+    } else {
+        if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
+            results.push(' ');
         }
     }
 
-    if let Some(prev_tag_info) = stack.last_mut() {
-        if !rules.respect_indentation()
-            && prev_tag_info.most_recent_descendant == DescendantStatus::Text
-        {
-            results.push(' ');
-        }
-        prev_tag_info.most_recent_descendant = match rules.tag_is_inline_el(tag) {
-            true => DescendantStatus::InlineElement,
-            _ => DescendantStatus::Element,
-        };
-    }
+    // update descendant status
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElement,
+        _ => DescendantStatus::Element,
+    };
+    update_most_recent_descendant_status(stack, descendant_status);
 
     results.push('<');
     results.push_str(tag);
@@ -196,6 +181,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     }
 
     if tag_info.void_el && "html" == tag_info.namespace {
+        // void element
         stack.pop();
     }
 }
@@ -213,7 +199,14 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 
     if "html" != tag_info.namespace {
         results.push_str("/>");
+        let descendant_status = match tag_info.inline_el {
+            true => DescendantStatus::InlineElementClosed,
+            _ => DescendantStatus::ElementClosed,
+        };
+
         stack.pop();
+
+        update_most_recent_descendant_status(stack, descendant_status);
         return;
     }
 
@@ -224,9 +217,17 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 
     results.push('>');
 
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElementClosed,
+        _ => DescendantStatus::ElementClosed,
+    };
+
     stack.pop();
+
+    update_most_recent_descendant_status(stack, descendant_status);
 }
 
+// most recent descendant
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
@@ -235,95 +236,129 @@ fn pop_element(
     step: &Step,
 ) {
     let tag = get_text_from_step(template_str, step);
+    if let Some(tag_info) = stack.last() {
+        if tag != tag_info.tag {
+            return;
+        }
+    };
 
-    let tag_info = match stack.last() {
+    let tag_info = match stack.pop() {
+        Some(ti) => ti,
+        _ => {
+            // never happens
+            return;
+        }
+    };
+
+    // update descendant status
+    let descendant_status = match tag_info.inline_el {
+        true => DescendantStatus::InlineElementClosed,
+        _ => DescendantStatus::ElementClosed,
+    };
+    update_most_recent_descendant_status(stack, descendant_status);
+
+    if tag_info.void_el && "html" == tag_info.namespace {
+        results.push('>');
+        return;
+    }
+
+    let prev_tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
     };
 
-    if tag != tag_info.tag {
-        return;
-    }
-
-    if tag_info.banned_path {
-        stack.pop();
-        return;
-    }
-
-    if tag_info.void_el && "html" == tag_info.namespace {
-        results.push('>');
-        stack.pop();
-        if let Some(prev_tag_info) = stack.last_mut() {
-            prev_tag_info.most_recent_descendant = DescendantStatus::ElementClosed;
-        }
-        return;
-    }
-
+    // if respect indentatrion
     if rules.respect_indentation()
         && !tag_info.inline_el
-        && !tag_info.preserved_text_path
-        && DescendantStatus::Initial != tag_info.most_recent_descendant
+        && tag_info.most_recent_descendant != DescendantStatus::Initial
     {
-        results.push_str("\n");
-        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push('\n');
+        results.push_str(&"\t".repeat(prev_tag_info.indent_count));
     }
 
     results.push_str("</");
     results.push_str(tag);
     results.push('>');
-
-    stack.pop();
-
-    if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = match rules.tag_is_inline_el(tag) {
-            true => DescendantStatus::InlineElementClosed,
-            _ => DescendantStatus::ElementClosed,
-        };
-    }
 }
 
 fn all_spaces(line: &str) -> bool {
     line.len() == get_index_of_first_char(line)
 }
 
-fn add_inline_element_text(results: &mut String, text: &str) {
+fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
+    let common_index = get_most_common_space_index(text);
+
+    for line in text.split("\n") {
+        if all_spaces(line) {
+            continue;
+        }
+
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push_str(line[common_index..].trim_end());
+    }
+}
+
+fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
-    let mut found = false;
+
+    while let Some(line) = text_iter.next() {
+        if !all_spaces(line) {
+            results.push_str(line.trim());
+            break;
+        }
+    }
 
     while let Some(line) = text_iter.next() {
         if all_spaces(line) {
             continue;
         }
 
-        if found {
-            results.push(' ');
-        }
-
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
         results.push_str(line.trim());
-        found = true;
     }
 }
 
 fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
 
-    if let Some(line) = text_iter.next() {
+    while let Some(line) = text_iter.next() {
         if !all_spaces(line) {
             results.push(' ');
             results.push_str(line.trim());
+            break;
         }
     }
 
     while let Some(line) = text_iter.next() {
         if !all_spaces(line) {
             results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(&"\t".repeat(tag_info.indent_count));
             results.push_str(line.trim());
         }
     }
 }
 
-fn add_unpretty_inline_element_closed_text(results: &mut String, text: &str) {
+fn add_text_no_indents(results: &mut String, text: &str) {
+    let mut text_iter = text.split("\n");
+
+    while let Some(line) = text_iter.next() {
+        if !all_spaces(line) {
+            results.push_str(line.trim());
+            break;
+        }
+    }
+
+    while let Some(line) = text_iter.next() {
+        if !all_spaces(line) {
+            results.push(' ');
+            results.push_str(line.trim());
+        }
+    }
+}
+
+fn add_no_indents_inline_element_closed_text(results: &mut String, text: &str) {
     for line in text.split("\n") {
         if !all_spaces(line) {
             results.push(' ');
@@ -332,32 +367,28 @@ fn add_unpretty_inline_element_closed_text(results: &mut String, text: &str) {
     }
 }
 
+// result, text, indent count (so i can use others)
 fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
             results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count + 1));
+            results.push_str(&"\t".repeat(tag_info.indent_count));
             results.push_str(line.trim());
         }
     }
 }
 
-fn add_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
-    let tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    if tag_info.banned_path {
-        return;
-    }
-
+fn push_attr_component(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    template_str: &str,
+    step: &Step,
+) {
     let attr = get_text_from_step(template_str, step);
-    results.push(' ');
-    results.push_str(attr);
+    push_attr(results, stack, attr)
 }
 
-fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
+pub fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -367,13 +398,36 @@ fn add_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, template_str: 
         return;
     }
 
+    results.push(' ');
+    results.push_str(attr.trim());
+}
+
+fn push_attr_value_component(
+    results: &mut String,
+    stack: &mut Vec<TagInfo>,
+    template_str: &str,
+    step: &Step,
+) {
     let val = get_text_from_step(template_str, step);
+    push_attr_value(results, stack, val)
+}
+
+pub fn push_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, val: &str) {
+    let tag_info = match stack.last() {
+        Some(curr) => curr,
+        _ => return,
+    };
+
+    if tag_info.banned_path {
+        return;
+    }
+
     results.push_str("=\"");
-    results.push_str(val);
+    results.push_str(val.trim());
     results.push('"');
 }
 
-fn add_attr_value_unquoted(
+fn push_attr_value_unquoted(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     template_str: &str,
@@ -400,16 +454,14 @@ fn pop_closing_sequence(
     template_str: &str,
     step: &Step,
 ) {
-    // need to get second to last element and then say this was a block element or an inline element
     let closing_sequence = get_text_from_step(template_str, step);
-
-    let tag = match rules.get_tag_from_close_sequence(closing_sequence) {
+    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
         Some(t) => t,
         _ => return,
     };
 
     let tag_info = match stack.last() {
-        Some(curr) => curr,
+        Some(curr) => curr.clone(),
         _ => return,
     };
 
@@ -422,18 +474,32 @@ fn pop_closing_sequence(
         return;
     }
 
+    stack.pop();
+
+    let prev_tag_info = match stack.last() {
+        Some(curr) => curr.clone(),
+        _ => return,
+    };
+
     if rules.respect_indentation()
-        && !tag_info.inline_el
-        && !tag_info.preserved_text_path
-        && DescendantStatus::Initial != tag_info.most_recent_descendant
+        && !prev_tag_info.inline_el
+        && !prev_tag_info.preserved_text_path
+        && DescendantStatus::Initial != prev_tag_info.most_recent_descendant
     {
         results.push_str("\n");
-        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push_str(&"\t".repeat(prev_tag_info.indent_count));
     }
 
     results.push_str(closing_sequence);
+}
 
-    stack.pop();
+fn update_most_recent_descendant_status(
+    stack: &mut Vec<TagInfo>,
+    descendant_status: DescendantStatus,
+) {
+    if let Some(prev_tag_info) = stack.last_mut() {
+        prev_tag_info.most_recent_descendant = descendant_status;
+    }
 }
 
 fn get_index_of_first_char(text: &str) -> usize {

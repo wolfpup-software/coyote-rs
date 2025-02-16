@@ -126,6 +126,6 @@ Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _pote
 
 `Components` are not coupled to any particular markup language or output environment. This makes `coyote` an expressive way to create custom documents and object scenes from xml.
 
-### HTML
+### Document builders
 
-Coyote supports [html](../document_builders.md).
+Coyote renders components with [document builders](./document_builders.md).
