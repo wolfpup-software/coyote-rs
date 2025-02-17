@@ -12,6 +12,18 @@ fn test_pretty_html_no_empty_space() {
 }
 
 #[test]
+fn test_pretty_html_no_empty_space_unbalanaced() {
+    let template = tmpl("<html>", []);
+    let expected = "<html></html>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(expected, results);
+}
+
+
+#[test]
 fn test_pretty_html_void_el() {
     let template = tmpl(
         "<input>   <input>

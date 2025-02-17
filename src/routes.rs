@@ -119,8 +119,8 @@ fn get_kind_from_element(glyph: char) -> StepKind {
     }
 
     match glyph {
-        '/' => StepKind::TailElementSolidus,
         '>' => StepKind::Fragment,
+        '/' => StepKind::TailElementSolidus,
         _ => StepKind::Tag,
     }
 }
@@ -138,7 +138,7 @@ fn get_kind_from_element_space(glyph: char) -> StepKind {
     }
 }
 
-pub fn get_kind_from_empty_element(glyph: char) -> StepKind {
+fn get_kind_from_empty_element(glyph: char) -> StepKind {
     match glyph {
         '>' => StepKind::EmptyElementClosed,
         _ => StepKind::EmptyElement,
