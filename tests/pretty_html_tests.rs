@@ -22,7 +22,6 @@ fn test_pretty_html_no_empty_space_unbalanaced() {
     assert_eq!(expected, results);
 }
 
-
 #[test]
 fn test_pretty_html_void_el() {
     let template = tmpl(

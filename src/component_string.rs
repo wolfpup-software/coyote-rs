@@ -41,11 +41,12 @@ pub fn compose_string(
     component: &Component,
 ) -> String {
     let mut tmpl_str = "".to_string();
-    
+
     let root_tag_info = TagInfo::new(rules, ":root");
     let mut tag_info_stack: Vec<TagInfo> = Vec::from([root_tag_info]);
 
-    let component_bit = get_bit_from_component_stack(&mut tag_info_stack, builder, rules, component);
+    let component_bit =
+        get_bit_from_component_stack(&mut tag_info_stack, builder, rules, component);
     let mut component_stack: Vec<StackBit> = Vec::from([component_bit]);
 
     while let Some(mut component_bit) = component_stack.pop() {
@@ -57,7 +58,12 @@ pub fn compose_string(
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
-                        let bit = get_bit_from_component_stack(&mut tag_info_stack, builder, rules, cmpnt);
+                        let bit = get_bit_from_component_stack(
+                            &mut tag_info_stack,
+                            builder,
+                            rules,
+                            cmpnt,
+                        );
                         component_stack.push(bit);
                     }
                 }
@@ -96,7 +102,12 @@ pub fn compose_string(
                         StepKind::DescendantInjection => {
                             component_stack.push(component_bit);
 
-                            let bit = get_bit_from_component_stack(&mut tag_info_stack, builder, rules, inj);
+                            let bit = get_bit_from_component_stack(
+                                &mut tag_info_stack,
+                                builder,
+                                rules,
+                                inj,
+                            );
                             component_stack.push(bit);
 
                             continue;
@@ -109,7 +120,10 @@ pub fn compose_string(
                 if index < template.steps.len() {
                     // check for imbalance here
                     if bit.node_depth != tag_info_stack.len() {
-                        println!("the following template is imbalanced:\n{:?}", &tmpl_component.template_str);
+                        println!(
+                            "the following template is imbalanced:\n{:?}",
+                            &tmpl_component.template_str
+                        );
                         println!("{:?}", &tag_info_stack);
                     }
 
@@ -135,7 +149,14 @@ fn get_bit_from_component_stack<'a>(
         Component::List(_list) => StackBit::Cmpnt(component),
         Component::Tmpl(tmpl) => {
             let template_steps = builder.build(rules, &tmpl.template_str);
-            StackBit::Tmpl(component, template_steps, TemplateBit { inj_index: 0, node_depth: stack.len(), })
+            StackBit::Tmpl(
+                component,
+                template_steps,
+                TemplateBit {
+                    inj_index: 0,
+                    node_depth: stack.len(),
+                },
+            )
         }
         _ => StackBit::None,
     }
