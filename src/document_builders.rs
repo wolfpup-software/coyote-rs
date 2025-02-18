@@ -15,7 +15,7 @@ impl Html {
         }
     }
 
-    pub fn build(&mut self, component: &Component) -> String {
+    pub fn build(&mut self, component: &Component) -> Result<String, String> {
         compose_string(&mut self.builder, &self.rules, component)
     }
 }
@@ -35,7 +35,7 @@ impl ClientHtml {
         }
     }
 
-    pub fn build(&mut self, component: &Component) -> String {
+    pub fn build(&mut self, component: &Component) -> Result<String, String> {
         compose_string(&mut self.builder, &self.rules, component)
     }
 }
@@ -53,7 +53,7 @@ impl Xml {
         }
     }
 
-    pub fn build(&mut self, component: &Component) -> String {
+    pub fn build(&mut self, component: &Component) -> Result<String, String> {
         compose_string(&mut self.builder, &self.rules, component)
     }
 }

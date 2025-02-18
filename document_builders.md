@@ -15,11 +15,11 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
-
     let html = Html::new();
-    let document = html.build(&hello_world); 
 
-    println!("{}", document);
+    if let Ok(document) = html.build(&hello_world) {
+        println!("{}", document);
+    }; 
 }
 ```
 
@@ -58,11 +58,11 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
-
-    let safer_html = ClientHtml::new();    
-    let document = safer_html.build(&hello_world); 
+    let client_html = ClientHtml::new();    
     
-    println!("{}", document);
+    if let Ok(document) = client_html.build(&hello_world) {
+        println!("{}", document);
+    }; 
 }
 ```
 

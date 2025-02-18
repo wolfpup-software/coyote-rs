@@ -7,7 +7,7 @@ use crate::template_steps::{compose, Results as TemplateSteps};
 
 struct TemplateBit {
     pub inj_index: usize,
-    pub node_depth: usize,
+    pub stack_depth: usize,
 }
 
 enum StackBit<'a> {
@@ -39,7 +39,7 @@ pub fn compose_string(
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &Component,
-) -> String {
+) -> Result<String, String> {
     let mut tmpl_str = "".to_string();
 
     let root_tag_info = TagInfo::new(rules, ":root");
@@ -119,12 +119,12 @@ pub fn compose_string(
                 // don't forget the last part of the templates!
                 if index < template.steps.len() {
                     // check for imbalance here
-                    if bit.node_depth != tag_info_stack.len() {
-                        println!(
-                            "the following template is imbalanced:\n{:?}",
-                            &tmpl_component.template_str
+                    if bit.stack_depth != tag_info_stack.len() {
+                        return Err(
+                            "Coyote Err: the following template component is imbalanced:\n{:?}"
+                                .to_string()
+                                + tmpl_component.template_str,
                         );
-                        println!("{:?}", &tag_info_stack);
                     }
 
                     component_stack.push(component_bit);
@@ -135,7 +135,7 @@ pub fn compose_string(
     }
 
     // can check if tag_info is correct or not
-    tmpl_str
+    Ok(tmpl_str)
 }
 
 fn get_bit_from_component_stack<'a>(
@@ -154,7 +154,7 @@ fn get_bit_from_component_stack<'a>(
                 template_steps,
                 TemplateBit {
                     inj_index: 0,
-                    node_depth: stack.len(),
+                    stack_depth: stack.len(),
                 },
             )
         }
