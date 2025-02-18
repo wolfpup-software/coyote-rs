@@ -7,6 +7,7 @@ use crate::template_steps::{compose, Results as TemplateSteps};
 
 struct TemplateBit {
     pub inj_index: usize,
+    pub stack_depth: usize,
 }
 
 enum StackBit<'a> {
@@ -38,14 +39,15 @@ pub fn compose_string(
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &Component,
-) -> String {
+) -> Result<String, String> {
     let mut tmpl_str = "".to_string();
-
-    let component_bit = get_bit_from_component_stack(builder, rules, component);
-    let mut component_stack: Vec<StackBit> = Vec::from([component_bit]);
 
     let root_tag_info = TagInfo::new(rules, ":root");
     let mut tag_info_stack: Vec<TagInfo> = Vec::from([root_tag_info]);
+
+    let component_bit =
+        get_bit_from_component_stack(&mut tag_info_stack, builder, rules, component);
+    let mut component_stack: Vec<StackBit> = Vec::from([component_bit]);
 
     while let Some(mut component_bit) = component_stack.pop() {
         match component_bit {
@@ -56,7 +58,12 @@ pub fn compose_string(
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
-                        let bit = get_bit_from_component_stack(builder, rules, cmpnt);
+                        let bit = get_bit_from_component_stack(
+                            &mut tag_info_stack,
+                            builder,
+                            rules,
+                            cmpnt,
+                        );
                         component_stack.push(bit);
                     }
                 }
@@ -95,7 +102,12 @@ pub fn compose_string(
                         StepKind::DescendantInjection => {
                             component_stack.push(component_bit);
 
-                            let bit = get_bit_from_component_stack(builder, rules, inj);
+                            let bit = get_bit_from_component_stack(
+                                &mut tag_info_stack,
+                                builder,
+                                rules,
+                                inj,
+                            );
                             component_stack.push(bit);
 
                             continue;
@@ -106,6 +118,15 @@ pub fn compose_string(
 
                 // don't forget the last part of the templates!
                 if index < template.steps.len() {
+                    // check for imbalance here
+                    if bit.stack_depth != tag_info_stack.len() {
+                        return Err(
+                            "Coyote Err: the following template component is imbalanced:\n{:?}"
+                                .to_string()
+                                + tmpl_component.template_str,
+                        );
+                    }
+
                     component_stack.push(component_bit);
                 }
             }
@@ -113,10 +134,12 @@ pub fn compose_string(
         }
     }
 
-    tmpl_str
+    // can check if tag_info is correct or not
+    Ok(tmpl_str)
 }
 
 fn get_bit_from_component_stack<'a>(
+    stack: &mut Vec<TagInfo>,
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &'a Component,
@@ -126,7 +149,14 @@ fn get_bit_from_component_stack<'a>(
         Component::List(_list) => StackBit::Cmpnt(component),
         Component::Tmpl(tmpl) => {
             let template_steps = builder.build(rules, &tmpl.template_str);
-            StackBit::Tmpl(component, template_steps, TemplateBit { inj_index: 0 })
+            StackBit::Tmpl(
+                component,
+                template_steps,
+                TemplateBit {
+                    inj_index: 0,
+                    stack_depth: stack.len(),
+                },
+            )
         }
         _ => StackBit::None,
     }

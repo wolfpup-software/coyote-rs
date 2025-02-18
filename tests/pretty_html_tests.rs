@@ -8,7 +8,18 @@ fn test_pretty_html_no_empty_space() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn test_pretty_html_no_empty_space_unbalanaced() {
+    let template = tmpl("<html>", []);
+    let expected = "Coyote Err: the following template component is imbalanced:\n{:?}<html>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Err(expected.to_string()), results);
 }
 
 #[test]
@@ -18,12 +29,13 @@ fn test_pretty_html_void_el() {
             <input><input> ",
         [],
     );
+
     let expected = "<input>\n<input>\n<input>\n<input>";
 
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -40,7 +52,7 @@ fn test_pretty_html_void_el_with_attributes() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -50,7 +62,7 @@ fn test_pretty_html_inline_el() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -66,7 +78,7 @@ fn test_unpretty_html_inline_el() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -81,7 +93,7 @@ fn test_pretty_html_void_el_and_others() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -100,7 +112,7 @@ fn test_pretty_html_nested_void_el() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -116,7 +128,7 @@ fn test_pretty_html_preserved_space_el() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -150,7 +162,7 @@ fn test_pretty_html_doc() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -184,7 +196,7 @@ if 2 < 3 {
     let mut html = ClientHtml::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -212,7 +224,7 @@ fn test_pretty_html_without_indents_server() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -240,7 +252,7 @@ fn test_pretty_html_without_indents_client() {
     let mut html = ClientHtml::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 // /* complicated inline cases */
@@ -256,7 +268,7 @@ fn test_pretty_html_without_indents_and_text() {
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }
 
 #[test]
@@ -267,5 +279,5 @@ fn test_pretty_html_without_indents_and_text_client() {
     let mut html = ClientHtml::new();
     let results = html.build(&template);
 
-    assert_eq!(expected, results);
+    assert_eq!(Ok(expected.to_string()), results);
 }

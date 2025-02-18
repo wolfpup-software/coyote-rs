@@ -7,7 +7,7 @@ There are no dependencies. There are no macros.
 ## Install
 
 ```sh
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote
+cargo install --git https://github.com/wolf-pup/coyote-rs
 ```
 
 ## Components
@@ -35,11 +35,11 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
-
     let html = Html::new();
-    let document = html.build(&hello_world); 
 
-    println!("{}", document);
+    if let Ok(document) = html.build(&hello_world) {
+        println!("{}", document);
+    }; 
 }
 ```
 

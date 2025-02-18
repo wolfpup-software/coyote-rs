@@ -15,11 +15,11 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
-
     let html = Html::new();
-    let document = html.build(&hello_world); 
 
-    println!("{}", document);
+    if let Ok(document) = html.build(&hello_world) {
+        println!("{}", document);
+    }; 
 }
 ```
 
@@ -30,6 +30,11 @@ The output will be:
 
 ## Client Html
 
+`Coyote` composes templates with `rulesets`.
+
+The `ruleset` for `ClientHtml` removes elements like `<script>`, `<style>`, and `<link>`.
+It also removes unneccessary spaces.
+
 ### Hello, safer world!
 
 The example below creates a _safer_ fragment for client-side renders using `ClientHtml`. 
@@ -39,12 +44,12 @@ use coyote::{ClientHtml, Component, tmpl};
 
 fn malicious_component() -> Component {
     tmpl("
-        <link rel=stylesheet href=a_dangerous_stylesheet.css>
+        <link rel=stylesheet href=malicious_stylesheet.css>
         <style>
             * { color: malicious-blue; }
         </style>
         <script>
-            console.log('a malicious script! grrr rawr');
+            console.log('malicious! rawr!');
         </script>
     ", [])
 }
@@ -58,11 +63,11 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
-
-    let safer_html = ClientHtml::new();    
-    let document = safer_html.build(&hello_world); 
+    let client_html = ClientHtml::new();    
     
-    println!("{}", document);
+    if let Ok(document) = client_html.build(&hello_world) {
+        println!("{}", document);
+    }; 
 }
 ```
 
@@ -70,11 +75,6 @@ The output will be:
 ```html
 <p>hai >:3</p>
 ```
-
-`Coyote` composes templates with `rulesets`.
-
-The `ruleset` for `ClientHtml` rejects elements like `<script>`, `<style>`, and `<link>` elements.
-It also removes unneccessary spaces.
 
 ## License
 
