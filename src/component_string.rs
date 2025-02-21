@@ -1,5 +1,5 @@
 use crate::components::Component;
-use crate::compose_steps::{compose_steps, push_attr, push_attr_value, push_text};
+use crate::compose_steps::{compose_steps, push_attr_component, push_attr_value_component, push_text_component};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::TagInfo;
@@ -56,7 +56,7 @@ pub fn compose_string(
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
                 Component::Text(text) => {
-                    push_text(&mut tmpl_str, &mut tag_info_stack, rules, text);
+                    push_text_component(&mut tmpl_str, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
@@ -165,20 +165,20 @@ fn get_bit_from_component_stack<'a>(
 
 fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, cmpnt: &Component) {
     match cmpnt {
-        Component::Attr(attr) => push_attr(template_str, stack, attr),
+        Component::Attr(attr) => push_attr_component(template_str, stack, attr),
         Component::AttrVal(attr, val) => {
-            push_attr(template_str, stack, attr);
-            push_attr_value(template_str, stack, val);
+            push_attr_component(template_str, stack, attr);
+            push_attr_value_component(template_str, stack, val);
         }
         Component::List(attr_list) => {
             for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
-                        push_attr(template_str, stack, attr);
+                        push_attr_component(template_str, stack, attr);
                     }
                     Component::AttrVal(attr, val) => {
-                        push_attr(template_str, stack, attr);
-                        push_attr_value(template_str, stack, val);
+                        push_attr_component(template_str, stack, attr);
+                        push_attr_value_component(template_str, stack, val);
                     }
                     _ => {}
                 }
