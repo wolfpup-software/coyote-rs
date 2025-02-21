@@ -16,22 +16,16 @@ pub fn compose_steps(
             StepKind::ElementClosed => close_element(results, tag_info_stack),
             StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack),
             StepKind::TailTag => pop_element(results, tag_info_stack, rules, template_str, step),
-            StepKind::Text => {
-                push_text_component(results, tag_info_stack, rules, template_str, step)
-            }
-            StepKind::Attr => push_attr_component(results, tag_info_stack, template_str, step),
-            StepKind::AttrValue => {
-                push_attr_value_component(results, tag_info_stack, template_str, step)
-            }
+            StepKind::Text => push_text(results, tag_info_stack, rules, template_str, step),
+            StepKind::Attr => push_attr(results, tag_info_stack, template_str, step),
+            StepKind::AttrValue => push_attr_value(results, tag_info_stack, template_str, step),
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            StepKind::CommentText => {
-                push_text_component(results, tag_info_stack, rules, template_str, step)
-            }
-            StepKind::AltText => {
-                push_text_component(results, tag_info_stack, rules, template_str, step)
-            }
+            // just do alt text function ?
+            StepKind::CommentText => push_text(results, tag_info_stack, rules, template_str, step),
+            // just do alt text function
+            StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
             }
@@ -40,7 +34,7 @@ pub fn compose_steps(
     }
 }
 
-fn push_text_component(
+fn push_text(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
@@ -48,10 +42,10 @@ fn push_text_component(
     step: &Step,
 ) {
     let text = get_text_from_step(template_str, step);
-    push_text(results, stack, rules, text)
+    push_text_component(results, stack, rules, text)
 }
 
-pub fn push_text(
+pub fn push_text_component(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     rules: &dyn RulesetImpl,
@@ -131,10 +125,7 @@ fn push_element(
 
     // if respect indentatrion
     if rules.respect_indentation() {
-        match (
-            prev_tag_info.most_recent_descendant.clone(),
-            tag_info.inline_el,
-        ) {
+        match (&prev_tag_info.most_recent_descendant, tag_info.inline_el) {
             (DescendantStatus::Text, true) => {
                 results.push(' ');
             }
@@ -378,17 +369,12 @@ fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-fn push_attr_component(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    template_str: &str,
-    step: &Step,
-) {
+fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
     let attr = get_text_from_step(template_str, step);
-    push_attr(results, stack, attr)
+    push_attr_component(results, stack, attr)
 }
 
-pub fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
+pub fn push_attr_component(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -402,17 +388,17 @@ pub fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, attr: &str) {
     results.push_str(attr.trim());
 }
 
-fn push_attr_value_component(
+fn push_attr_value(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
     template_str: &str,
     step: &Step,
 ) {
     let val = get_text_from_step(template_str, step);
-    push_attr_value(results, stack, val)
+    push_attr_value_component(results, stack, val)
 }
 
-pub fn push_attr_value(results: &mut String, stack: &mut Vec<TagInfo>, val: &str) {
+pub fn push_attr_value_component(results: &mut String, stack: &mut Vec<TagInfo>, val: &str) {
     let tag_info = match stack.last() {
         Some(curr) => curr,
         _ => return,
@@ -464,7 +450,6 @@ fn pop_closing_sequence(
         Some(curr) => curr.clone(),
         _ => return,
     };
-
     if tag != tag_info.tag {
         return;
     }
@@ -477,7 +462,7 @@ fn pop_closing_sequence(
     stack.pop();
 
     let prev_tag_info = match stack.last() {
-        Some(curr) => curr.clone(),
+        Some(curr) => curr,
         _ => return,
     };
 
@@ -548,10 +533,12 @@ fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -
     while let (Some((src_index, src_chr)), Some(tgt_chr)) =
         (source_chars.next(), target_chars.next())
     {
-        if src_chr != tgt_chr || !src_chr.is_whitespace() || !tgt_chr.is_whitespace() {
-            return src_index;
+        if src_chr == tgt_chr && src_chr.is_whitespace() {
+            prev_index = src_index;
+            continue;
         }
-        prev_index = src_index;
+
+        return src_index;
     }
 
     prev_index

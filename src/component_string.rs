@@ -1,5 +1,7 @@
 use crate::components::Component;
-use crate::compose_steps::{compose_steps, push_attr, push_attr_value, push_text};
+use crate::compose_steps::{
+    compose_steps, push_attr_component, push_attr_value_component, push_text_component,
+};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::TagInfo;
@@ -42,19 +44,21 @@ pub fn compose_string(
 ) -> Result<String, String> {
     let mut tmpl_str = "".to_string();
 
-    let root_tag_info = TagInfo::new(rules, ":root");
-    let mut tag_info_stack: Vec<TagInfo> = Vec::from([root_tag_info]);
+    let mut tag_info_stack: Vec<TagInfo> = Vec::from([TagInfo::new(rules, ":root")]);
 
-    let component_bit =
-        get_bit_from_component_stack(&mut tag_info_stack, builder, rules, component);
-    let mut component_stack: Vec<StackBit> = Vec::from([component_bit]);
+    let mut component_stack: Vec<StackBit> = Vec::from([get_bit_from_component_stack(
+        &mut tag_info_stack,
+        builder,
+        rules,
+        component,
+    )]);
 
-    while let Some(mut component_bit) = component_stack.pop() {
-        match component_bit {
+    while let Some(mut cmpnt_bit) = component_stack.pop() {
+        match cmpnt_bit {
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
                 Component::Text(text) => {
-                    push_text(&mut tmpl_str, &mut tag_info_stack, rules, text);
+                    push_text_component(&mut tmpl_str, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
@@ -69,11 +73,11 @@ pub fn compose_string(
                 }
                 _ => {}
             },
-            StackBit::Tmpl(component, ref template, ref mut bit) => {
+            StackBit::Tmpl(cmpnt, ref template, ref mut bit) => {
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
-                let tmpl_component = match component {
+                let tmpl_cmpnt = match cmpnt {
                     Component::Tmpl(cmpnt) => cmpnt,
                     _ => continue,
                 };
@@ -84,23 +88,22 @@ pub fn compose_string(
                         rules,
                         &mut tmpl_str,
                         &mut tag_info_stack,
-                        &tmpl_component.template_str,
+                        &tmpl_cmpnt.template_str,
                         chunk,
                     );
                 }
 
                 // add injections
-                if let (Some(inj_step), Some(inj)) = (
-                    template.injs.get(index),
-                    tmpl_component.injections.get(index),
-                ) {
+                if let (Some(inj_step), Some(inj)) =
+                    (template.injs.get(index), tmpl_cmpnt.injections.get(index))
+                {
                     match inj_step.kind {
                         StepKind::AttrMapInjection => {
                             add_attr_inj(&mut tag_info_stack, &mut tmpl_str, inj);
                         }
                         // push template back and bail early
                         StepKind::DescendantInjection => {
-                            component_stack.push(component_bit);
+                            component_stack.push(cmpnt_bit);
 
                             let bit = get_bit_from_component_stack(
                                 &mut tag_info_stack,
@@ -123,11 +126,11 @@ pub fn compose_string(
                         return Err(
                             "Coyote Err: the following template component is imbalanced:\n{:?}"
                                 .to_string()
-                                + tmpl_component.template_str,
+                                + tmpl_cmpnt.template_str,
                         );
                     }
 
-                    component_stack.push(component_bit);
+                    component_stack.push(cmpnt_bit);
                 }
             }
             _ => {}
@@ -142,15 +145,15 @@ fn get_bit_from_component_stack<'a>(
     stack: &mut Vec<TagInfo>,
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
-    component: &'a Component,
+    cmpnt: &'a Component,
 ) -> StackBit<'a> {
-    match component {
-        Component::Text(_text) => StackBit::Cmpnt(component),
-        Component::List(_list) => StackBit::Cmpnt(component),
+    match cmpnt {
+        Component::Text(_) => StackBit::Cmpnt(cmpnt),
+        Component::List(_) => StackBit::Cmpnt(cmpnt),
         Component::Tmpl(tmpl) => {
             let template_steps = builder.build(rules, &tmpl.template_str);
             StackBit::Tmpl(
-                component,
+                cmpnt,
                 template_steps,
                 TemplateBit {
                     inj_index: 0,
@@ -162,22 +165,22 @@ fn get_bit_from_component_stack<'a>(
     }
 }
 
-fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, component: &Component) {
-    match component {
-        Component::Attr(attr) => push_attr(template_str, stack, attr),
+fn add_attr_inj(stack: &mut Vec<TagInfo>, template_str: &mut String, cmpnt: &Component) {
+    match cmpnt {
+        Component::Attr(attr) => push_attr_component(template_str, stack, attr),
         Component::AttrVal(attr, val) => {
-            push_attr(template_str, stack, attr);
-            push_attr_value(template_str, stack, val);
+            push_attr_component(template_str, stack, attr);
+            push_attr_value_component(template_str, stack, val);
         }
         Component::List(attr_list) => {
             for cmpnt in attr_list {
                 match cmpnt {
                     Component::Attr(attr) => {
-                        push_attr(template_str, stack, attr);
+                        push_attr_component(template_str, stack, attr);
                     }
                     Component::AttrVal(attr, val) => {
-                        push_attr(template_str, stack, attr);
-                        push_attr_value(template_str, stack, val);
+                        push_attr_component(template_str, stack, attr);
+                        push_attr_value_component(template_str, stack, val);
                     }
                     _ => {}
                 }
