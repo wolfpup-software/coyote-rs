@@ -133,15 +133,14 @@ fn add_reserved_element_text(
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     use crate::components::{attr_val, list, text, tmpl, Component};
-    use crate::rulesets::ServerRules;
     use crate::routes::StepKind;
+    use crate::rulesets::ServerRules;
     use crate::template_steps::{compose, Results};
 
     fn woof() -> Component {

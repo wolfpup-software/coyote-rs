@@ -16,24 +16,16 @@ pub fn compose_steps(
             StepKind::ElementClosed => close_element(results, tag_info_stack),
             StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack),
             StepKind::TailTag => pop_element(results, tag_info_stack, rules, template_str, step),
-            StepKind::Text => {
-                push_text(results, tag_info_stack, rules, template_str, step)
-            }
+            StepKind::Text => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::Attr => push_attr(results, tag_info_stack, template_str, step),
-            StepKind::AttrValue => {
-                push_attr_value(results, tag_info_stack, template_str, step)
-            }
+            StepKind::AttrValue => push_attr_value(results, tag_info_stack, template_str, step),
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
             // just do alt text function ?
-            StepKind::CommentText => {
-                push_text(results, tag_info_stack, rules, template_str, step)
-            }
+            StepKind::CommentText => push_text(results, tag_info_stack, rules, template_str, step),
             // just do alt text function
-            StepKind::AltText => {
-                push_text(results, tag_info_stack, rules, template_str, step)
-            }
+            StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
             }
@@ -133,10 +125,7 @@ fn push_element(
 
     // if respect indentatrion
     if rules.respect_indentation() {
-        match (
-            prev_tag_info.most_recent_descendant.clone(),
-            tag_info.inline_el,
-        ) {
+        match (&prev_tag_info.most_recent_descendant, tag_info.inline_el) {
             (DescendantStatus::Text, true) => {
                 results.push(' ');
             }
@@ -380,12 +369,7 @@ fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-fn push_attr(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    template_str: &str,
-    step: &Step,
-) {
+fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
     let attr = get_text_from_step(template_str, step);
     push_attr_component(results, stack, attr)
 }
