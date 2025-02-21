@@ -26,9 +26,11 @@ pub fn compose_steps(
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
+            // just do alt text function ?
             StepKind::CommentText => {
                 push_text_component(results, tag_info_stack, rules, template_str, step)
             }
+            // just do alt text function
             StepKind::AltText => {
                 push_text_component(results, tag_info_stack, rules, template_str, step)
             }
@@ -548,10 +550,12 @@ fn get_most_common_space_index_between_two_strings(source: &str, target: &str) -
     while let (Some((src_index, src_chr)), Some(tgt_chr)) =
         (source_chars.next(), target_chars.next())
     {
-        if src_chr != tgt_chr || !src_chr.is_whitespace() || !tgt_chr.is_whitespace() {
-            return src_index;
+        if src_chr == tgt_chr && src_chr.is_whitespace() {
+            prev_index = src_index;
+            continue;
         }
-        prev_index = src_index;
+
+        return src_index;
     }
 
     prev_index
