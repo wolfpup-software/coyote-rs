@@ -61,10 +61,10 @@ impl TagInfo {
             tag_info.indent_count += 1;
         }
 
-        tag_info.void_el = rules.tag_is_void_el(&tag);
         tag_info.tag = tag.to_string();
-        tag_info.most_recent_descendant = DescendantStatus::Initial;
+        tag_info.void_el = rules.tag_is_void_el(&tag);
         tag_info.inline_el = rules.tag_is_inline_el(tag);
+        tag_info.most_recent_descendant = DescendantStatus::Initial;
 
         tag_info
     }

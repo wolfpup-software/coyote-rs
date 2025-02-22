@@ -74,7 +74,6 @@ pub fn push_text_component(
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         add_alt_element_text(results, text, tag_info);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
 
@@ -172,48 +171,35 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     }
 
     if tag_info.void_el && "html" == tag_info.namespace {
-        // void element
         stack.pop();
     }
 }
 
 fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
-    let tag_info = match stack.last() {
+    let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
     };
 
     if tag_info.banned_path || tag_info.void_el {
-        stack.pop();
         return;
     }
 
     if "html" != tag_info.namespace {
         results.push_str("/>");
-        let descendant_status = match tag_info.inline_el {
-            true => DescendantStatus::InlineElementClosed,
-            _ => DescendantStatus::ElementClosed,
-        };
+    } else {
+        if !tag_info.void_el {
+            results.push_str("></");
+            results.push_str(&tag_info.tag);
+        }
 
-        stack.pop();
-
-        update_most_recent_descendant_status(stack, descendant_status);
-        return;
+        results.push('>');
     }
-
-    if !tag_info.void_el {
-        results.push_str("></");
-        results.push_str(&tag_info.tag);
-    }
-
-    results.push('>');
 
     let descendant_status = match tag_info.inline_el {
         true => DescendantStatus::InlineElementClosed,
         _ => DescendantStatus::ElementClosed,
     };
-
-    stack.pop();
 
     update_most_recent_descendant_status(stack, descendant_status);
 }
@@ -447,7 +433,7 @@ fn pop_closing_sequence(
     };
 
     let tag_info = match stack.last() {
-        Some(curr) => curr.clone(),
+        Some(curr) => curr,
         _ => return,
     };
     if tag != tag_info.tag {
