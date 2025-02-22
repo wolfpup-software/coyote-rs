@@ -22,9 +22,7 @@ pub fn compose_steps(
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            // just do alt text function ?
             StepKind::CommentText => push_text(results, tag_info_stack, rules, template_str, step),
-            // just do alt text function
             StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
@@ -74,6 +72,7 @@ pub fn push_text_component(
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         add_alt_element_text(results, text, tag_info);
+        tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
     }
 
@@ -244,7 +243,7 @@ fn pop_element(
         _ => return,
     };
 
-    // if respect indentatrion
+    // if respect indentation
     if rules.respect_indentation()
         && !tag_info.inline_el
         && tag_info.most_recent_descendant != DescendantStatus::Initial
@@ -432,20 +431,18 @@ fn pop_closing_sequence(
         _ => return,
     };
 
-    let tag_info = match stack.last() {
+    let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
     };
+
     if tag != tag_info.tag {
         return;
     }
 
     if tag_info.banned_path {
-        stack.pop();
         return;
     }
-
-    stack.pop();
 
     let prev_tag_info = match stack.last() {
         Some(curr) => curr,
