@@ -45,7 +45,6 @@ pub fn compose_string(
     let mut tmpl_str = "".to_string();
 
     let mut tag_info_stack: Vec<TagInfo> = Vec::from([TagInfo::new(rules, ":root")]);
-
     let mut component_stack: Vec<StackBit> = Vec::from([get_bit_from_component_stack(
         &mut tag_info_stack,
         builder,

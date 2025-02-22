@@ -12,11 +12,11 @@ impl SlidingWindow {
     }
 
     pub fn slide(&mut self, glyph: char) -> bool {
-        if self.index > self.target.len() {
+        if self.target.len() < self.index {
             self.index = 0;
         }
 
-        if self.target[self.index - 1] != glyph {
+        if glyph != self.target[self.index - 1] {
             self.index = 0;
         }
 

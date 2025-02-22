@@ -211,13 +211,6 @@ fn pop_element(
     template_str: &str,
     step: &Step,
 ) {
-    let tag = get_text_from_step(template_str, step);
-    if let Some(tag_info) = stack.last() {
-        if tag != tag_info.tag {
-            return;
-        }
-    };
-
     let tag_info = match stack.pop() {
         Some(ti) => ti,
         _ => {
@@ -225,6 +218,15 @@ fn pop_element(
             return;
         }
     };
+
+    if tag_info.banned_path {
+        return;
+    }
+
+    let tag = get_text_from_step(template_str, step);
+    if tag != tag_info.tag {
+        return;
+    }
 
     // update descendant status
     let descendant_status = match tag_info.inline_el {
@@ -425,17 +427,16 @@ fn pop_closing_sequence(
     template_str: &str,
     step: &Step,
 ) {
-    let closing_sequence = get_text_from_step(template_str, step);
-    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
-        Some(t) => t,
-        _ => return,
-    };
-
     let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
     };
 
+    let closing_sequence = get_text_from_step(template_str, step);
+    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
+        Some(t) => t,
+        _ => return,
+    };
     if tag != tag_info.tag {
         return;
     }

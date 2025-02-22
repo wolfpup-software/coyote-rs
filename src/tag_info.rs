@@ -25,13 +25,13 @@ pub struct TagInfo {
 
 impl TagInfo {
     pub fn new(rules: &dyn RulesetImpl, tag: &str) -> TagInfo {
-        let mut namespace = rules.get_initial_namespace().to_string();
+        let mut namespace = rules.get_initial_namespace();
         if rules.tag_is_namespace_el(tag) {
-            namespace = tag.to_string()
+            namespace = tag;
         }
 
         TagInfo {
-            namespace: namespace,
+            namespace: namespace.to_string(),
             tag: tag.to_string(),
             most_recent_descendant: DescendantStatus::Initial,
             indent_count: 0,
