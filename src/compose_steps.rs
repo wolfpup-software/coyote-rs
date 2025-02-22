@@ -22,9 +22,7 @@ pub fn compose_steps(
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            // just do alt text function ?
             StepKind::CommentText => push_text(results, tag_info_stack, rules, template_str, step),
-            // just do alt text function
             StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::AltTextCloseSequence => {
                 pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
@@ -172,48 +170,35 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     }
 
     if tag_info.void_el && "html" == tag_info.namespace {
-        // void element
         stack.pop();
     }
 }
 
 fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
-    let tag_info = match stack.last() {
+    let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
     };
 
     if tag_info.banned_path || tag_info.void_el {
-        stack.pop();
         return;
     }
 
     if "html" != tag_info.namespace {
         results.push_str("/>");
-        let descendant_status = match tag_info.inline_el {
-            true => DescendantStatus::InlineElementClosed,
-            _ => DescendantStatus::ElementClosed,
-        };
+    } else {
+        if !tag_info.void_el {
+            results.push_str("></");
+            results.push_str(&tag_info.tag);
+        }
 
-        stack.pop();
-
-        update_most_recent_descendant_status(stack, descendant_status);
-        return;
+        results.push('>');
     }
-
-    if !tag_info.void_el {
-        results.push_str("></");
-        results.push_str(&tag_info.tag);
-    }
-
-    results.push('>');
 
     let descendant_status = match tag_info.inline_el {
         true => DescendantStatus::InlineElementClosed,
         _ => DescendantStatus::ElementClosed,
     };
-
-    stack.pop();
 
     update_most_recent_descendant_status(stack, descendant_status);
 }
@@ -226,13 +211,6 @@ fn pop_element(
     template_str: &str,
     step: &Step,
 ) {
-    let tag = get_text_from_step(template_str, step);
-    if let Some(tag_info) = stack.last() {
-        if tag != tag_info.tag {
-            return;
-        }
-    };
-
     let tag_info = match stack.pop() {
         Some(ti) => ti,
         _ => {
@@ -240,6 +218,15 @@ fn pop_element(
             return;
         }
     };
+
+    if tag_info.banned_path {
+        return;
+    }
+
+    let tag = get_text_from_step(template_str, step);
+    if tag != tag_info.tag {
+        return;
+    }
 
     // update descendant status
     let descendant_status = match tag_info.inline_el {
@@ -258,7 +245,7 @@ fn pop_element(
         _ => return,
     };
 
-    // if respect indentatrion
+    // if respect indentation
     if rules.respect_indentation()
         && !tag_info.inline_el
         && tag_info.most_recent_descendant != DescendantStatus::Initial
@@ -440,14 +427,14 @@ fn pop_closing_sequence(
     template_str: &str,
     step: &Step,
 ) {
-    let closing_sequence = get_text_from_step(template_str, step);
-    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
-        Some(t) => t,
+    let tag_info = match stack.pop() {
+        Some(curr) => curr,
         _ => return,
     };
 
-    let tag_info = match stack.last() {
-        Some(curr) => curr.clone(),
+    let closing_sequence = get_text_from_step(template_str, step);
+    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
+        Some(t) => t,
         _ => return,
     };
     if tag != tag_info.tag {
@@ -455,11 +442,8 @@ fn pop_closing_sequence(
     }
 
     if tag_info.banned_path {
-        stack.pop();
         return;
     }
-
-    stack.pop();
 
     let prev_tag_info = match stack.last() {
         Some(curr) => curr,

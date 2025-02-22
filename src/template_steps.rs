@@ -30,8 +30,8 @@ pub fn compose(ruleset: &dyn RulesetImpl, template_str: &str) -> Results {
 
     for step in parse_str(ruleset, template_str, StepKind::Initial) {
         match step.kind {
-            StepKind::AttrMapInjection => push_attr_map_injection(&mut results, step),
-            StepKind::DescendantInjection => push_descendant_injection(&mut results, step),
+            StepKind::AttrMapInjection => push_injection(&mut results, step),
+            StepKind::DescendantInjection => push_injection(&mut results, step),
             _ => push_step(&mut results, step),
         }
     }
@@ -45,12 +45,7 @@ fn push_step(results: &mut Results, step: Step) {
     }
 }
 
-fn push_attr_map_injection(results: &mut Results, step: Step) {
-    results.steps.push(Vec::new());
-    results.injs.push(step);
-}
-
-fn push_descendant_injection(results: &mut Results, step: Step) {
+fn push_injection(results: &mut Results, step: Step) {
     results.steps.push(Vec::new());
     results.injs.push(step);
 }

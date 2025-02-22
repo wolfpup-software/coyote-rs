@@ -28,7 +28,7 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
                 continue;
             }
 
-            if let Err(_) = add_reserved_element_text(rules, &mut steps, tag, index) {
+            if let Err(_) = add_alt_element_text(rules, &mut steps, tag, index) {
                 return steps;
             };
 
@@ -41,6 +41,9 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             Some(step) => step,
             _ => return steps,
         };
+        // record change
+        end_step.target = index;
+
         let mut curr_kind = match end_step.kind {
             StepKind::InjectionConfirmed => routes::route(glyph, &prev_inj_kind),
             _ => routes::route(glyph, &end_step.kind),
@@ -53,14 +56,13 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             prev_inj_kind = end_step.kind.clone();
         }
 
-        // record change
-        end_step.target = index;
-
         if StepKind::Tag == end_step.kind {
             tag = get_text_from_step(template_str, &end_step);
         }
 
+        // Need route rules for CommentText and AltText
         // two edge cases for comments and alt text
+        // or just "AltElementCloseSequence"
         if rules.tag_is_comment(tag) {
             if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
                 let mut slider = SlidingWindow::new(close_seq);
@@ -107,7 +109,7 @@ fn is_injection_kind(step_kind: &StepKind) -> bool {
     }
 }
 
-fn add_reserved_element_text(
+fn add_alt_element_text(
     rules: &dyn RulesetImpl,
     steps: &mut Vec<Step>,
     tag: &str,
