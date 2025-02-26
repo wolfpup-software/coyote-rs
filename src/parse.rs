@@ -60,18 +60,6 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             tag = get_text_from_step(template_str, &end_step);
         }
 
-        // Need route rules for CommentText and AltText
-        // two edge cases for comments and alt text
-        // or just "AltElementCloseSequence"
-        if rules.tag_is_comment(tag) {
-            if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
-                let mut slider = SlidingWindow::new(close_seq);
-                slider.slide(glyph);
-                sliding_window = Some(slider);
-                curr_kind = StepKind::CommentText;
-            };
-        }
-
         if let (true, Some(close_seq)) = (
             StepKind::ElementClosed == end_step.kind,
             rules.get_close_sequence_from_alt_text_tag(tag),
