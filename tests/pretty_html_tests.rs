@@ -255,10 +255,6 @@ fn test_pretty_html_without_indents_client() {
     assert_eq!(Ok(expected.to_string()), results);
 }
 
-// /* complicated inline cases */
-// // there should be some logic for img tags
-// //
-
 #[test]
 fn test_pretty_html_without_indents_and_text() {
     let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);

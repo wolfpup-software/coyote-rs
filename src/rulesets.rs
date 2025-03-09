@@ -232,7 +232,6 @@ fn is_banned_el(tag: &str) -> bool {
 
 fn is_void_el(tag: &str) -> bool {
     match tag {
-        "!--" => true,
         "!DOCTYPE" => true,
         "area" => true,
         "base" => true,
@@ -262,7 +261,7 @@ fn is_namespace_el(tag: &str) -> bool {
 }
 
 pub fn is_preserved_text_el(tag: &str) -> bool {
-    return tag == "pre";
+    return "pre" == tag;
 }
 
 pub fn is_inline_el(tag: &str) -> bool {

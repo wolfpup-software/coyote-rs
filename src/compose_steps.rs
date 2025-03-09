@@ -179,7 +179,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         return;
     }
 
@@ -264,7 +264,7 @@ fn all_spaces(line: &str) -> bool {
 
 fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let common_index = get_most_common_space_index(text);
-
+    println!("common index: {}", common_index);
     for line in text.split("\n") {
         if all_spaces(line) {
             continue;
@@ -481,25 +481,29 @@ fn get_index_of_first_char(text: &str) -> usize {
 }
 
 fn get_most_common_space_index(text: &str) -> usize {
-    let mut prev_space_index = text.len();
     let mut space_index = text.len();
     let mut prev_line = "";
 
     let mut texts = text.split("\n");
 
-    if let Some(line) = texts.next() {
+    while let Some(line) = texts.next() {
+        if all_spaces(line) {
+            continue;
+        };
+
+        space_index = get_index_of_first_char(line);
         prev_line = line;
+        break;
     }
 
     while let Some(line) = texts.next() {
-        let first_char = get_index_of_first_char(line);
-        if line.len() == first_char {
+        if all_spaces(line) {
             continue;
         }
 
-        space_index = get_most_common_space_index_between_two_strings(prev_line, line);
-        if space_index < prev_space_index {
-            prev_space_index = space_index
+        let curr_index = get_most_common_space_index_between_two_strings(prev_line, line);
+        if curr_index < space_index {
+            space_index = curr_index
         }
 
         prev_line = line;
