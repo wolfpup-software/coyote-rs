@@ -264,7 +264,6 @@ fn all_spaces(line: &str) -> bool {
 
 fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let common_index = get_most_common_space_index(text);
-    println!("common index: {}", common_index);
     for line in text.split("\n") {
         if all_spaces(line) {
             continue;
@@ -348,7 +347,12 @@ fn add_no_indents_inline_element_closed_text(results: &mut String, text: &str) {
 fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
-            results.push('\n');
+            // edge case for beginning of document
+            // needs to be more ergonomic
+            if 0 < results.len() {
+                results.push('\n');
+            }
+
             results.push_str(&"\t".repeat(tag_info.indent_count));
             results.push_str(line.trim());
         }

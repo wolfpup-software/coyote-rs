@@ -40,13 +40,32 @@ fn test_text_element() {
         "
 
             Beasts tread softly underfoot.
-            
+
 		",
         [],
     );
     let expected = "Beasts tread softly underfoot.";
 
     let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn test_client_text_element() {
+    let template = tmpl(
+        "
+
+            Beasts tread
+            softly underfoot.
+            
+		",
+        [],
+    );
+    let expected = "Beasts tread softly underfoot.";
+
+    let mut html = ClientHtml::new();
     let results = html.build(&template);
 
     assert_eq!(Ok(expected.to_string()), results);
@@ -72,7 +91,8 @@ fn test_element_with_text() {
 fn test_inline_element_with_text() {
     let template = tmpl(
         "
-		<b>   hello!    </b>
+		<b>   hello!
+            </b>
 		",
         [],
     );
