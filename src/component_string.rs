@@ -1,4 +1,3 @@
-use crate::template_builder::BuilderImpl;
 use crate::components::Component;
 use crate::compose_steps::{
     compose_steps, push_attr_component, push_attr_value_component, push_text_component,
@@ -6,6 +5,7 @@ use crate::compose_steps::{
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::TagInfo;
+use crate::template_builder::BuilderImpl;
 use crate::template_steps::Results as TemplateSteps;
 
 struct TemplateBit {

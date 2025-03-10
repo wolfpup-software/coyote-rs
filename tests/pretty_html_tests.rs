@@ -1,7 +1,7 @@
 use coyote::{tmpl, ClientHtml, Html};
 
 #[test]
-fn test_pretty_html_no_empty_space() {
+fn pretty_empty_element() {
     let template = tmpl("<html></html>", []);
     let expected = "<html></html>";
 
@@ -12,7 +12,7 @@ fn test_pretty_html_no_empty_space() {
 }
 
 #[test]
-fn test_pretty_html_no_empty_space_unbalanaced() {
+fn pretty_empty_element_unbalanaced() {
     let template = tmpl("<html>", []);
     let expected = "Coyote Err: the following template component is imbalanced:\n{:?}<html>";
 
@@ -23,7 +23,7 @@ fn test_pretty_html_no_empty_space_unbalanaced() {
 }
 
 #[test]
-fn test_pretty_html_void_el() {
+fn pretty_void_el() {
     let template = tmpl(
         "<input>   <input>
             <input><input> ",
@@ -39,7 +39,7 @@ fn test_pretty_html_void_el() {
 }
 
 #[test]
-fn test_pretty_html_void_el_with_attributes() {
+fn pretty_void_el_with_attributes() {
     let template = tmpl(
         "
         <!DOCTYPE html><input type=checkbox>   <input woof=\"bark\">
@@ -56,7 +56,7 @@ fn test_pretty_html_void_el_with_attributes() {
 }
 
 #[test]
-fn test_pretty_html_inline_el() {
+fn pretty_inline_el() {
     let template = tmpl("<span>hai <span>:3</span></span> ", []);
     let expected = "<span>hai <span>:3</span></span>";
     let mut html = Html::new();
@@ -66,7 +66,7 @@ fn test_pretty_html_inline_el() {
 }
 
 #[test]
-fn test_unpretty_html_inline_el() {
+fn unpretty_inline_el() {
     let template = tmpl(
         "
         <span>
@@ -82,7 +82,7 @@ fn test_unpretty_html_inline_el() {
 }
 
 #[test]
-fn test_pretty_html_void_el_and_others() {
+fn pretty_void_el_with_sibling() {
     let template = tmpl(
         "
             <input><p>hai :3</p>    ",
@@ -97,7 +97,7 @@ fn test_pretty_html_void_el_and_others() {
 }
 
 #[test]
-fn test_pretty_html_nested_void_el() {
+fn pretty_nested_void_el() {
     let template = tmpl(
         "
         <section>
@@ -116,7 +116,7 @@ fn test_pretty_html_nested_void_el() {
 }
 
 #[test]
-fn test_pretty_html_preserved_space_el() {
+fn pretty_preserved_space_el() {
     let template = tmpl(
         "<style>#woof .bark {
     color: doggo;
@@ -132,7 +132,85 @@ fn test_pretty_html_preserved_space_el() {
 }
 
 #[test]
-fn test_pretty_html_doc() {
+fn pretty_nested_elements_and_text() {
+    let template = tmpl("<a><label><input type=woofer>bark!</label></a>", []);
+    let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n</a>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_nested_elements_and_text_client() {
+    let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
+    let expected = "<a><label><input type=woofer>bark!</label><img></a>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_server_doc() {
+    let template = tmpl(
+        "        <!DOCTYPE>
+    <html>
+    <head>
+
+    </head>
+        <body>
+            <article>
+                You're a <span>boy kisser</span> aren't you?
+                Click <a>here</a> and go somewhere else.
+            </article>
+            <footer/>
+        </body>
+</html>",
+        [],
+    );
+
+    let expected =
+    "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick\n\t\t\t<a>\n\t\t\t\there\n\t\t\t</a>\n\t\t\tand go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_client_doc() {
+    let template = tmpl(
+        "        <!DOCTYPE>
+    <html>
+    <head>
+
+    </head>
+        <body>
+            <article>
+                You're a <span>boy kisser</span> aren't you?
+                Click <a>here</a> and go somewhere else.
+            </article>
+            <footer/>
+        </body>
+</html>",
+        [],
+    );
+
+    let expected =
+        "<!DOCTYPE><html><head></head><body><article>You're a <span>boy kisser</span> aren't you? Click <a>here</a> and go somewhere else.</article><footer></footer></body></html>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_doc_with_alt_text_elements() {
     let template = tmpl(
         "        <!DOCTYPE>
     <html>
@@ -166,7 +244,7 @@ fn test_pretty_html_doc() {
 }
 
 #[test]
-fn test_pretty_html_client() {
+fn pretty_client_doc_with_alt_text_elements() {
     let template = tmpl(
         "        <!DOCTYPE>
     <html>
@@ -192,84 +270,6 @@ if 2 < 3 {
 
     let expected =
         "<!DOCTYPE><html><head></head><body><article></article><footer></footer></body></html>";
-
-    let mut html = ClientHtml::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn test_pretty_html_without_indents_server() {
-    let template = tmpl(
-        "        <!DOCTYPE>
-    <html>
-    <head>
-
-    </head>
-        <body>
-            <article>
-                You're a <span>boy kisser</span> aren't you?
-                Click <a>here</a> and go somewhere else.
-            </article>
-            <footer/>
-        </body>
-</html>",
-        [],
-    );
-
-    let expected =
-    "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick\n\t\t\t<a>\n\t\t\t\there\n\t\t\t</a>\n\t\t\tand go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn test_pretty_html_without_indents_client() {
-    let template = tmpl(
-        "        <!DOCTYPE>
-    <html>
-    <head>
-
-    </head>
-        <body>
-            <article>
-                You're a <span>boy kisser</span> aren't you?
-                Click <a>here</a> and go somewhere else.
-            </article>
-            <footer/>
-        </body>
-</html>",
-        [],
-    );
-
-    let expected =
-        "<!DOCTYPE><html><head></head><body><article>You're a <span>boy kisser</span> aren't you? Click <a>here</a> and go somewhere else.</article><footer></footer></body></html>";
-
-    let mut html = ClientHtml::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn test_pretty_html_without_indents_and_text() {
-    let template = tmpl("<a><label><input type=woofer>bark!</label></a>", []);
-    let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n</a>";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn test_pretty_html_without_indents_and_text_client() {
-    let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
-    let expected = "<a><label><input type=woofer>bark!</label><img></a>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);

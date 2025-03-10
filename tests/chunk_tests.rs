@@ -1,7 +1,7 @@
 use coyote::{tmpl, ClientHtml, Html};
 
 #[test]
-fn test_empty_element() {
+fn empty_element() {
     let template = tmpl(
         "
 		<p>
@@ -18,7 +18,7 @@ fn test_empty_element() {
 }
 
 #[test]
-fn test_fragment() {
+fn fragment() {
     let template = tmpl(
         "
 		<>
@@ -35,7 +35,7 @@ fn test_fragment() {
 }
 
 #[test]
-fn test_text_element() {
+fn text_element() {
     let template = tmpl(
         "
 
@@ -53,7 +53,7 @@ fn test_text_element() {
 }
 
 #[test]
-fn test_client_text_element() {
+fn client_text_element() {
     let template = tmpl(
         "
 
@@ -72,7 +72,7 @@ fn test_client_text_element() {
 }
 
 #[test]
-fn test_element_with_text() {
+fn element_with_text() {
     let template = tmpl(
         "
 		<p>hello!</p>
@@ -88,7 +88,7 @@ fn test_element_with_text() {
 }
 
 #[test]
-fn test_inline_element_with_text() {
+fn inline_element_with_text() {
     let template = tmpl(
         "
 		<b>   hello!
@@ -105,7 +105,7 @@ fn test_inline_element_with_text() {
 }
 
 #[test]
-fn test_achor_element_with_text() {
+fn achor_element_with_text() {
     let template = tmpl(
         "
 		<a>
@@ -122,7 +122,7 @@ fn test_achor_element_with_text() {
 }
 
 #[test]
-fn test_void_element() {
+fn void_element() {
     let template = tmpl(
         "
 		<input />
@@ -138,7 +138,7 @@ fn test_void_element() {
 }
 
 #[test]
-fn test_non_void_element() {
+fn non_void_element() {
     let template = tmpl(
         "
 		<p />
@@ -154,9 +154,7 @@ fn test_non_void_element() {
 }
 
 #[test]
-fn test_comment_element() {
-    // edge case
-    // will include all the spaces
+fn comment_element() {
     let template = tmpl(
         "
 		<!-- 
@@ -174,9 +172,7 @@ fn test_comment_element() {
 }
 
 #[test]
-fn test_alt_element() {
-    // edge case
-    // will include all the spaces
+fn alt_element() {
     let template = tmpl(
         "
 		<script>
