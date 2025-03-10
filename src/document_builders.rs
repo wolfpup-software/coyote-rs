@@ -1,4 +1,5 @@
-use crate::component_string::{compose_string, Builder};
+use crate::template_builder::Builder;
+use crate::component_string::compose_string;
 use crate::components::Component;
 use crate::rulesets::{ClientRules, ServerRules, XmlRules};
 

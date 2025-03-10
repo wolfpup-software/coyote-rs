@@ -70,7 +70,6 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             }
         }
 
-        // Slide for <el attr></> style components
         if let (true, Some(close_seq)) = (
             StepKind::ElementClosed == end_step.kind,
             rules.get_close_sequence_from_alt_text_tag(tag),
@@ -92,7 +91,6 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
         step.target = template_str.len();
     }
 
-    println!("steps: {:?}", &steps);
     steps
 }
 

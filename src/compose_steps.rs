@@ -3,14 +3,6 @@ use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::{DescendantStatus, TagInfo};
 
-// is comment?
-
-// has no attributes?
-
-// is_attributeless?
-//  <-- sdfsdfds -->
-//  <CDATA[[]]>
-//
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
     results: &mut String,
@@ -214,7 +206,6 @@ fn pop_element(
     template_str: &str,
     step: &Step,
 ) {
-    println!("pop element!");
     let tag_info = match stack.pop() {
         Some(ti) => ti,
         _ => {
@@ -229,15 +220,12 @@ fn pop_element(
 
     let mut tag = get_text_from_step(template_str, step);
     if let Some(close_tag) = rules.get_alt_text_tag_from_close_sequence(tag) {
-        println!("close_tag: {}", close_tag);
         tag = close_tag;
     }
 
     if tag != tag_info.tag {
         return;
     }
-
-    println!("{:?}", &tag_info);
 
     // update descendant status
     let descendant_status = match tag_info.inline_el {
@@ -266,10 +254,8 @@ fn pop_element(
     }
 
     if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
-        println!("is alt text: {}", close_seq);
         results.push_str(close_seq);
         results.push('>');
-
         return;
     }
 
