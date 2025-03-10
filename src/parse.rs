@@ -60,7 +60,7 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             tag = get_text_from_step(template_str, &end_step);
 
             // sliding window for attributeless elements like comments and CDATA
-            if rules.tag_is_comment(tag) {
+            if rules.tag_is_attributeless(tag) {
                 if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
                     let mut slider = SlidingWindow::new(close_seq);
                     slider.slide(glyph);

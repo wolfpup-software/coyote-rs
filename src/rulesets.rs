@@ -1,7 +1,7 @@
 pub trait RulesetImpl {
     fn get_initial_namespace(&self) -> &str;
     // parse
-    fn tag_is_comment(&self, tag: &str) -> bool;
+    fn tag_is_attributeless(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
     // coyote
@@ -26,8 +26,8 @@ impl RulesetImpl for ServerRules {
         "html"
     }
 
-    fn tag_is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
+    fn tag_is_attributeless(&self, tag: &str) -> bool {
+        "!--" == tag
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
@@ -86,8 +86,8 @@ impl RulesetImpl for ClientRules {
         "html"
     }
 
-    fn tag_is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
+    fn tag_is_attributeless(&self, tag: &str) -> bool {
+        "!--" == tag
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
@@ -156,13 +156,13 @@ impl RulesetImpl for XmlRules {
         "xml"
     }
 
-    fn tag_is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
+    fn tag_is_attributeless(&self, tag: &str) -> bool {
+        "!--" == tag
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "!--" => Some("-->"),
+            "!--" => Some("--"),
             "![CDATA[" => Some("]]>"),
             _ => None,
         }
@@ -170,7 +170,7 @@ impl RulesetImpl for XmlRules {
 
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
-            "-->" => Some("!--"),
+            "--" => Some("!--"),
             "]]>" => Some("!CDATA[["),
             _ => None,
         }
