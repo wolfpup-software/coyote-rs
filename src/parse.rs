@@ -56,21 +56,18 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             prev_inj_kind = end_step.kind.clone();
         }
 
-        // sliding window for attributeless elements like comments and CDATA
         if StepKind::Tag == end_step.kind {
             tag = get_text_from_step(template_str, &end_step);
 
+            // sliding window for attributeless elements like comments and CDATA
             if rules.tag_is_comment(tag) {
                 if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
                     let mut slider = SlidingWindow::new(close_seq);
                     slider.slide(glyph);
                     sliding_window = Some(slider);
-                    curr_kind = StepKind::AltText;
+                    curr_kind = StepKind::Text;
                 }
             }
-            // if tag is attributeless <!--  --> and <CDATA[[]]>
-            // curr_kind == AltText
-            // need to create a SlidingWindow at tag start
         }
 
         // Slide for <el attr></> style components
@@ -81,7 +78,7 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             let mut slider = SlidingWindow::new(close_seq);
             slider.slide(glyph);
             sliding_window = Some(slider);
-            curr_kind = StepKind::AltText;
+            curr_kind = StepKind::Text;
         }
 
         steps.push(Step {

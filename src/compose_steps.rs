@@ -30,7 +30,6 @@ pub fn compose_steps(
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
             _ => {}
         }
     }
