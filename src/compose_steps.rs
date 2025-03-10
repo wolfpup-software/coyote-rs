@@ -31,9 +31,6 @@ pub fn compose_steps(
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
             StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
-            StepKind::AltTextCloseSequence => {
-                pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
-            }
             _ => {}
         }
     }
@@ -59,7 +56,6 @@ pub fn push_text_component(
     if all_spaces(text) {
         return;
     }
-    println!("push_text_component");
 
     let tag_info = match stack.last_mut() {
         Some(curr) => curr,
@@ -77,14 +73,8 @@ pub fn push_text_component(
         return;
     }
 
-    println!(
-        "alt text!: {:?}",
-        rules.get_close_sequence_from_alt_text_tag(&tag_info.tag)
-    );
-
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
-        println!("alt text!: {:?}", text);
         add_alt_element_text(results, text, tag_info);
         tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
@@ -225,6 +215,7 @@ fn pop_element(
     template_str: &str,
     step: &Step,
 ) {
+    println!("pop element!");
     let tag_info = match stack.pop() {
         Some(ti) => ti,
         _ => {
@@ -237,10 +228,17 @@ fn pop_element(
         return;
     }
 
-    let tag = get_text_from_step(template_str, step);
+    let mut tag = get_text_from_step(template_str, step);
+    if let Some(close_tag) = rules.get_alt_text_tag_from_close_sequence(tag) {
+        println!("close_tag: {}", close_tag);
+        tag = close_tag;
+    }
+
     if tag != tag_info.tag {
         return;
     }
+
+    println!("{:?}", &tag_info);
 
     // update descendant status
     let descendant_status = match tag_info.inline_el {
@@ -266,6 +264,14 @@ fn pop_element(
     {
         results.push('\n');
         results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+    }
+
+    if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
+        println!("is alt text: {}", close_seq);
+        results.push_str(close_seq);
+        results.push('>');
+
+        return;
     }
 
     results.push_str("</");
@@ -436,52 +442,6 @@ fn push_attr_value_unquoted(
     let val = get_text_from_step(template_str, step);
     results.push('=');
     results.push_str(val);
-}
-
-fn pop_closing_sequence(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    rules: &dyn RulesetImpl,
-    template_str: &str,
-    step: &Step,
-) {
-    println!("pop closing sequence");
-    let tag_info = match stack.pop() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    let closing_sequence = get_text_from_step(template_str, step);
-    println!("clsoing sequence: {:?}", &closing_sequence);
-
-    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
-        Some(t) => t,
-        _ => return,
-    };
-    println!("alt text tag: {:?}", &tag);
-    if tag != tag_info.tag {
-        return;
-    }
-
-    if tag_info.banned_path {
-        return;
-    }
-
-    let prev_tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    if rules.respect_indentation()
-        && !prev_tag_info.inline_el
-        && !prev_tag_info.preserved_text_path
-        && DescendantStatus::Initial != prev_tag_info.most_recent_descendant
-    {
-        results.push_str("\n");
-        results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-    }
-
-    results.push_str(closing_sequence);
 }
 
 fn update_most_recent_descendant_status(

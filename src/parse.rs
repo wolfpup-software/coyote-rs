@@ -61,7 +61,6 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             tag = get_text_from_step(template_str, &end_step);
 
             if rules.tag_is_comment(tag) {
-                println!("comment is tag {}", &tag);
                 if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
                     let mut slider = SlidingWindow::new(close_seq);
                     slider.slide(glyph);
@@ -118,7 +117,6 @@ fn add_alt_element_text(
     tag: &str,
     index: usize,
 ) -> Result<(), ()> {
-    println!("add closing sequience");
     let step = match steps.last_mut() {
         Some(step) => step,
         _ => return Err(()),
@@ -131,7 +129,7 @@ fn add_alt_element_text(
 
     step.target = index - (closing_sequence.len() - 1);
     steps.push(Step {
-        kind: StepKind::AltTextCloseSequence,
+        kind: StepKind::TailTag,
         origin: index - (closing_sequence.len() - 1),
         target: index - (closing_sequence.len()),
     });

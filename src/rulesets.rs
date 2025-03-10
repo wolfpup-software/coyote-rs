@@ -32,18 +32,18 @@ impl RulesetImpl for ServerRules {
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "!--" => Some("-->"),
-            "script" => Some("</script>"),
-            "style" => Some("</style>"),
+            "!--" => Some("--"),
+            "script" => Some("</script"),
+            "style" => Some("</style"),
             _ => None,
         }
     }
 
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
-            "-->" => Some("!--"),
-            "</script>" => Some("script"),
-            "</style>" => Some("style"),
+            "--" => Some("!--"),
+            "</script" => Some("script"),
+            "</style" => Some("style"),
             _ => None,
         }
     }
@@ -92,18 +92,18 @@ impl RulesetImpl for ClientRules {
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "!--" => Some("-->"),
-            "script" => Some("</script>"),
-            "style" => Some("</style>"),
+            "!--" => Some("--"),
+            "script" => Some("</script"),
+            "style" => Some("</style"),
             _ => None,
         }
     }
 
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
-            "-->" => Some("!--"),
-            "</script>" => Some("script"),
-            "</style>" => Some("style"),
+            "--" => Some("!--"),
+            "</script" => Some("script"),
+            "</style" => Some("style"),
             _ => None,
         }
     }
@@ -192,8 +192,8 @@ impl RulesetImpl for XmlRules {
         false
     }
 
-    fn tag_is_preserved_text_el(&self, _tag: &str) -> bool {
-        false
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
+        "!CDATA[[" == tag
     }
 
     fn tag_is_inline_el(&self, _tag: &str) -> bool {
