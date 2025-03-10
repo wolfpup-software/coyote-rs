@@ -7,6 +7,7 @@ mod routes;
 mod rulesets;
 mod sliding_window;
 mod tag_info;
+mod template_builder;
 mod template_steps;
 
 pub use crate::components::attr;

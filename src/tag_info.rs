@@ -45,6 +45,11 @@ impl TagInfo {
     pub fn from(rules: &dyn RulesetImpl, prev_tag_info: &TagInfo, tag: &str) -> TagInfo {
         let mut tag_info = prev_tag_info.clone();
 
+        tag_info.tag = tag.to_string();
+        tag_info.void_el = rules.tag_is_void_el(&tag);
+        tag_info.inline_el = rules.tag_is_inline_el(tag);
+        tag_info.most_recent_descendant = DescendantStatus::Initial;
+
         if rules.tag_is_namespace_el(tag) {
             tag_info.namespace = tag.to_string();
         }
@@ -60,11 +65,6 @@ impl TagInfo {
         if !rules.tag_is_void_el(&prev_tag_info.tag) && !rules.tag_is_inline_el(tag) {
             tag_info.indent_count += 1;
         }
-
-        tag_info.tag = tag.to_string();
-        tag_info.void_el = rules.tag_is_void_el(&tag);
-        tag_info.inline_el = rules.tag_is_inline_el(tag);
-        tag_info.most_recent_descendant = DescendantStatus::Initial;
 
         tag_info
     }

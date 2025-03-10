@@ -24,9 +24,6 @@ pub enum StepKind {
     Element,
     Tag,
     Text,
-    // needed for comments and scripts
-    AltText,
-    AltTextCloseSequence,
 }
 
 // Names based roughly on:

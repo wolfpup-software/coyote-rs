@@ -22,10 +22,6 @@ pub fn compose_steps(
             StepKind::AttrValueUnquoted => {
                 push_attr_value_unquoted(results, tag_info_stack, template_str, step)
             }
-            StepKind::AltText => push_text(results, tag_info_stack, rules, template_str, step),
-            StepKind::AltTextCloseSequence => {
-                pop_closing_sequence(results, tag_info_stack, rules, template_str, step)
-            }
             _ => {}
         }
     }
@@ -179,7 +175,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
         _ => return,
     };
 
-    if tag_info.banned_path || tag_info.void_el {
+    if tag_info.banned_path {
         return;
     }
 
@@ -222,7 +218,11 @@ fn pop_element(
         return;
     }
 
-    let tag = get_text_from_step(template_str, step);
+    let mut tag = get_text_from_step(template_str, step);
+    if let Some(close_tag) = rules.get_alt_text_tag_from_close_sequence(tag) {
+        tag = close_tag;
+    }
+
     if tag != tag_info.tag {
         return;
     }
@@ -253,6 +253,12 @@ fn pop_element(
         results.push_str(&"\t".repeat(prev_tag_info.indent_count));
     }
 
+    if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
+        results.push_str(close_seq);
+        results.push('>');
+        return;
+    }
+
     results.push_str("</");
     results.push_str(tag);
     results.push('>');
@@ -264,7 +270,6 @@ fn all_spaces(line: &str) -> bool {
 
 fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let common_index = get_most_common_space_index(text);
-
     for line in text.split("\n") {
         if all_spaces(line) {
             continue;
@@ -348,7 +353,12 @@ fn add_no_indents_inline_element_closed_text(results: &mut String, text: &str) {
 fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
-            results.push('\n');
+            // edge case for beginning of document
+            // needs to be more ergonomic
+            if 0 < results.len() {
+                results.push('\n');
+            }
+
             results.push_str(&"\t".repeat(tag_info.indent_count));
             results.push_str(line.trim());
         }
@@ -419,48 +429,6 @@ fn push_attr_value_unquoted(
     results.push_str(val);
 }
 
-fn pop_closing_sequence(
-    results: &mut String,
-    stack: &mut Vec<TagInfo>,
-    rules: &dyn RulesetImpl,
-    template_str: &str,
-    step: &Step,
-) {
-    let tag_info = match stack.pop() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    let closing_sequence = get_text_from_step(template_str, step);
-    let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
-        Some(t) => t,
-        _ => return,
-    };
-    if tag != tag_info.tag {
-        return;
-    }
-
-    if tag_info.banned_path {
-        return;
-    }
-
-    let prev_tag_info = match stack.last() {
-        Some(curr) => curr,
-        _ => return,
-    };
-
-    if rules.respect_indentation()
-        && !prev_tag_info.inline_el
-        && !prev_tag_info.preserved_text_path
-        && DescendantStatus::Initial != prev_tag_info.most_recent_descendant
-    {
-        results.push_str("\n");
-        results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-    }
-
-    results.push_str(closing_sequence);
-}
-
 fn update_most_recent_descendant_status(
     stack: &mut Vec<TagInfo>,
     descendant_status: DescendantStatus,
@@ -481,25 +449,29 @@ fn get_index_of_first_char(text: &str) -> usize {
 }
 
 fn get_most_common_space_index(text: &str) -> usize {
-    let mut prev_space_index = text.len();
     let mut space_index = text.len();
     let mut prev_line = "";
 
     let mut texts = text.split("\n");
 
-    if let Some(line) = texts.next() {
+    while let Some(line) = texts.next() {
+        if all_spaces(line) {
+            continue;
+        };
+
+        space_index = get_index_of_first_char(line);
         prev_line = line;
+        break;
     }
 
     while let Some(line) = texts.next() {
-        let first_char = get_index_of_first_char(line);
-        if line.len() == first_char {
+        if all_spaces(line) {
             continue;
         }
 
-        space_index = get_most_common_space_index_between_two_strings(prev_line, line);
-        if space_index < prev_space_index {
-            prev_space_index = space_index
+        let curr_index = get_most_common_space_index_between_two_strings(prev_line, line);
+        if curr_index < space_index {
+            space_index = curr_index
         }
 
         prev_line = line;

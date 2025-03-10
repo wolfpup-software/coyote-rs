@@ -1,7 +1,7 @@
 pub trait RulesetImpl {
     fn get_initial_namespace(&self) -> &str;
     // parse
-    fn tag_is_comment(&self, tag: &str) -> bool;
+    fn tag_is_attributeless(&self, tag: &str) -> bool;
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str>;
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str>;
     // coyote
@@ -26,24 +26,24 @@ impl RulesetImpl for ServerRules {
         "html"
     }
 
-    fn tag_is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
+    fn tag_is_attributeless(&self, tag: &str) -> bool {
+        "!--" == tag
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "!--" => Some("-->"),
-            "script" => Some("</script>"),
-            "style" => Some("</style>"),
+            "!--" => Some("--"),
+            "script" => Some("</script"),
+            "style" => Some("</style"),
             _ => None,
         }
     }
 
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
-            "-->" => Some("!--"),
-            "</script>" => Some("script"),
-            "</style>" => Some("style"),
+            "--" => Some("!--"),
+            "</script" => Some("script"),
+            "</style" => Some("style"),
             _ => None,
         }
     }
@@ -86,24 +86,24 @@ impl RulesetImpl for ClientRules {
         "html"
     }
 
-    fn tag_is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
+    fn tag_is_attributeless(&self, tag: &str) -> bool {
+        "!--" == tag
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "!--" => Some("-->"),
-            "script" => Some("</script>"),
-            "style" => Some("</style>"),
+            "!--" => Some("--"),
+            "script" => Some("</script"),
+            "style" => Some("</style"),
             _ => None,
         }
     }
 
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
-            "-->" => Some("!--"),
-            "</script>" => Some("script"),
-            "</style>" => Some("style"),
+            "--" => Some("!--"),
+            "</script" => Some("script"),
+            "</style" => Some("style"),
             _ => None,
         }
     }
@@ -156,13 +156,13 @@ impl RulesetImpl for XmlRules {
         "xml"
     }
 
-    fn tag_is_comment(&self, tag: &str) -> bool {
-        tag == "!--"
+    fn tag_is_attributeless(&self, tag: &str) -> bool {
+        "!--" == tag
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
-            "!--" => Some("-->"),
+            "!--" => Some("--"),
             "![CDATA[" => Some("]]>"),
             _ => None,
         }
@@ -170,7 +170,7 @@ impl RulesetImpl for XmlRules {
 
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
-            "-->" => Some("!--"),
+            "--" => Some("!--"),
             "]]>" => Some("!CDATA[["),
             _ => None,
         }
@@ -192,8 +192,8 @@ impl RulesetImpl for XmlRules {
         false
     }
 
-    fn tag_is_preserved_text_el(&self, _tag: &str) -> bool {
-        false
+    fn tag_is_preserved_text_el(&self, tag: &str) -> bool {
+        "!CDATA[[" == tag
     }
 
     fn tag_is_inline_el(&self, _tag: &str) -> bool {
@@ -232,7 +232,6 @@ fn is_banned_el(tag: &str) -> bool {
 
 fn is_void_el(tag: &str) -> bool {
     match tag {
-        "!--" => true,
         "!DOCTYPE" => true,
         "area" => true,
         "base" => true,
@@ -262,7 +261,7 @@ fn is_namespace_el(tag: &str) -> bool {
 }
 
 pub fn is_preserved_text_el(tag: &str) -> bool {
-    return tag == "pre";
+    return "pre" == tag;
 }
 
 pub fn is_inline_el(tag: &str) -> bool {
