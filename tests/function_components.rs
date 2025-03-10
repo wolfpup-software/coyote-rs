@@ -15,6 +15,6 @@ fn woof_woof() -> Component {
 }
 
 #[test]
-fn test_coyote_api() {
+fn coyote_api() {
     let _woof_form = woof_woof();
 }

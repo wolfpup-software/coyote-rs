@@ -15,7 +15,7 @@ fn woof_woof() -> Component {
 }
 
 #[test]
-fn test_coyote_html_with_arc_and_mutex() {
+fn coyote_html_with_arc_and_mutex() {
     let html = Html::new();
     let arc = Arc::new(Mutex::new(html));
     let html_clone = arc.clone();
