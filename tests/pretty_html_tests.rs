@@ -218,9 +218,8 @@ fn test_pretty_html_without_indents_server() {
         [],
     );
 
-    // let expected =
-    // "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick\n\t\t\t<a>\n\t\t\t\there\n\t\t\t</a>\n\t\t\tand go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
-    let expected = "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick <a>here</a> and go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
+    let expected =
+    "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick\n\t\t\t<a>\n\t\t\t\there\n\t\t\t</a>\n\t\t\tand go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
 
     let mut html = Html::new();
     let results = html.build(&template);
@@ -259,9 +258,7 @@ fn test_pretty_html_without_indents_client() {
 #[test]
 fn test_pretty_html_without_indents_and_text() {
     let template = tmpl("<a><label><input type=woofer>bark!</label></a>", []);
-
-    // let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n\t<img>\n</a>";
-    let expected = "<a>\n<label>\n\t<input type=woofer>\n\tbark!\n</label>\n</a>";
+    let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n</a>";
 
     let mut html = Html::new();
     let results = html.build(&template);

@@ -3,6 +3,14 @@ use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::{DescendantStatus, TagInfo};
 
+// is comment?
+
+// has no attributes?
+
+// is_attributeless?
+//  <-- sdfsdfds -->
+//  <CDATA[[]]>
+//
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
     results: &mut String,
@@ -51,6 +59,7 @@ pub fn push_text_component(
     if all_spaces(text) {
         return;
     }
+    println!("push_text_component");
 
     let tag_info = match stack.last_mut() {
         Some(curr) => curr,
@@ -68,8 +77,14 @@ pub fn push_text_component(
         return;
     }
 
+    println!(
+        "alt text!: {:?}",
+        rules.get_close_sequence_from_alt_text_tag(&tag_info.tag)
+    );
+
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
+        println!("alt text!: {:?}", text);
         add_alt_element_text(results, text, tag_info);
         tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
@@ -430,16 +445,20 @@ fn pop_closing_sequence(
     template_str: &str,
     step: &Step,
 ) {
+    println!("pop closing sequence");
     let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
     };
 
     let closing_sequence = get_text_from_step(template_str, step);
+    println!("clsoing sequence: {:?}", &closing_sequence);
+
     let tag = match rules.get_alt_text_tag_from_close_sequence(closing_sequence) {
         Some(t) => t,
         _ => return,
     };
+    println!("alt text tag: {:?}", &tag);
     if tag != tag_info.tag {
         return;
     }

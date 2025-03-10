@@ -113,7 +113,7 @@ fn test_achor_element_with_text() {
 		",
         [],
     );
-    let expected = "<a>hello!</a>";
+    let expected = "<a>\n\thello!\n</a>";
 
     let mut html = Html::new();
     let results = html.build(&template);
@@ -153,25 +153,25 @@ fn test_non_void_element() {
     assert_eq!(Ok(expected.to_string()), results);
 }
 
-// #[test]
-// fn test_comment_element() {
-//     // edge case
-//     // will include all the spaces
-//     let template = tmpl(
-//         "
-// 		<!--
-//             Hello!
-//         -->
-// 		",
-//         [],
-//     );
-//     let expected = "<!--\n\tHello!\n-->";
+#[test]
+fn test_comment_element() {
+    // edge case
+    // will include all the spaces
+    let template = tmpl(
+        "
+		<!-- 
+            Hello!
+        -->
+		",
+        [],
+    );
+    let expected = "<!--\n\tHello!\n-->";
 
-//     let mut html = Html::new();
-//     let results = html.build(&template);
+    let mut html = Html::new();
+    let results = html.build(&template);
 
-//     assert_eq!(Ok(expected.to_string()), results);
-// }
+    assert_eq!(Ok(expected.to_string()), results);
+}
 
 #[test]
 fn test_alt_element() {
