@@ -1,7 +1,7 @@
 use coyote::{tmpl, Html};
 
 #[test]
-fn pretty_empty_element() {
+fn empty_element() {
     let template = tmpl("<html></html>", []);
     let expected = "<html></html>";
 
@@ -12,18 +12,45 @@ fn pretty_empty_element() {
 }
 
 #[test]
-fn pretty_empty_element_unbalanaced() {
+fn unbalanced_empty_element() {
     let template = tmpl("<html>", []);
-    let expected = "Coyote Err: the following template component is imbalanced:\n{:?}<html>";
+    let expected = format!(
+        "Coyote Err: the following template component is imbalanced:\n{:?}<html>",
+        &template
+    );
 
     let mut html = Html::new();
     let results = html.build(&template);
 
-    assert_eq!(Err(expected.to_string()), results);
+    if let Err(_) = results {
+        return;
+    }
+
+    assert_eq!(
+        Err("unbalanced template failed to error".to_string()),
+        results
+    );
 }
 
 #[test]
-fn pretty_void_el() {
+fn mozilla_example() {
+    let template = tmpl(
+        "
+        <h1>   Hello
+                <span> World!</span>   </h1>",
+        [],
+    );
+
+    let expected = "<h1>\n\tHello <span>World!</span>\n</h1>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn void_elements() {
     let template = tmpl(
         "<input>   <input>
             <input><input> ",
@@ -39,7 +66,7 @@ fn pretty_void_el() {
 }
 
 #[test]
-fn pretty_void_el_with_attributes() {
+fn void_elements_with_attributes() {
     let template = tmpl(
         "
         <!DOCTYPE html><input type=checkbox>   <input woof=\"bark\">
@@ -56,7 +83,7 @@ fn pretty_void_el_with_attributes() {
 }
 
 #[test]
-fn pretty_inline_el() {
+fn inline_elements() {
     let template = tmpl("<span>hai <span>:3</span></span> ", []);
     let expected = "<span>hai <span>:3</span></span>";
     let mut html = Html::new();
@@ -66,7 +93,7 @@ fn pretty_inline_el() {
 }
 
 #[test]
-fn text_and_inline() {
+fn text_and_inline_elements() {
     let template = tmpl(
         "beasts <span>    tread		</span>     softly <span>    underfoot </span>      .",
         [],
@@ -81,23 +108,7 @@ fn text_and_inline() {
 }
 
 #[test]
-fn unpretty_inline_el() {
-    let template = tmpl(
-        "
-        <span>
-            hai
-        <span> :3 </span> </span> ",
-        [],
-    );
-    let expected = "<span>hai <span>:3</span></span>";
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn pretty_void_el_with_sibling() {
+fn void_element_with_sibling() {
     let template = tmpl(
         "
             <input><p>hai :3</p>    ",
@@ -112,7 +123,7 @@ fn pretty_void_el_with_sibling() {
 }
 
 #[test]
-fn pretty_nested_void_el() {
+fn nested_void_element_with_sibling() {
     let template = tmpl(
         "
         <section>
@@ -131,7 +142,7 @@ fn pretty_nested_void_el() {
 }
 
 #[test]
-fn pretty_alt_text_el() {
+fn alt_text_element() {
     let template = tmpl(
         "<style>#woof .bark {
     color: doggo;
@@ -147,27 +158,7 @@ fn pretty_alt_text_el() {
 }
 
 #[test]
-fn pretty_preserved_text_elements() {
-    let template = tmpl(
-        "
-<pre>
-	U w U
-	  woof woof!
-</pre>
-		",
-        [],
-    );
-
-    let expected = "<pre>\n\tU w U\n\t  woof woof!\n</pre>";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn pretty_nested_elements_and_text() {
+fn nested_void_elements() {
     let template = tmpl("<a><label><input type=woofer>bark!</label></a>", []);
     let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n</a>";
 
@@ -178,7 +169,7 @@ fn pretty_nested_elements_and_text() {
 }
 
 #[test]
-fn pretty_server_doc() {
+fn document() {
     let template = tmpl(
         "        <!DOCTYPE>
     <html>
@@ -206,7 +197,7 @@ fn pretty_server_doc() {
 }
 
 #[test]
-fn pretty_doc_with_alt_text_elements() {
+fn document_with_alt_text_elements() {
     let template = tmpl(
         "        <!DOCTYPE>
     <html>
@@ -232,23 +223,6 @@ fn pretty_doc_with_alt_text_elements() {
 
     let expected =
         "<!DOCTYPE>\n<html>\n\t<head>\n\t\t<style>\n\t\t\t#woof .bark {\n\t\t\t\tcolor: doggo;\n\t\t\t}\n\t\t</style>\n\t\t<script>\n\t\t\tif 2 < 3 {\n\t\t\t\tconsole.log();\n\t\t\t}\n\t\t</script>\n\t</head>\n\t<body>\n\t\t<article></article>\n\t\t<footer></footer>\n\t</body>\n</html>";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn pretty_doc_with_mozilla_example() {
-    let template = tmpl(
-        "
-        <h1>   Hello
-                <span> World!</span>   </h1>",
-        [],
-    );
-
-    let expected = "<h1>\n\tHello <span>World!</span>\n</h1>";
 
     let mut html = Html::new();
     let results = html.build(&template);

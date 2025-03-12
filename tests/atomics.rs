@@ -1,6 +1,25 @@
 use coyote::{tmpl, ClientHtml, Html};
 
 #[test]
+fn text_element() {
+    let template = tmpl(
+        "
+
+            Beasts tread
+            softly underfoot.
+            
+		",
+        [],
+    );
+    let expected = "Beasts tread softly underfoot.";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn empty_element() {
     let template = tmpl(
         "
@@ -27,24 +46,6 @@ fn fragment() {
         [],
     );
     let expected = "";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn text_element() {
-    let template = tmpl(
-        "
-
-            Beasts tread softly underfoot.
-
-		",
-        [],
-    );
-    let expected = "Beasts tread softly underfoot.";
 
     let mut html = Html::new();
     let results = html.build(&template);
@@ -163,6 +164,26 @@ fn alt_element() {
         [],
     );
     let expected = "<script>\n\t{}\n</script>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_preserved_text_elements() {
+    let template = tmpl(
+        "
+<pre>
+	U w U
+	  woof woof!
+</pre>
+		",
+        [],
+    );
+
+    let expected = "<pre>\n\tU w U\n\t  woof woof!\n</pre>";
 
     let mut html = Html::new();
     let results = html.build(&template);

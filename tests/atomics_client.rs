@@ -1,6 +1,25 @@
 use coyote::{tmpl, ClientHtml, Html};
 
 #[test]
+fn text_element() {
+    let template = tmpl(
+        "
+
+            Beasts tread
+            softly underfoot.
+            
+		",
+        [],
+    );
+    let expected = "Beasts tread softly underfoot.";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn empty_element() {
     let template = tmpl(
         "
@@ -35,16 +54,15 @@ fn fragment() {
 }
 
 #[test]
-fn text_element() {
+fn achor_element_with_text() {
     let template = tmpl(
         "
-
-            Beasts tread softly underfoot.
-
+		<a>
+            hello!    </a>
 		",
         [],
     );
-    let expected = "Beasts tread softly underfoot.";
+    let expected = "<a>hello!</a>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -53,7 +71,7 @@ fn text_element() {
 }
 
 #[test]
-fn element_with_text() {
+fn element_with_attribute_with_text() {
     let template = tmpl(
         "
 		<p uwu>hello!</p>
@@ -78,23 +96,6 @@ fn inline_element_with_text() {
         [],
     );
     let expected = "<b>hello!</b>";
-
-    let mut html = ClientHtml::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn achor_element_with_text() {
-    let template = tmpl(
-        "
-		<a>
-            hello!    </a>
-		",
-        [],
-    );
-    let expected = "<a>hello!</a>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -163,6 +164,26 @@ fn alt_element() {
         [],
     );
     let expected = "";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_preserved_text_elements() {
+    let template = tmpl(
+        "
+<pre>
+	U w U
+	  woof woof!
+</pre>
+		",
+        [],
+    );
+
+    let expected = "<pre>\n\tU w U\n\t  woof woof!\n</pre>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
