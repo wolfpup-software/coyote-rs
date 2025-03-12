@@ -58,7 +58,7 @@ fn void_elements() {
         [],
     );
 
-    let expected = "<input>\n<input>\n<input>\n<input>";
+    let expected = "<input><input><input><input>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -67,13 +67,28 @@ fn void_elements() {
 }
 
 #[test]
-fn text_and_inline() {
+fn text_and_inline_elements() {
     let template = tmpl(
         "beasts <span>    tread		</span>     softly <span>    underfoot </span>      .",
         [],
     );
 
     let expected = "beasts <span>tread</span> softly <span>underfoot</span> .";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn text_and_blocks() {
+    let template = tmpl(
+        "beasts <p>    tread		</p>     softly <p>    underfoot </p>      .",
+        [],
+    );
+
+    let expected = "beasts <p>tread</p> softly <p>underfoot</p> .";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -90,7 +105,7 @@ fn void_elements_with_attributes() {
         [],
     );
     let expected =
-        "<!DOCTYPE html>\n<input type=checkbox>\n<input woof=\"bark\">\n<input grrr>\n<input>";
+        "<!DOCTYPE html><input type=checkbox><input woof=\"bark\"><input grrr><input>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -105,7 +120,7 @@ fn void_element_with_sibling() {
             <input><p>hai :3</p>    ",
         [],
     );
-    let expected = "<input>\n<p>\n\thai :3\n</p>";
+    let expected = "<input><p>hai :3</p>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -124,7 +139,7 @@ fn nested_void_element_with_sibling() {
         [],
     );
 
-    let expected = "<section>\n\t<input>\n\t<p>\n\t\thai :3\n\t</p>\n</section>";
+    let expected = "<section><input><p>hai :3</p></section>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);

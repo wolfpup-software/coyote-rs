@@ -81,6 +81,21 @@ fn text_and_inline_elements() {
 }
 
 #[test]
+fn text_and_blocks() {
+    let template = tmpl(
+        "beasts <p>    tread		</p>     softly <p>    underfoot </p>      .",
+        [],
+    );
+
+    let expected = "beasts\n<p>\n\ttread\n</p>\nsoftly\n<p>\n\tunderfoot\n</p>\n.";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn void_elements_with_attributes() {
     let template = tmpl(
         "
