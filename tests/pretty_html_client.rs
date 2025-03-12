@@ -104,8 +104,7 @@ fn void_elements_with_attributes() {
             <input grrr><input> ",
         [],
     );
-    let expected =
-        "<!DOCTYPE html><input type=checkbox><input woof=\"bark\"><input grrr><input>";
+    let expected = "<!DOCTYPE html><input type=checkbox><input woof=\"bark\"><input grrr><input>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
