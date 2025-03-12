@@ -66,6 +66,21 @@ fn void_elements() {
 }
 
 #[test]
+fn text_and_inline_elements() {
+    let template = tmpl(
+        "beasts <span>    tread		</span>     softly <span>    underfoot </span>      .",
+        [],
+    );
+
+    let expected = "beasts <span>tread</span> softly <span>underfoot</span> .";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn void_elements_with_attributes() {
     let template = tmpl(
         "
@@ -75,31 +90,6 @@ fn void_elements_with_attributes() {
     );
     let expected =
         "<!DOCTYPE html>\n<input type=checkbox>\n<input woof=\"bark\">\n<input grrr>\n<input>";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn inline_elements() {
-    let template = tmpl("<span>hai <span>:3</span></span> ", []);
-    let expected = "<span>hai <span>:3</span></span>";
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn text_and_inline_elements() {
-    let template = tmpl(
-        "beasts <span>    tread		</span>     softly <span>    underfoot </span>      .",
-        [],
-    );
-
-    let expected = "beasts <span>tread</span> softly <span>underfoot</span> .";
 
     let mut html = Html::new();
     let results = html.build(&template);
@@ -142,23 +132,7 @@ fn nested_void_element_with_sibling() {
 }
 
 #[test]
-fn alt_text_element() {
-    let template = tmpl(
-        "<style>#woof .bark {
-    color: doggo;
-}</style>",
-        [],
-    );
-    let expected = "<style>\n\t#woof .bark {\n\t    color: doggo;\n\t}\n</style>";
-
-    let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn nested_void_elements() {
+fn nested_elements_and_text() {
     let template = tmpl("<a><label><input type=woofer>bark!</label></a>", []);
     let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n</a>";
 

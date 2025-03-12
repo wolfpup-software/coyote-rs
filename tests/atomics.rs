@@ -1,4 +1,4 @@
-use coyote::{tmpl, ClientHtml, Html};
+use coyote::{tmpl, Html};
 
 #[test]
 fn text_element() {
@@ -11,9 +11,9 @@ fn text_element() {
 		",
         [],
     );
-    let expected = "Beasts tread softly underfoot.";
+    let expected = "Beasts tread\nsoftly underfoot.";
 
-    let mut html = ClientHtml::new();
+    let mut html = Html::new();
     let results = html.build(&template);
 
     assert_eq!(Ok(expected.to_string()), results);
@@ -154,7 +154,23 @@ fn comment_element() {
 }
 
 #[test]
-fn alt_element() {
+fn alt_text_element() {
+    let template = tmpl(
+        "<style>#woof .bark {
+    color: doggo;
+}</style>",
+        [],
+    );
+    let expected = "<style>\n\t#woof .bark {\n\t    color: doggo;\n\t}\n</style>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn alt_element_no_descendants() {
     let template = tmpl(
         "
 		<script>

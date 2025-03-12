@@ -1,4 +1,36 @@
-use coyote::{tmpl, ClientHtml, Html};
+use coyote::{tmpl, ClientHtml};
+
+#[test]
+fn empty_element() {
+    let template = tmpl("<html></html>", []);
+    let expected = "<html></html>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn unbalanced_empty_element() {
+    let template = tmpl("<html>", []);
+    let expected = format!(
+        "Coyote Err: the following template component is imbalanced:\n{:?}<html>",
+        &template
+    );
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    if let Err(_) = results {
+        return;
+    }
+
+    assert_eq!(
+        Err("unbalanced template failed to error".to_string()),
+        results
+    );
+}
 
 #[test]
 fn mozilla_example() {
@@ -19,17 +51,14 @@ fn mozilla_example() {
 }
 
 #[test]
-fn text_element() {
+fn void_elements() {
     let template = tmpl(
-        "
-
-            Beasts tread
-            softly underfoot.
-            
-		",
+        "<input>   <input>
+            <input><input> ",
         [],
     );
-    let expected = "Beasts tread softly underfoot.";
+
+    let expected = "<input>\n<input>\n<input>\n<input>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -53,6 +82,57 @@ fn text_and_inline() {
 }
 
 #[test]
+fn void_elements_with_attributes() {
+    let template = tmpl(
+        "
+        <!DOCTYPE html><input type=checkbox>   <input woof=\"bark\">
+            <input grrr><input> ",
+        [],
+    );
+    let expected =
+        "<!DOCTYPE html>\n<input type=checkbox>\n<input woof=\"bark\">\n<input grrr>\n<input>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn void_element_with_sibling() {
+    let template = tmpl(
+        "
+            <input><p>hai :3</p>    ",
+        [],
+    );
+    let expected = "<input>\n<p>\n\thai :3\n</p>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn nested_void_element_with_sibling() {
+    let template = tmpl(
+        "
+        <section>
+            <input><p>hai :3</p>
+        </section>
+    ",
+        [],
+    );
+
+    let expected = "<section>\n\t<input>\n\t<p>\n\t\thai :3\n\t</p>\n</section>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn nested_elements_and_text() {
     let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
     let expected = "<a><label><input type=woofer>bark!</label><img></a>";
@@ -64,7 +144,7 @@ fn nested_elements_and_text() {
 }
 
 #[test]
-fn doc() {
+fn document() {
     let template = tmpl(
         "        <!DOCTYPE>
     <html>
