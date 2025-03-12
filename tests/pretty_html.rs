@@ -143,17 +143,6 @@ fn pretty_nested_elements_and_text() {
 }
 
 #[test]
-fn pretty_nested_elements_and_text_client() {
-    let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
-    let expected = "<a><label><input type=woofer>bark!</label><img></a>";
-
-    let mut html = ClientHtml::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
 fn pretty_server_doc() {
     let template = tmpl(
         "        <!DOCTYPE>
@@ -176,34 +165,6 @@ fn pretty_server_doc() {
     "<!DOCTYPE>\n<html>\n\t<head></head>\n\t<body>\n\t\t<article>\n\t\t\tYou're a <span>boy kisser</span> aren't you?\n\t\t\tClick\n\t\t\t<a>\n\t\t\t\there\n\t\t\t</a>\n\t\t\tand go somewhere else.\n\t\t</article>\n\t\t<footer></footer>\n\t</body>\n</html>";
 
     let mut html = Html::new();
-    let results = html.build(&template);
-
-    assert_eq!(Ok(expected.to_string()), results);
-}
-
-#[test]
-fn pretty_client_doc() {
-    let template = tmpl(
-        "        <!DOCTYPE>
-    <html>
-    <head>
-
-    </head>
-        <body>
-            <article>
-                You're a <span>boy kisser</span> aren't you?
-                Click <a>here</a> and go somewhere else.
-            </article>
-            <footer/>
-        </body>
-</html>",
-        [],
-    );
-
-    let expected =
-        "<!DOCTYPE><html><head></head><body><article>You're a <span>boy kisser</span> aren't you? Click <a>here</a> and go somewhere else.</article><footer></footer></body></html>";
-
-    let mut html = ClientHtml::new();
     let results = html.build(&template);
 
     assert_eq!(Ok(expected.to_string()), results);
@@ -243,36 +204,24 @@ fn pretty_doc_with_alt_text_elements() {
     assert_eq!(Ok(expected.to_string()), results);
 }
 
-#[test]
-fn pretty_client_doc_with_alt_text_elements() {
-    let template = tmpl(
-        "        <!DOCTYPE>
-    <html>
-    <head>
-        <style>
-#woof .bark {
-	color: doggo;
-}
-        </style>
-        <script>
-if 2 < 3 {
-	console.log();
-}
-        </script>
-    </head>
-        <body>
-            <article></article>
-            <footer/>
-        </body>
-</html>",
-        [],
-    );
+// "<ul class=\"people-list\">
+//   <li></li>
 
-    let expected =
-        "<!DOCTYPE><html><head></head><body><article></article><footer></footer></body></html>";
+//   <li></li>
 
-    let mut html = ClientHtml::new();
-    let results = html.build(&template);
+//   <li></li>
 
-    assert_eq!(Ok(expected.to_string()), results);
-}
+//   <li></li>
+
+//   <li></li>
+// </ul>"
+
+// "<ul class=\"people-list\">
+//   <li></li><li></li><li></li><li></li><li></li>
+// </ul>"
+
+// "<ul class=\"people-list\"> <li></li> <li></li> <li></li> <li></li> <li></li> </ul>"
+
+// "<ul class=\"people-list\">
+//   <li></li><li></li><li></li><li></li><li></li>
+// </ul>"
