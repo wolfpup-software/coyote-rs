@@ -54,7 +54,7 @@ impl TagInfo {
             tag_info.namespace = tag.to_string();
         }
 
-        if rules.tag_is_preserved_text_el(&prev_tag_info.tag) {
+        if rules.tag_is_preserved_text_el(&tag_info.tag) {
             tag_info.preserved_text_path = true;
         }
 

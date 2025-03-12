@@ -44,6 +44,7 @@ pub fn push_text_component(
     rules: &dyn RulesetImpl,
     text: &str,
 ) {
+    println!("push text!");
     if all_spaces(text) {
         return;
     }
@@ -59,6 +60,7 @@ pub fn push_text_component(
     }
 
     if tag_info.preserved_text_path {
+        println!("preserved text path!");
         results.push_str(text);
         tag_info.most_recent_descendant = DescendantStatus::Text;
         return;
@@ -71,6 +73,8 @@ pub fn push_text_component(
         return;
     }
 
+    // break this up into functions
+    // TODO
     match (
         rules.respect_indentation(),
         &tag_info.most_recent_descendant,
@@ -107,8 +111,11 @@ fn push_element(
         }
     };
 
+    println!("prev_tag: {:?}", &prev_tag_info);
+
     let tag = get_text_from_step(template_str, step);
     let tag_info = TagInfo::from(rules, prev_tag_info, tag);
+    println!("curr_tag: {:?}", &tag_info);
 
     // banned path
     if tag_info.banned_path {
@@ -117,6 +124,9 @@ fn push_element(
     }
 
     // if respect indentatrion
+    //
+    // turn into two functions
+    // TODO
     if rules.respect_indentation() {
         match (&prev_tag_info.most_recent_descendant, tag_info.inline_el) {
             (DescendantStatus::Text, true) => {
@@ -247,6 +257,7 @@ fn pop_element(
     // if respect indentation
     if rules.respect_indentation()
         && !tag_info.inline_el
+        && !tag_info.preserved_text_path
         && tag_info.most_recent_descendant != DescendantStatus::Initial
     {
         results.push('\n');

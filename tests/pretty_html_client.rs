@@ -1,6 +1,24 @@
 use coyote::{tmpl, ClientHtml, Html};
 
 #[test]
+fn mozilla_example() {
+    let template = tmpl(
+        "
+	<h1>   Hello
+        <span> World!</span>   </h1>
+		",
+        [],
+    );
+
+    let expected = "<h1>Hello <span>World!</span></h1>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn text_element() {
     let template = tmpl(
         "
@@ -12,6 +30,21 @@ fn text_element() {
         [],
     );
     let expected = "Beasts tread softly underfoot.";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn text_and_inline() {
+    let template = tmpl(
+        "beasts <span>    tread		</span>     softly <span>    underfoot </span>      .",
+        [],
+    );
+
+    let expected = "beasts <span>tread</span> softly <span>underfoot</span> .";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
@@ -85,6 +118,26 @@ if 2 < 3 {
 
     let expected =
         "<!DOCTYPE><html><head></head><body><article></article><footer></footer></body></html>";
+
+    let mut html = ClientHtml::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_preserved_text_elements() {
+    let template = tmpl(
+        "
+<pre>
+	U w U
+	  woof woof!
+</pre>
+		",
+        [],
+    );
+
+    let expected = "<pre>\n\tU w U\n\t  woof woof!\n</pre>";
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);

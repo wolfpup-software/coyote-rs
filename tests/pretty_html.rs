@@ -1,4 +1,4 @@
-use coyote::{tmpl, ClientHtml, Html};
+use coyote::{tmpl, Html};
 
 #[test]
 fn pretty_empty_element() {
@@ -66,6 +66,21 @@ fn pretty_inline_el() {
 }
 
 #[test]
+fn text_and_inline() {
+    let template = tmpl(
+        "beasts <span>    tread		</span>     softly <span>    underfoot </span>      .",
+        [],
+    );
+
+    let expected = "beasts <span>tread</span> softly <span>underfoot</span> .";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
 fn unpretty_inline_el() {
     let template = tmpl(
         "
@@ -116,7 +131,7 @@ fn pretty_nested_void_el() {
 }
 
 #[test]
-fn pretty_preserved_space_el() {
+fn pretty_alt_text_el() {
     let template = tmpl(
         "<style>#woof .bark {
     color: doggo;
@@ -124,6 +139,26 @@ fn pretty_preserved_space_el() {
         [],
     );
     let expected = "<style>\n\t#woof .bark {\n\t    color: doggo;\n\t}\n</style>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn pretty_preserved_text_elements() {
+    let template = tmpl(
+        "
+<pre>
+	U w U
+	  woof woof!
+</pre>
+		",
+        [],
+    );
+
+    let expected = "<pre>\n\tU w U\n\t  woof woof!\n</pre>";
 
     let mut html = Html::new();
     let results = html.build(&template);
@@ -204,24 +239,19 @@ fn pretty_doc_with_alt_text_elements() {
     assert_eq!(Ok(expected.to_string()), results);
 }
 
-// "<ul class=\"people-list\">
-//   <li></li>
+#[test]
+fn pretty_doc_with_mozilla_example() {
+    let template = tmpl(
+        "
+        <h1>   Hello
+                <span> World!</span>   </h1>",
+        [],
+    );
 
-//   <li></li>
+    let expected = "<h1>\n\tHello <span>World!</span>\n</h1>";
 
-//   <li></li>
+    let mut html = Html::new();
+    let results = html.build(&template);
 
-//   <li></li>
-
-//   <li></li>
-// </ul>"
-
-// "<ul class=\"people-list\">
-//   <li></li><li></li><li></li><li></li><li></li>
-// </ul>"
-
-// "<ul class=\"people-list\"> <li></li> <li></li> <li></li> <li></li> <li></li> </ul>"
-
-// "<ul class=\"people-list\">
-//   <li></li><li></li><li></li><li></li><li></li>
-// </ul>"
+    assert_eq!(Ok(expected.to_string()), results);
+}
