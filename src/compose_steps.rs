@@ -1,7 +1,7 @@
 use crate::parse::{get_text_from_step, Step};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
-use crate::tag_info::{DescendantStatus, TagInfo};
+use crate::tag_info::{TagInfo, TextFormat};
 
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
@@ -60,36 +60,36 @@ pub fn push_text_component(
 
     if tag_info.preserved_text_path {
         results.push_str(text);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
+        tag_info.text_format = TextFormat::Inline;
         return;
     }
 
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         add_alt_element_text(results, text, tag_info);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
+        tag_info.text_format = TextFormat::Inline;
         return;
     }
 
-    match (
-        rules.respect_indentation(),
-        &tag_info.most_recent_descendant,
-    ) {
-        (true, DescendantStatus::InlineElementClosed) => {
-            add_inline_element_closed_text(results, text, tag_info)
-        }
-        (true, DescendantStatus::Initial) => match tag_info.inline_el {
-            true => add_inline_element_text(results, text, tag_info),
-            _ => add_text(results, text, tag_info),
-        },
-        (false, DescendantStatus::InlineElementClosed) => {
-            add_no_indents_inline_element_closed_text(results, text)
-        }
-        (true, _) => add_text(results, text, tag_info),
-        (false, _) => add_text_no_indents(results, text),
+    // if unformatted
+    if !rules.respect_indentation() {
+        add_inline_text(results, text, &tag_info);
+        tag_info.text_format = TextFormat::Inline;
+        return;
     }
 
-    tag_info.most_recent_descendant = DescendantStatus::Text;
+    // formatted text
+    if tag_info.text_format == TextFormat::Inline {
+        results.push(' ');
+    }
+
+    if tag_info.inline_el || TextFormat::Inline == tag_info.text_format {
+        add_first_line_text(results, text, tag_info);
+    } else {
+        add_text(results, text, tag_info);
+    }
+
+    tag_info.text_format = TextFormat::Inline;
 }
 
 fn push_element(
@@ -99,7 +99,7 @@ fn push_element(
     template_str: &str,
     step: &Step,
 ) {
-    let prev_tag_info = match stack.last() {
+    let prev_tag_info = match stack.last_mut() {
         Some(pti) => pti,
         _ => {
             // this never happens
@@ -116,37 +116,29 @@ fn push_element(
         return;
     }
 
-    // if respect indentatrion
-    if rules.respect_indentation() {
-        match (&prev_tag_info.most_recent_descendant, tag_info.inline_el) {
-            (DescendantStatus::Text, true) => {
-                results.push(' ');
-            }
-            (DescendantStatus::InlineElementClosed, true) => {
-                results.push(' ');
-            }
-            (_, _) => {
-                if stack.len() > 1
-                    || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
-                {
-                    results.push('\n');
-                }
-
-                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-            }
-        }
-    } else {
-        if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
-            results.push(' ');
-        }
+    if !rules.respect_indentation()
+        && TextFormat::Initial != prev_tag_info.text_format
+        && TextFormat::Root != prev_tag_info.text_format
+    {
+        results.push(' ');
     }
 
-    // update descendant status
-    let descendant_status = match tag_info.inline_el {
-        true => DescendantStatus::InlineElement,
-        _ => DescendantStatus::Element,
-    };
-    update_most_recent_descendant_status(stack, descendant_status);
+    if rules.respect_indentation() {
+        if !tag_info.inline_el {
+            if TextFormat::Root != prev_tag_info.text_format {
+                results.push('\n');
+                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+            }
+            prev_tag_info.text_format = TextFormat::Block;
+        }
+
+        if tag_info.inline_el {
+            if TextFormat::Inline == prev_tag_info.text_format {
+                results.push(' ');
+            }
+            prev_tag_info.text_format = TextFormat::Inline;
+        }
+    }
 
     results.push('<');
     results.push_str(tag);
@@ -155,7 +147,7 @@ fn push_element(
 }
 
 fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
-    let tag_info = match stack.last_mut() {
+    let tag_info = match stack.last() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
     };
@@ -189,16 +181,8 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 
         results.push('>');
     }
-
-    let descendant_status = match tag_info.inline_el {
-        true => DescendantStatus::InlineElementClosed,
-        _ => DescendantStatus::ElementClosed,
-    };
-
-    update_most_recent_descendant_status(stack, descendant_status);
 }
 
-// most recent descendant
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
@@ -227,13 +211,6 @@ fn pop_element(
         return;
     }
 
-    // update descendant status
-    let descendant_status = match tag_info.inline_el {
-        true => DescendantStatus::InlineElementClosed,
-        _ => DescendantStatus::ElementClosed,
-    };
-    update_most_recent_descendant_status(stack, descendant_status);
-
     if tag_info.void_el && "html" == tag_info.namespace {
         results.push('>');
         return;
@@ -244,10 +221,10 @@ fn pop_element(
         _ => return,
     };
 
-    // if respect indentation
     if rules.respect_indentation()
         && !tag_info.inline_el
-        && tag_info.most_recent_descendant != DescendantStatus::Initial
+        && !tag_info.preserved_text_path
+        && TextFormat::Initial != tag_info.text_format
     {
         results.push('\n');
         results.push_str(&"\t".repeat(prev_tag_info.indent_count));
@@ -270,6 +247,7 @@ fn all_spaces(line: &str) -> bool {
 
 fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let common_index = get_most_common_space_index(text);
+
     for line in text.split("\n") {
         if all_spaces(line) {
             continue;
@@ -281,7 +259,7 @@ fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
+fn add_first_line_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
 
     while let Some(line) = text_iter.next() {
@@ -302,34 +280,20 @@ fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo)
     }
 }
 
-fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &TagInfo) {
+fn add_inline_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
 
     while let Some(line) = text_iter.next() {
-        if !all_spaces(line) {
+        if all_spaces(line) {
+            continue;
+        }
+
+        if TextFormat::Root != tag_info.text_format && TextFormat::Initial != tag_info.text_format {
             results.push(' ');
-            results.push_str(line.trim());
-            break;
         }
-    }
 
-    while let Some(line) = text_iter.next() {
-        if !all_spaces(line) {
-            results.push('\n');
-            results.push_str(&"\t".repeat(tag_info.indent_count));
-            results.push_str(line.trim());
-        }
-    }
-}
-
-fn add_text_no_indents(results: &mut String, text: &str) {
-    let mut text_iter = text.split("\n");
-
-    while let Some(line) = text_iter.next() {
-        if !all_spaces(line) {
-            results.push_str(line.trim());
-            break;
-        }
+        results.push_str(line.trim());
+        break;
     }
 
     while let Some(line) = text_iter.next() {
@@ -340,28 +304,31 @@ fn add_text_no_indents(results: &mut String, text: &str) {
     }
 }
 
-fn add_no_indents_inline_element_closed_text(results: &mut String, text: &str) {
-    for line in text.split("\n") {
-        if !all_spaces(line) {
-            results.push(' ');
-            results.push_str(line.trim());
-        }
-    }
-}
-
-// result, text, indent count (so i can use others)
 fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
-    for line in text.split("\n") {
-        if !all_spaces(line) {
-            // edge case for beginning of document
-            // needs to be more ergonomic
-            if 0 < results.len() {
-                results.push('\n');
-            }
+    let mut text_iter = text.split("\n");
 
-            results.push_str(&"\t".repeat(tag_info.indent_count));
-            results.push_str(line.trim());
+    while let Some(line) = text_iter.next() {
+        if all_spaces(line) {
+            continue;
         }
+
+        if TextFormat::Root != tag_info.text_format {
+            results.push('\n');
+        }
+
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push_str(line.trim());
+        break;
+    }
+
+    while let Some(line) = text_iter.next() {
+        if all_spaces(line) {
+            continue;
+        }
+
+        results.push('\n');
+        results.push_str(&"\t".repeat(tag_info.indent_count));
+        results.push_str(line.trim());
     }
 }
 
@@ -427,15 +394,6 @@ fn push_attr_value_unquoted(
     let val = get_text_from_step(template_str, step);
     results.push('=');
     results.push_str(val);
-}
-
-fn update_most_recent_descendant_status(
-    stack: &mut Vec<TagInfo>,
-    descendant_status: DescendantStatus,
-) {
-    if let Some(prev_tag_info) = stack.last_mut() {
-        prev_tag_info.most_recent_descendant = descendant_status;
-    }
 }
 
 fn get_index_of_first_char(text: &str) -> usize {
