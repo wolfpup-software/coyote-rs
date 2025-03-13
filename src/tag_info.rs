@@ -3,12 +3,12 @@ use crate::rulesets::RulesetImpl;
 // describing how to handle next elemnts and spaces
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum DescendantStatus {
-    Text,                // space, element chooses spacing
-    Element,             // next line no matter  if it's inline or text
-    ElementClosed,       // next line if it's inline or closed
-    InlineElement,       // if previous is text or inline use ' ', otherwise next line
-    InlineElementClosed, // if previous is text or inline use ' ', otherwise next line
-    Initial,             // no '\s' or '\n' spacingElement chooses spacing
+    Text, // space, element chooses spacing
+    // Element,             // next line no matter  if it's inline or text
+    // ElementClosed,       // next line if it's inline or closed
+    // InlineElement,       // if previous is text or inline use ' ', otherwise next line
+    // InlineElementClosed, // if previous is text or inline use ' ', otherwise next line
+    Initial, // no '\s' or '\n' spacingElement chooses spacing
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

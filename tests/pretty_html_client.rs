@@ -14,10 +14,6 @@ fn empty_element() {
 #[test]
 fn unbalanced_empty_element() {
     let template = tmpl("<html>", []);
-    let expected = format!(
-        "Coyote Err: the following template component is imbalanced:\n{:?}<html>",
-        &template
-    );
 
     let mut html = ClientHtml::new();
     let results = html.build(&template);
