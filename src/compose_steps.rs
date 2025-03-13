@@ -1,7 +1,7 @@
 use crate::parse::{get_text_from_step, Step};
 use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
-use crate::tag_info::{DescendantStatus, TagInfo};
+use crate::tag_info::{TagInfo, TextFormat};
 
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
@@ -60,39 +60,35 @@ pub fn push_text_component(
 
     if tag_info.preserved_text_path {
         results.push_str(text);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
+        tag_info.text_format = TextFormat::Inline;
         return;
     }
 
     // if alt text
     if let Some(_) = rules.get_close_sequence_from_alt_text_tag(&tag_info.tag) {
         add_alt_element_text(results, text, tag_info);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
+        tag_info.text_format = TextFormat::Inline;
         return;
     }
 
     // if unformatted
-    // very clear no formating
     if !rules.respect_indentation() {
-        add_text_no_indents(results, text, &tag_info);
-        tag_info.most_recent_descendant = DescendantStatus::Text;
+        add_inline_text(results, text, &tag_info);
+        tag_info.text_format = TextFormat::Inline;
         return;
     }
 
-    // break this up into functions
-    // TODO
-    println!("push text with formatting!");
-    println!("{:?}", &tag_info);
-    if tag_info.inline_el || tag_info.most_recent_descendant == DescendantStatus::Text {
-        if tag_info.most_recent_descendant == DescendantStatus::Text {
-            results.push(' ');
-        }
-        add_inline_element_text(results, text, tag_info);
+    if tag_info.text_format == TextFormat::Inline {
+        results.push(' ');
+    }
+
+    if tag_info.inline_el || TextFormat::Inline == tag_info.text_format {
+        add_first_line_text(results, text, tag_info);
     } else {
         add_text(results, text, tag_info);
     }
 
-    tag_info.most_recent_descendant = DescendantStatus::Text;
+    tag_info.text_format = TextFormat::Inline;
 }
 
 fn push_element(
@@ -119,29 +115,28 @@ fn push_element(
         return;
     }
 
-    // clear no indentation rules
     if !rules.respect_indentation() {
-        if prev_tag_info.most_recent_descendant != DescendantStatus::Initial {
+        if TextFormat::Initial != prev_tag_info.text_format
+            && TextFormat::Root != prev_tag_info.text_format
+        {
             results.push(' ');
         }
     }
 
     if rules.respect_indentation() {
         if !tag_info.inline_el {
-            // results.push('\n');
-            if 0 < results.len() {
+            if TextFormat::Root != prev_tag_info.text_format {
                 results.push('\n');
+                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
             }
-            results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-            prev_tag_info.most_recent_descendant = DescendantStatus::Block;
+            prev_tag_info.text_format = TextFormat::Block;
         }
 
         if tag_info.inline_el {
-            if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
+            if TextFormat::Inline == prev_tag_info.text_format {
                 results.push(' ');
             }
-            // tag_info.most_recent_descendant = DescendantStatus::Text;
-            prev_tag_info.most_recent_descendant = DescendantStatus::Text;
+            prev_tag_info.text_format = TextFormat::Inline;
         }
     }
 
@@ -167,7 +162,6 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 }
 
 fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
-    // no need for text or block
     let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
@@ -189,7 +183,6 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     }
 }
 
-// most recent descendant
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
@@ -228,15 +221,10 @@ fn pop_element(
         _ => return,
     };
 
-    // only need indentation if it matters
-    //
-    //
-    //
-
     if rules.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
-        && tag_info.most_recent_descendant != DescendantStatus::Initial
+        && TextFormat::Initial != tag_info.text_format
     {
         results.push('\n');
         results.push_str(&"\t".repeat(prev_tag_info.indent_count));
@@ -270,7 +258,7 @@ fn add_alt_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo) {
+fn add_first_line_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     let mut text_iter = text.split("\n");
 
     while let Some(line) = text_iter.next() {
@@ -291,8 +279,8 @@ fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo)
     }
 }
 
-fn add_text_no_indents(results: &mut String, text: &str, tag_info: &TagInfo) {
-    if tag_info.most_recent_descendant != DescendantStatus::Initial {
+fn add_inline_text(results: &mut String, text: &str, tag_info: &TagInfo) {
+    if TextFormat::Initial != tag_info.text_format && TextFormat::Root != tag_info.text_format {
         results.push(' ');
     }
 
@@ -313,7 +301,6 @@ fn add_text_no_indents(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-// result, text, indent count (so i can use others)
 fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
@@ -328,7 +315,6 @@ fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
 }
 
 fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
-    // no need for descendant status
     let attr = get_text_from_step(template_str, step);
     push_attr_component(results, stack, attr)
 }
@@ -347,7 +333,6 @@ pub fn push_attr_component(results: &mut String, stack: &mut Vec<TagInfo>, attr:
     results.push_str(attr.trim());
 }
 
-// no need for descendant status
 fn push_attr_value(
     results: &mut String,
     stack: &mut Vec<TagInfo>,

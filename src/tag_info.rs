@@ -2,21 +2,18 @@ use crate::rulesets::RulesetImpl;
 
 // describing how to handle next elemnts and spaces
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum DescendantStatus {
-    Text, // space, element chooses spacing
+pub enum TextFormat {
     Block,
-    // Element,             // next line no matter  if it's inline or text
-    // ElementClosed,       // next line if it's inline or closed
-    // InlineElement,       // if previous is text or inline use ' ', otherwise next line
-    // InlineElementClosed, // if previous is text or inline use ' ', otherwise next line
-    Initial, // no '\s' or '\n' spacingElement chooses spacing
+    Initial,
+    Inline,
+    Root,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TagInfo {
     pub namespace: String,
     pub tag: String,
-    pub most_recent_descendant: DescendantStatus,
+    pub text_format: TextFormat,
     pub indent_count: usize,
     pub void_el: bool,
     pub inline_el: bool,
@@ -34,7 +31,8 @@ impl TagInfo {
         TagInfo {
             namespace: namespace.to_string(),
             tag: tag.to_string(),
-            most_recent_descendant: DescendantStatus::Initial,
+            // text_format: TextFormat::Initial,
+            text_format: TextFormat::Root,
             indent_count: 0,
             void_el: rules.tag_is_void_el(tag),
             inline_el: rules.tag_is_inline_el(tag),
@@ -49,7 +47,7 @@ impl TagInfo {
         tag_info.tag = tag.to_string();
         tag_info.void_el = rules.tag_is_void_el(tag);
         tag_info.inline_el = rules.tag_is_inline_el(tag);
-        tag_info.most_recent_descendant = DescendantStatus::Initial;
+        tag_info.text_format = TextFormat::Initial;
 
         if rules.tag_is_namespace_el(tag) {
             tag_info.namespace = tag.to_string();

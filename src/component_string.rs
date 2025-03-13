@@ -103,7 +103,7 @@ pub fn compose_string(
                 // don't forget the last part of the templates!
                 if index < template.steps.len() {
                     // check for imbalance here
-                    if bit.stack_depth != tag_info_stack.len() {
+                    if tag_info_stack.len() != bit.stack_depth {
                         return Err(
                             "Coyote Err: the following template component is imbalanced:\n{:?}"
                                 .to_string()
