@@ -72,6 +72,7 @@ pub fn push_text_component(
     }
 
     // if unformatted
+    // very clear no formating
     if !rules.respect_indentation() {
         add_text_no_indents(results, text, &tag_info);
         tag_info.most_recent_descendant = DescendantStatus::Text;
@@ -98,7 +99,7 @@ fn push_element(
     template_str: &str,
     step: &Step,
 ) {
-    let prev_tag_info = match stack.last() {
+    let mut prev_tag_info = match stack.last_mut() {
         Some(pti) => pti,
         _ => {
             // this never happens
@@ -115,6 +116,7 @@ fn push_element(
         return;
     }
 
+    // clear no indentation rules
     if !rules.respect_indentation() {
         if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
             results.push(' ');
@@ -122,18 +124,21 @@ fn push_element(
     }
 
     if rules.respect_indentation() {
-        match (&prev_tag_info.most_recent_descendant, tag_info.inline_el) {
-            (DescendantStatus::Text, true) => {
+        if !tag_info.inline_el {
+            if prev_tag_info.most_recent_descendant != DescendantStatus::Initial {
+                results.push('\n');
+                // results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+            }
+            // results.push('\n');
+            results.push_str(&"\t".repeat(prev_tag_info.indent_count));
+            prev_tag_info.most_recent_descendant = DescendantStatus::Block;
+        }
+
+        if tag_info.inline_el {
+            if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
                 results.push(' ');
             }
-            (_, _) => {
-                if 1 < stack.len()
-                    || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
-                {
-                    results.push('\n');
-                }
-                results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-            }
+            prev_tag_info.most_recent_descendant = DescendantStatus::Text;
         }
     }
 
@@ -159,6 +164,7 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
 }
 
 fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
+    // no need for text or block
     let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
@@ -219,7 +225,7 @@ fn pop_element(
         _ => return,
     };
 
-    // if respect indentation
+    // only need indentation if it matters
     if rules.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path
@@ -315,6 +321,7 @@ fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
 }
 
 fn push_attr(results: &mut String, stack: &mut Vec<TagInfo>, template_str: &str, step: &Step) {
+    // no need for descendant status
     let attr = get_text_from_step(template_str, step);
     push_attr_component(results, stack, attr)
 }
@@ -333,6 +340,7 @@ pub fn push_attr_component(results: &mut String, stack: &mut Vec<TagInfo>, attr:
     results.push_str(attr.trim());
 }
 
+// no need for descendant status
 fn push_attr_value(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
