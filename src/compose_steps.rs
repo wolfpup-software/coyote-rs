@@ -78,6 +78,7 @@ pub fn push_text_component(
         return;
     }
 
+    // formatted text
     if tag_info.text_format == TextFormat::Inline {
         results.push(' ');
     }
@@ -115,12 +116,11 @@ fn push_element(
         return;
     }
 
-    if !rules.respect_indentation() {
-        if TextFormat::Initial != prev_tag_info.text_format
-            && TextFormat::Root != prev_tag_info.text_format
-        {
-            results.push(' ');
-        }
+    if !rules.respect_indentation()
+        && TextFormat::Initial != prev_tag_info.text_format
+        && TextFormat::Root != prev_tag_info.text_format
+    {
+        results.push(' ');
     }
 
     if rules.respect_indentation() {
@@ -147,7 +147,7 @@ fn push_element(
 }
 
 fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
-    let tag_info = match stack.last_mut() {
+    let tag_info = match stack.last() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
     };
