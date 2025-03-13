@@ -81,12 +81,15 @@ pub fn push_text_component(
 
     // break this up into functions
     // TODO
-    match &tag_info.most_recent_descendant {
-        DescendantStatus::Initial => match tag_info.inline_el {
-            true => add_inline_element_text(results, text, tag_info),
-            _ => add_text(results, text, tag_info),
-        },
-        _ => add_text(results, text, tag_info),
+    println!("push text with formatting!");
+    println!("{:?}", &tag_info);
+    if tag_info.inline_el || tag_info.most_recent_descendant == DescendantStatus::Text {
+        if tag_info.most_recent_descendant == DescendantStatus::Text {
+            results.push(' ');
+        }
+        add_inline_element_text(results, text, tag_info);
+    } else {
+        add_text(results, text, tag_info);
     }
 
     tag_info.most_recent_descendant = DescendantStatus::Text;
@@ -99,7 +102,7 @@ fn push_element(
     template_str: &str,
     step: &Step,
 ) {
-    let mut prev_tag_info = match stack.last_mut() {
+    let prev_tag_info = match stack.last_mut() {
         Some(pti) => pti,
         _ => {
             // this never happens
@@ -118,18 +121,17 @@ fn push_element(
 
     // clear no indentation rules
     if !rules.respect_indentation() {
-        if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
+        if prev_tag_info.most_recent_descendant != DescendantStatus::Initial {
             results.push(' ');
         }
     }
 
     if rules.respect_indentation() {
         if !tag_info.inline_el {
-            if prev_tag_info.most_recent_descendant != DescendantStatus::Initial {
-                results.push('\n');
-                // results.push_str(&"\t".repeat(prev_tag_info.indent_count));
-            }
             // results.push('\n');
+            if 0 < results.len() {
+                results.push('\n');
+            }
             results.push_str(&"\t".repeat(prev_tag_info.indent_count));
             prev_tag_info.most_recent_descendant = DescendantStatus::Block;
         }
@@ -138,6 +140,7 @@ fn push_element(
             if prev_tag_info.most_recent_descendant == DescendantStatus::Text {
                 results.push(' ');
             }
+            // tag_info.most_recent_descendant = DescendantStatus::Text;
             prev_tag_info.most_recent_descendant = DescendantStatus::Text;
         }
     }
@@ -226,6 +229,10 @@ fn pop_element(
     };
 
     // only need indentation if it matters
+    //
+    //
+    //
+
     if rules.respect_indentation()
         && !tag_info.inline_el
         && !tag_info.preserved_text_path

@@ -47,9 +47,9 @@ impl TagInfo {
         let mut tag_info = prev_tag_info.clone();
 
         tag_info.tag = tag.to_string();
-        tag_info.void_el = rules.tag_is_void_el(&tag);
+        tag_info.void_el = rules.tag_is_void_el(tag);
         tag_info.inline_el = rules.tag_is_inline_el(tag);
-        // tag_info.most_recent_descendant = DescendantStatus::Initial;
+        tag_info.most_recent_descendant = DescendantStatus::Initial;
 
         if rules.tag_is_namespace_el(tag) {
             tag_info.namespace = tag.to_string();
