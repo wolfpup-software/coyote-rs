@@ -81,9 +81,6 @@ pub fn push_text_component(
     // break this up into functions
     // TODO
     match &tag_info.most_recent_descendant {
-        // DescendantStatus::ElementClosed => {
-        //     add_inline_element_closed_text(results, text, tag_info)
-        // }
         DescendantStatus::Initial => match tag_info.inline_el {
             true => add_inline_element_text(results, text, tag_info),
             _ => add_text(results, text, tag_info),
@@ -129,16 +126,12 @@ fn push_element(
             (DescendantStatus::Text, true) => {
                 results.push(' ');
             }
-            // (DescendantStatus::ElementClosed, true) => {
-            //     results.push(' ');
-            // }
             (_, _) => {
-                if stack.len() > 1
+                if 1 < stack.len()
                     || DescendantStatus::Initial != prev_tag_info.most_recent_descendant
                 {
                     results.push('\n');
                 }
-
                 results.push_str(&"\t".repeat(prev_tag_info.indent_count));
             }
         }
@@ -159,8 +152,6 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     if !tag_info.banned_path {
         results.push_str(">");
     }
-
-    // let is_void = tag_info.void_el;
 
     if tag_info.void_el && "html" == tag_info.namespace {
         stack.pop();
@@ -287,26 +278,6 @@ fn add_inline_element_text(results: &mut String, text: &str, tag_info: &TagInfo)
     }
 }
 
-// fn add_inline_element_closed_text(results: &mut String, text: &str, tag_info: &TagInfo) {
-//     let mut text_iter = text.split("\n");
-
-//     while let Some(line) = text_iter.next() {
-//         if !all_spaces(line) {
-//             results.push(' ');
-//             results.push_str(line.trim());
-//             break;
-//         }
-//     }
-
-//     while let Some(line) = text_iter.next() {
-//         if !all_spaces(line) {
-//             results.push('\n');
-//             results.push_str(&"\t".repeat(tag_info.indent_count));
-//             results.push_str(line.trim());
-//         }
-//     }
-// }
-
 fn add_text_no_indents(results: &mut String, text: &str, tag_info: &TagInfo) {
     if tag_info.most_recent_descendant != DescendantStatus::Initial {
         results.push(' ');
@@ -329,23 +300,10 @@ fn add_text_no_indents(results: &mut String, text: &str, tag_info: &TagInfo) {
     }
 }
 
-// fn add_no_indents_inline_element_closed_text(results: &mut String, text: &str) {
-//     for line in text.split("\n") {
-//         if !all_spaces(line) {
-//             results.push(' ');
-//             results.push_str(line.trim());
-//         }
-//     }
-// }
-
 // result, text, indent count (so i can use others)
 fn add_text(results: &mut String, text: &str, tag_info: &TagInfo) {
     for line in text.split("\n") {
         if !all_spaces(line) {
-            // edge case for beginning of document
-            // needs to be more ergonomic
-
-            // if results and stack at 1?
             if 0 < results.len() {
                 results.push('\n');
             }
@@ -419,15 +377,6 @@ fn push_attr_value_unquoted(
     results.push('=');
     results.push_str(val);
 }
-
-// fn update_most_recent_descendant_status(
-//     stack: &mut Vec<TagInfo>,
-//     descendant_status: DescendantStatus,
-// ) {
-//     if let Some(prev_tag_info) = stack.last_mut() {
-//         prev_tag_info.most_recent_descendant = descendant_status;
-//     }
-// }
 
 fn get_index_of_first_char(text: &str) -> usize {
     for (index, glyph) in text.char_indices() {
