@@ -132,12 +132,8 @@ impl RulesetImpl for ClientRules {
         is_preserved_text_el(tag)
     }
 
-    fn tag_is_inline_el(&self, tag: &str) -> bool {
-        // is it?
-        match tag {
-            "a" => true,
-            _ => is_inline_el(tag),
-        }
+    fn tag_is_inline_el(&self, _tag: &str) -> bool {
+        true
     }
 }
 
@@ -155,13 +151,17 @@ impl RulesetImpl for XmlRules {
     }
 
     fn tag_is_attributeless(&self, tag: &str) -> bool {
-        "!--" == tag
+        match tag {
+            "!--" => true,
+            "![CDATA[" => true,
+            _ => false,
+        }
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
             "!--" => Some("--"),
-            "![CDATA[" => Some("]]>"),
+            "![CDATA[" => Some("]]"),
             _ => None,
         }
     }
@@ -169,7 +169,7 @@ impl RulesetImpl for XmlRules {
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
             "--" => Some("!--"),
-            "]]>" => Some("!CDATA[["),
+            "]]" => Some("!CDATA[["),
             _ => None,
         }
     }
