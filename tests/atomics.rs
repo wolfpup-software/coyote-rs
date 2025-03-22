@@ -188,7 +188,7 @@ fn alt_element_no_descendants() {
 }
 
 #[test]
-fn pretty_preserved_text_elements() {
+fn preserved_text_element() {
     let template = tmpl(
         "
 <pre>

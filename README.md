@@ -35,6 +35,7 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
+    
     let html = Html::new();
 
     if let Ok(document) = html.build(&hello_world) {
