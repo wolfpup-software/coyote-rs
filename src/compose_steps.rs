@@ -79,7 +79,7 @@ pub fn push_text_component(
     }
 
     // formatted text
-    if tag_info.text_format == TextFormat::Inline {
+    if TextFormat::Inline == tag_info.text_format {
         results.push(' ');
     }
 

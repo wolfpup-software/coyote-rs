@@ -15,6 +15,7 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
+
     let html = Html::new();
 
     if let Ok(document) = html.build(&hello_world) {
@@ -63,6 +64,7 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
+    
     let client_html = ClientHtml::new();    
     
     if let Ok(document) = client_html.build(&hello_world) {

@@ -144,8 +144,8 @@ fn nested_void_element_with_sibling() {
 
 #[test]
 fn nested_elements_and_text() {
-    let template = tmpl("<a><label><input type=woofer>bark!</label></a>", []);
-    let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n</a>";
+    let template = tmpl("<a><label><input type=woofer>bark!</label><img></a>", []);
+    let expected = "<a>\n\t<label>\n\t\t<input type=woofer>\n\t\tbark!\n\t</label>\n\t<img>\n</a>";
 
     let mut html = Html::new();
     let results = html.build(&template);
