@@ -8,6 +8,7 @@ use crate::tag_info::TagInfo;
 use crate::template_builder::BuilderImpl;
 use crate::template_steps::Results as TemplateSteps;
 
+#[derive(Debug)]
 struct TemplateBit {
     pub inj_index: usize,
     pub stack_depth: usize,
@@ -113,17 +114,7 @@ pub fn compose_string(
                     }
                 }
 
-                // don't forget the last part of the templates!
                 if index < template.steps.len() {
-                    // check for imbalance here
-                    if tag_info_stack.len() != bit.stack_depth {
-                        return Err(
-                            "Coyote Err: the following template component is imbalanced:\n{:?}"
-                                .to_string()
-                                + tmpl_cmpnt.template_str,
-                        );
-                    }
-
                     component_stack.push(cmpnt_bit);
                 }
             }

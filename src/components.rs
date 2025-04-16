@@ -24,10 +24,7 @@ pub fn tmpl<const N: usize>(template_str: &'static str, injections: [Component; 
 }
 
 pub fn text(txt: &str) -> Component {
-    let escaped = txt
-        .replace("<", "&lt;")
-        .replace("&", "&amp;")
-        .replace("{", "&#123;");
+    let escaped = txt.replace("<", "&lt;").replace("&", "&amp;");
     Component::Text(escaped)
 }
 

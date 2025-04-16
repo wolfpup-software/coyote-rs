@@ -1,6 +1,6 @@
 # Coyote-rs
 
-Create `HTML` with function components in Rust.
+Create `HTML` documents with function components in Rust.
 
 There are no dependencies. There are no macros.
 

@@ -3,6 +3,7 @@ use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::{TagInfo, TextFormat};
 
+// here is were we shoud be testing for "balance"
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
     results: &mut String,
@@ -103,6 +104,7 @@ fn push_element(
         Some(pti) => pti,
         _ => {
             // this never happens
+            // always at least len of 1
             return;
         }
     };
