@@ -11,6 +11,7 @@ use crate::template_steps::Results as TemplateSteps;
 #[derive(Debug)]
 struct TemplateBit {
     pub inj_index: usize,
+    pub stack_depth: isize,
 }
 
 enum StackBit<'a> {
@@ -78,13 +79,23 @@ pub fn compose_string(
 
                 // add current template chunk
                 if let Some(chunk) = template.steps.get(index) {
-                    compose_steps(
+                    bit.stack_depth += compose_steps(
                         rules,
                         &mut template_results,
                         &mut tag_info_stack,
                         &tmpl_cmpnt.template_str,
                         chunk,
                     );
+                } else {
+                    // is this balanced?
+                    if 0 != bit.stack_depth {
+                        println!("oooooooooh");
+                        return Err(
+                            "Coyote Err: the following template component is imbalanced:\n{:?}"
+                                .to_string()
+                                + tmpl_cmpnt.template_str,
+                        );
+                    }
                 }
 
                 // add injections
@@ -135,7 +146,14 @@ fn get_bit_from_component_stack<'a>(
         Component::List(_) => StackBit::Cmpnt(cmpnt),
         Component::Tmpl(tmpl) => {
             let template_steps = builder.build(rules, &tmpl.template_str);
-            StackBit::Tmpl(cmpnt, template_steps, TemplateBit { inj_index: 0 })
+            StackBit::Tmpl(
+                cmpnt,
+                template_steps,
+                TemplateBit {
+                    inj_index: 0,
+                    stack_depth: 0,
+                },
+            )
         }
         _ => StackBit::None,
     }
