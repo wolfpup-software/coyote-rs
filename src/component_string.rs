@@ -78,21 +78,24 @@ pub fn compose_string(
                 };
 
                 // add current template chunk
-                if let Some(chunk) = template.steps.get(index) {
-                    compose_steps(
-                        rules,
-                        &mut template_results,
-                        &mut tag_info_stack,
-                        &tmpl_cmpnt.template_str,
-                        chunk,
-                    );
-                } else {
-                    if bit.stack_depth != tag_info_stack.len() as isize {
-                        return Err(
-                            "Coyote Err: the following template component is imbalanced:\n{:?}"
-                                .to_string()
-                                + tmpl_cmpnt.template_str,
+                match template.steps.get(index) {
+                    Some(chunk) => {
+                        compose_steps(
+                            rules,
+                            &mut template_results,
+                            &mut tag_info_stack,
+                            &tmpl_cmpnt.template_str,
+                            chunk,
                         );
+                    }
+                    _ => {
+                        if bit.stack_depth != tag_info_stack.len() as isize {
+                            return Err(
+                                "Coyote Err: the following template component is imbalanced:\n{:?}"
+                                    .to_string()
+                                    + tmpl_cmpnt.template_str,
+                            );
+                        }
                     }
                 }
 
