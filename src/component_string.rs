@@ -87,13 +87,7 @@ pub fn compose_string(
                         chunk,
                     );
                 } else {
-                    // is this balanced?
-                    // if tag_info_stack.len() != bit.stack_depth {
-                    //     println!("double oooooohhh");
-                    // }
-                    println!("stack depth: {} {}", tag_info_stack.len(), bit.stack_depth);
                     if bit.stack_depth != tag_info_stack.len() as isize {
-                        println!("oooooooooh");
                         return Err(
                             "Coyote Err: the following template component is imbalanced:\n{:?}"
                                 .to_string()
