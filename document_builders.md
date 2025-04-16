@@ -77,7 +77,3 @@ The output will be:
 ```html
 <p>hai >:3</p>
 ```
-
-## License
-
-`Coyote-rs` is released under the BSD-3-Clause License

@@ -29,7 +29,7 @@ fn hai() -> Component {
 | Template | a document fragment described by a string template and a list or vector of injections | `tmpl(template_str: &str, injections: [Component, ...]) -> Component` |
 | None | the abscence of a component | `Component::None` |
 
-# The template component
+## The template component
 
 The most crtical component, the template component, is most likely the most approachable component syntax.
 
@@ -106,7 +106,7 @@ in a template would be:
 tmpl("hellooo, &#123; world }"); 
 ```
 
-# Nested components
+## Nested components
 
 The `list` and `vlist` components reflects the `node -> [node, text, node, ...]` heiarchy of an xml-like document.
 
@@ -138,7 +138,7 @@ fn form() -> Component {
 }
 ```
 
-And this component will output something like:
+And the output will something like:
 
 ```html
 <form action="/uwu" method="post">
@@ -147,15 +147,15 @@ And this component will output something like:
 </form>
 ```
 
-# Components as an IMR
+## Components as an IMR
 
 Components are not quite HTML or XML.
 
 Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _potential_ for a document like HTML or XML.
 
-# Renders
+## Render Components
 
-`Components` are not coupled to any particular markup language or output environment. This makes `coyote` a particularly expressive way to create custom documents from html and scenes from xml.
+`Components` are not coupled to any particular markup language or environment. This makes `coyote` a particularly expressive way to create custom documents from html and scenes from xml.
 
 ## Document builders
 

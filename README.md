@@ -12,7 +12,7 @@ cargo install --git https://github.com/w-lfpup/coyote-rs
 
 ## Components
 
-Create documents with coyote [components](./components.md).
+Create document fragments with coyote [components](./components.md).
 
 ```rust
 use coyote::{Component, tmpl};
