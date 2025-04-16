@@ -1,18 +1,8 @@
-# Coyote-rs
+# Components
 
-Create `HTML` with component functions in Rust!
+`Coyote` creates documents with function components.
 
-## Install
-
-```sh
-cargo install --git https://github.com/wolf-pup/coyote-rs coyote
-```
-
-## Components
-
-`Coyote` creates documents from function components.
-
-### Function Components
+## Function Components
 
 Function components are functions that return components!
 
@@ -24,43 +14,58 @@ fn hai() -> Component {
 }
 ```
 
-### Types of components
+## Types of components
 
 `Components` are used to build documents:
 
 | Component | Description | Type |
 | --------- | ---- | ----------- |
-| Attribute | an element attribute | `attr(attribute_name: &str) -> Component` |
-| Attribute with value | an element and attribute and value pair | `attr_val(&str, &str) -> Component` | 
-| Text | text with escaped HTML glyphs like `<` of `{`| `text(&str) -> Component` |
-| Unescaped text | dangerously unescaped text | `unescaped_text(&str) -> Component` |
-| List | a list of components | `list([Component, ...]) -> Component` |
-| Vector | a vector of components | `vlist(Vec::from([Component, ...])) -> Component` |
-| Template | a document fragment described by a string template and a list or vector of injections | `tmpl(&str, [Component, ...]) -> Component` |
+| Attribute | an element attribute | `attr(name: &str) -> Component` |
+| Attribute with value | an element and attribute and value pair | `attr_val(name: &str, value: &str) -> Component` | 
+| Text | text with the HTML glyphs `<` and `"` escaped | `text(text_str: &str) -> Component` |
+| Unescaped text | dangerously unescaped text | `unescaped_text(text_str: &str) -> Component` |
+| List | a list of components | `list(component_list: [Component, ...]) -> Component` |
+| Vector List | a vector of components | `vlist(component_vector_list: Vec<Component>) -> Component` |
+| Template | a document fragment described by a string template and a list or vector of injections | `tmpl(template_str: &str, injections: [Component, ...]) -> Component` |
 | None | the abscence of a component | `Component::None` |
 
-## Templates
+## The template component
 
-### Tags, void elements, fragments
+The most crtical component, the template component, is most likely the most approachable component syntax.
 
-`Coyote-rs` supports self-closing tags, void elements, and fragments.
+## Tags, void elements, fragments
+
+`Coyote-rs` supports self-closing tags, void elements, and fragments in templates:
 
 ```rs
 fn syntax_story() -> Component {
     tmpl("
         <article>
-            <header>cool story!</header>
             <>
-                <p>bro what else happened?</p>
                 <p>no waaaay?</p>
+                <custom-element />
+                <input type=button value=\"high five! \" />
             </>
-            <footer>end of the story!</footer>
         </article>
     ", [])
 }
 ```
 
-### Injections
+However, `coyote-rs` will only output valid and correct HTML5:
+
+```html
+<article>
+    <p>
+        no waaaay?
+    </p>
+    <custom-element></custom-element>
+    <input value=button value="high-five">
+</article>
+```
+
+This gives developers an expressive template syntax while upholding modern HTML5 standards.
+
+## Injections
 
 `Injections` create nested templates and attribute assignments.
 
@@ -85,29 +90,46 @@ fn injection_story() -> Component {
 
 Any other instance of `{}` in a template component will not be considered an injection.
 
+### Escape the `{` character
+
+To use a `{` in a template without creating a descendant injection, use the html escape charactor for a left bracket.
+
+So ...
+
+```html
+helloooo { world }
+```
+
+in a template would be:
+
+```rust
+tmpl("hellooo, &#123; world }"); 
+```
+
 ## Nested components
 
-The `list` component reflects the `node -> [node, text, node, ...]` heiarchy of an xml-like document.
+The `list` and `vlist` components reflects the `node -> [node, text, node, ...]` heiarchy of an xml-like document.
 
 The example below creates a form defined by lists of attributes, templates, and text.
 
 ```rust
 use coyote::{Component, attr_val, list, text, tmpl};
 
-fn woof() -> Component {
+fn submit_button() -> Component {
     tmpl("<input type=submit value=\"yus -_-\">", [])
 }
 
-fn woof_form() -> Component {
+fn form() -> Component {
     let attributes = list([
         attr_val("action", "/uwu"),
         attr_val("method", "post"),
     ]);
 
-    let descendants = list([
-        text("you're a boy kisser aren't you >:3"),
-        woof(),
-    ]);
+    let mut descendant_vec: Vec<Component> = Vec::new();
+    descendant_vec.push(text("you're a boy kisser aren't you >:3"));
+    descendant_vec.push(submit_button());
+    
+    let descendants = vlist(descendant_vec);
 
     tmpl(
         "<form {}>{}</form>",
@@ -116,16 +138,25 @@ fn woof_form() -> Component {
 }
 ```
 
+And the output will something like:
+
+```html
+<form action="/uwu" method="post">
+    you're a boy kisser aren't you >:3
+    <input type=submit value="yus -_-">
+</form>
+```
+
 ## Components as an IMR
 
-Components are not HTML or XML.
+Components are not quite HTML or XML.
 
 Components are a kind of (I)ntermediate (R)endering (F)ormat. They are the _potential_ for a document like HTML or XML.
 
-## Renders
+## Render Components
 
-`Components` are not coupled to any particular markup language or output environment. This makes `coyote` an expressive way to create custom documents and object scenes from xml.
+`Components` are not coupled to any particular markup language or environment. This makes `coyote` a particularly expressive way to create custom documents from html and scenes from xml.
 
-### Document builders
+## Document builders
 
 Coyote renders components with [document builders](./document_builders.md).

@@ -1,6 +1,6 @@
 use crate::rulesets::RulesetImpl;
 
-// describing how to handle next elemnts and spaces
+// describes how to handle elements and spacing
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum TextFormat {
     Block,
@@ -31,7 +31,6 @@ impl TagInfo {
         TagInfo {
             namespace: namespace.to_string(),
             tag: tag.to_string(),
-            // text_format: TextFormat::Initial,
             text_format: TextFormat::Root,
             indent_count: 0,
             void_el: rules.tag_is_void_el(tag),

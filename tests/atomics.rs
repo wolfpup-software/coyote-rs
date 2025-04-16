@@ -107,6 +107,22 @@ fn achor_element_with_text() {
 fn void_element() {
     let template = tmpl(
         "
+		<input>
+		",
+        [],
+    );
+    let expected = "<input>";
+
+    let mut html = Html::new();
+    let results = html.build(&template);
+
+    assert_eq!(Ok(expected.to_string()), results);
+}
+
+#[test]
+fn void_element_with_self_closing() {
+    let template = tmpl(
+        "
 		<input />
 		",
         [],
@@ -188,7 +204,7 @@ fn alt_element_no_descendants() {
 }
 
 #[test]
-fn pretty_preserved_text_elements() {
+fn preserved_text_element() {
     let template = tmpl(
         "
 <pre>

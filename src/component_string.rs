@@ -8,9 +8,10 @@ use crate::tag_info::TagInfo;
 use crate::template_builder::BuilderImpl;
 use crate::template_steps::Results as TemplateSteps;
 
+#[derive(Debug)]
 struct TemplateBit {
     pub inj_index: usize,
-    pub stack_depth: usize,
+    pub stack_depth: isize,
 }
 
 enum StackBit<'a> {
@@ -19,12 +20,24 @@ enum StackBit<'a> {
     None,
 }
 
+/*
+    TODO:
+
+    `compose_string` might have too many lines of code (100+).
+
+    This might simply be a nexus of scope and complexity.
+
+    Current refinement attempts resulted in functions with 7 arguments.
+    So ... not the best solution ever.
+
+    At least the challenge is isolated to this function.
+*/
 pub fn compose_string(
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &Component,
 ) -> Result<String, String> {
-    let mut tmpl_str = "".to_string();
+    let mut template_results = "".to_string();
 
     let mut tag_info_stack: Vec<TagInfo> = Vec::from([TagInfo::new(rules, ":root")]);
     let mut component_stack: Vec<StackBit> = Vec::from([get_bit_from_component_stack(
@@ -39,7 +52,7 @@ pub fn compose_string(
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
                 Component::Text(text) => {
-                    push_text_component(&mut tmpl_str, &mut tag_info_stack, rules, text);
+                    push_text_component(&mut template_results, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
@@ -54,24 +67,37 @@ pub fn compose_string(
                 }
                 _ => {}
             },
+            // template chunk and possible injection
             StackBit::Tmpl(cmpnt, ref template, ref mut bit) => {
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
+                // Should always be a template
                 let tmpl_cmpnt = match cmpnt {
                     Component::Tmpl(cmpnt) => cmpnt,
                     _ => continue,
                 };
 
                 // add current template chunk
-                if let Some(chunk) = template.steps.get(index) {
-                    compose_steps(
-                        rules,
-                        &mut tmpl_str,
-                        &mut tag_info_stack,
-                        &tmpl_cmpnt.template_str,
-                        chunk,
-                    );
+                match template.steps.get(index) {
+                    Some(chunk) => {
+                        compose_steps(
+                            rules,
+                            &mut template_results,
+                            &mut tag_info_stack,
+                            &tmpl_cmpnt.template_str,
+                            chunk,
+                        );
+                    }
+                    _ => {
+                        if bit.stack_depth != tag_info_stack.len() as isize {
+                            return Err(
+                                "Coyote Err: the following template component is imbalanced:\n{:?}"
+                                    .to_string()
+                                    + tmpl_cmpnt.template_str,
+                            );
+                        }
+                    }
                 }
 
                 // add injections
@@ -80,7 +106,7 @@ pub fn compose_string(
                 {
                     match inj_step.kind {
                         StepKind::AttrMapInjection => {
-                            add_attr_inj(&mut tag_info_stack, &mut tmpl_str, inj);
+                            add_attr_inj(&mut tag_info_stack, &mut template_results, inj);
                         }
                         // push template back and bail early
                         StepKind::DescendantInjection => {
@@ -100,17 +126,7 @@ pub fn compose_string(
                     }
                 }
 
-                // don't forget the last part of the templates!
                 if index < template.steps.len() {
-                    // check for imbalance here
-                    if tag_info_stack.len() != bit.stack_depth {
-                        return Err(
-                            "Coyote Err: the following template component is imbalanced:\n{:?}"
-                                .to_string()
-                                + tmpl_cmpnt.template_str,
-                        );
-                    }
-
                     component_stack.push(cmpnt_bit);
                 }
             }
@@ -118,8 +134,7 @@ pub fn compose_string(
         }
     }
 
-    // can check if tag_info is correct or not
-    Ok(tmpl_str)
+    Ok(template_results)
 }
 
 fn get_bit_from_component_stack<'a>(
@@ -138,7 +153,7 @@ fn get_bit_from_component_stack<'a>(
                 template_steps,
                 TemplateBit {
                     inj_index: 0,
-                    stack_depth: stack.len(),
+                    stack_depth: stack.len() as isize,
                 },
             )
         }

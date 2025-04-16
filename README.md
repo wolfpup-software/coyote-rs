@@ -1,18 +1,18 @@
 # Coyote-rs
 
-Create `HTML` with function components in Rust.
+Create `HTML` documents with function components in Rust.
 
 There are no dependencies. There are no macros.
 
 ## Install
 
 ```sh
-cargo install --git https://github.com/wolf-pup/coyote-rs
+cargo install --git https://github.com/w-lfpup/coyote-rs
 ```
 
 ## Components
 
-Create documents with coyote [components](./components.md).
+Create document fragments with coyote [components](./components.md).
 
 ```rust
 use coyote::{Component, tmpl};
@@ -35,6 +35,7 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
+    
     let html = Html::new();
 
     if let Ok(document) = html.build(&hello_world) {

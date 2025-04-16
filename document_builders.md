@@ -15,6 +15,7 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
+
     let html = Html::new();
 
     if let Ok(document) = html.build(&hello_world) {
@@ -63,6 +64,7 @@ fn hai() -> Component {
 
 fn main() {
     let hello_world = hai();
+    
     let client_html = ClientHtml::new();    
     
     if let Ok(document) = client_html.build(&hello_world) {
@@ -75,7 +77,3 @@ The output will be:
 ```html
 <p>hai >:3</p>
 ```
-
-## License
-
-`Coyote-rs` is released under the BSD-3-Clause License

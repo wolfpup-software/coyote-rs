@@ -79,7 +79,7 @@ pub fn push_text_component(
     }
 
     // formatted text
-    if tag_info.text_format == TextFormat::Inline {
+    if TextFormat::Inline == tag_info.text_format {
         results.push(' ');
     }
 
@@ -103,6 +103,7 @@ fn push_element(
         Some(pti) => pti,
         _ => {
             // this never happens
+            // always at least len of 1
             return;
         }
     };

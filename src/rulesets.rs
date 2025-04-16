@@ -132,12 +132,8 @@ impl RulesetImpl for ClientRules {
         is_preserved_text_el(tag)
     }
 
-    fn tag_is_inline_el(&self, tag: &str) -> bool {
-        // is it?
-        match tag {
-            "a" => true,
-            _ => is_inline_el(tag),
-        }
+    fn tag_is_inline_el(&self, _tag: &str) -> bool {
+        true
     }
 }
 
@@ -155,13 +151,17 @@ impl RulesetImpl for XmlRules {
     }
 
     fn tag_is_attributeless(&self, tag: &str) -> bool {
-        "!--" == tag
+        match tag {
+            "!--" => true,
+            "![CDATA[" => true,
+            _ => false,
+        }
     }
 
     fn get_close_sequence_from_alt_text_tag(&self, tag: &str) -> Option<&str> {
         match tag {
             "!--" => Some("--"),
-            "![CDATA[" => Some("]]>"),
+            "![CDATA[" => Some("]]"),
             _ => None,
         }
     }
@@ -169,7 +169,7 @@ impl RulesetImpl for XmlRules {
     fn get_alt_text_tag_from_close_sequence(&self, tag: &str) -> Option<&str> {
         match tag {
             "--" => Some("!--"),
-            "]]>" => Some("!CDATA[["),
+            "]]" => Some("!CDATA[["),
             _ => None,
         }
     }
@@ -209,7 +209,7 @@ fn is_banned_el(tag: &str) -> bool {
         "dir" => true,
         "font" => true,
         "frame" => true,
-        "framset" => true,
+        "frameset" => true,
         "image" => true,
         "marquee" => true,
         "menuitem" => true,
@@ -265,8 +265,6 @@ pub fn is_preserved_text_el(tag: &str) -> bool {
 pub fn is_inline_el(tag: &str) -> bool {
     match tag {
         "abbr" => true,
-        "area" => true,
-        "audio" => true,
         "b" => true,
         "bdi" => true,
         "bdo" => true,
@@ -275,16 +273,9 @@ pub fn is_inline_el(tag: &str) -> bool {
         "data" => true,
         "dfn" => true,
         "em" => true,
-        "embed" => true,
         "i" => true,
-        "iframe" => true,
-        "img" => true,
         "kbd" => true,
-        "map" => true,
         "mark" => true,
-        "object" => true,
-        "picture" => true,
-        "portal" => true,
         "q" => true,
         "rp" => true,
         "rt" => true,
@@ -292,17 +283,13 @@ pub fn is_inline_el(tag: &str) -> bool {
         "s" => true,
         "samp" => true,
         "small" => true,
-        "source" => true,
         "span" => true,
         "strong" => true,
         "sub" => true,
         "sup" => true,
         "time" => true,
-        "track" => true,
         "u" => true,
         "var" => true,
-        "video" => true,
-        "wbr" => true,
         _ => false,
     }
 }
