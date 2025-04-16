@@ -15,10 +15,26 @@ pub fn compose_steps(
 
     for step in steps {
         match step.kind {
-            StepKind::Tag => push_element(results, tag_info_stack, &mut node_depth, rules, template_str, step),
+            StepKind::Tag => push_element(
+                results,
+                tag_info_stack,
+                &mut node_depth,
+                rules,
+                template_str,
+                step,
+            ),
             StepKind::ElementClosed => close_element(results, tag_info_stack, &mut node_depth),
-            StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack, &mut node_depth),
-            StepKind::TailTag => pop_element(results, tag_info_stack, &mut node_depth, rules, template_str, step),
+            StepKind::EmptyElementClosed => {
+                close_empty_element(results, tag_info_stack, &mut node_depth)
+            }
+            StepKind::TailTag => pop_element(
+                results,
+                tag_info_stack,
+                &mut node_depth,
+                rules,
+                template_str,
+                step,
+            ),
             StepKind::Text => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::Attr => push_attr(results, tag_info_stack, template_str, step),
             StepKind::AttrValue => push_attr_value(results, tag_info_stack, template_str, step),
@@ -191,7 +207,7 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>, node_dept
 
         results.push('>');
     }
-    
+
     *node_depth -= 1;
 }
 
