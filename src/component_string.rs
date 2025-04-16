@@ -72,6 +72,7 @@ pub fn compose_string(
                 let index = bit.inj_index;
                 bit.inj_index += 1;
 
+                // Should always be a template
                 let tmpl_cmpnt = match cmpnt {
                     Component::Tmpl(cmpnt) => cmpnt,
                     _ => continue,

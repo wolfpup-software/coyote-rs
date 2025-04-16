@@ -3,7 +3,6 @@ use crate::routes::StepKind;
 use crate::rulesets::RulesetImpl;
 use crate::tag_info::{TagInfo, TextFormat};
 
-// here is were we shoud be testing for "balance"
 pub fn compose_steps(
     rules: &dyn RulesetImpl,
     results: &mut String,

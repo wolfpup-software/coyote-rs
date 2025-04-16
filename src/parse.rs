@@ -18,7 +18,6 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
     }]);
 
     // this is the "state" of parsing.
-    // should be it's own
     let mut tag: &str = "";
     let mut prev_inj_kind = intial_kind;
     let mut sliding_window: Option<SlidingWindow> = None;
