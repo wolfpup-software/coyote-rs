@@ -19,12 +19,24 @@ enum StackBit<'a> {
     None,
 }
 
+/*
+    TODO:
+
+    `compose_string` might have too many lines of code (100+).
+
+    This might simply be a nexus of scope and complexity.
+
+    Current refinement attempts resulted in functions with 7 arguments.
+    So ... not the best solution ever.
+
+    At least the challenge is isolated to this function.
+*/
 pub fn compose_string(
     builder: &mut dyn BuilderImpl,
     rules: &dyn RulesetImpl,
     component: &Component,
 ) -> Result<String, String> {
-    let mut tmpl_str = "".to_string();
+    let mut template_results = "".to_string();
 
     let mut tag_info_stack: Vec<TagInfo> = Vec::from([TagInfo::new(rules, ":root")]);
     let mut component_stack: Vec<StackBit> = Vec::from([get_bit_from_component_stack(
@@ -39,7 +51,7 @@ pub fn compose_string(
             // text or list
             StackBit::Cmpnt(cmpnt) => match cmpnt {
                 Component::Text(text) => {
-                    push_text_component(&mut tmpl_str, &mut tag_info_stack, rules, text);
+                    push_text_component(&mut template_results, &mut tag_info_stack, rules, text);
                 }
                 Component::List(list) => {
                     for cmpnt in list.iter().rev() {
@@ -54,6 +66,7 @@ pub fn compose_string(
                 }
                 _ => {}
             },
+            // template chunk and possible injection
             StackBit::Tmpl(cmpnt, ref template, ref mut bit) => {
                 let index = bit.inj_index;
                 bit.inj_index += 1;
@@ -67,7 +80,7 @@ pub fn compose_string(
                 if let Some(chunk) = template.steps.get(index) {
                     compose_steps(
                         rules,
-                        &mut tmpl_str,
+                        &mut template_results,
                         &mut tag_info_stack,
                         &tmpl_cmpnt.template_str,
                         chunk,
@@ -80,7 +93,7 @@ pub fn compose_string(
                 {
                     match inj_step.kind {
                         StepKind::AttrMapInjection => {
-                            add_attr_inj(&mut tag_info_stack, &mut tmpl_str, inj);
+                            add_attr_inj(&mut tag_info_stack, &mut template_results, inj);
                         }
                         // push template back and bail early
                         StepKind::DescendantInjection => {
@@ -118,8 +131,7 @@ pub fn compose_string(
         }
     }
 
-    // can check if tag_info is correct or not
-    Ok(tmpl_str)
+    Ok(template_results)
 }
 
 fn get_bit_from_component_stack<'a>(

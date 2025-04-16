@@ -22,7 +22,7 @@ impl Html {
 }
 
 // CLIENT HTML
-// safer without styles, scripts, or links
+// "safer" without styles, scripts, or links
 pub struct ClientHtml {
     rules: ClientRules,
     builder: Builder,

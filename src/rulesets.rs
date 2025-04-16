@@ -209,7 +209,7 @@ fn is_banned_el(tag: &str) -> bool {
         "dir" => true,
         "font" => true,
         "frame" => true,
-        "framset" => true,
+        "frameset" => true,
         "image" => true,
         "marquee" => true,
         "menuitem" => true,

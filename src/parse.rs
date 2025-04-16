@@ -17,6 +17,8 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
         target: 0,
     }]);
 
+    // this is the "state" of parsing.
+    // should be it's own
     let mut tag: &str = "";
     let mut prev_inj_kind = intial_kind;
     let mut sliding_window: Option<SlidingWindow> = None;
@@ -28,7 +30,7 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
                 continue;
             }
 
-            if let Err(_) = add_alt_element_text(rules, &mut steps, tag, index) {
+            if let Err(_) = push_alt_element_steps(rules, &mut steps, tag, index) {
                 return steps;
             };
 
@@ -41,7 +43,7 @@ pub fn parse_str(rules: &dyn RulesetImpl, template_str: &str, intial_kind: StepK
             Some(step) => step,
             _ => return steps,
         };
-        // record change
+        // mark progression
         end_step.target = index;
 
         let mut curr_kind = match end_step.kind {
@@ -106,7 +108,7 @@ fn is_injection_kind(step_kind: &StepKind) -> bool {
     }
 }
 
-fn add_alt_element_text(
+fn push_alt_element_steps(
     rules: &dyn RulesetImpl,
     steps: &mut Vec<Step>,
     tag: &str,
