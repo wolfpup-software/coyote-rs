@@ -11,7 +11,6 @@ use crate::template_steps::Results as TemplateSteps;
 #[derive(Debug)]
 struct TemplateBit {
     pub inj_index: usize,
-    pub stack_depth: usize,
 }
 
 enum StackBit<'a> {
@@ -136,14 +135,7 @@ fn get_bit_from_component_stack<'a>(
         Component::List(_) => StackBit::Cmpnt(cmpnt),
         Component::Tmpl(tmpl) => {
             let template_steps = builder.build(rules, &tmpl.template_str);
-            StackBit::Tmpl(
-                cmpnt,
-                template_steps,
-                TemplateBit {
-                    inj_index: 0,
-                    stack_depth: stack.len(),
-                },
-            )
+            StackBit::Tmpl(cmpnt, template_steps, TemplateBit { inj_index: 0 })
         }
         _ => StackBit::None,
     }
