@@ -79,7 +79,7 @@ pub fn compose_string(
 
                 // add current template chunk
                 if let Some(chunk) = template.steps.get(index) {
-                    bit.stack_depth += compose_steps(
+                    compose_steps(
                         rules,
                         &mut template_results,
                         &mut tag_info_stack,
@@ -88,7 +88,11 @@ pub fn compose_string(
                     );
                 } else {
                     // is this balanced?
-                    if 0 != bit.stack_depth {
+                    // if tag_info_stack.len() != bit.stack_depth {
+                    //     println!("double oooooohhh");
+                    // }
+                    println!("stack depth: {} {}", tag_info_stack.len(), bit.stack_depth);
+                    if bit.stack_depth != tag_info_stack.len() as isize {
                         println!("oooooooooh");
                         return Err(
                             "Coyote Err: the following template component is imbalanced:\n{:?}"
@@ -151,7 +155,7 @@ fn get_bit_from_component_stack<'a>(
                 template_steps,
                 TemplateBit {
                     inj_index: 0,
-                    stack_depth: 0,
+                    stack_depth: stack.len() as isize,
                 },
             )
         }

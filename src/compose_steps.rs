@@ -10,31 +10,13 @@ pub fn compose_steps(
     tag_info_stack: &mut Vec<TagInfo>,
     template_str: &str,
     steps: &Vec<Step>,
-) -> isize {
-    let mut node_depth = 0;
-
+) {
     for step in steps {
         match step.kind {
-            StepKind::Tag => push_element(
-                results,
-                tag_info_stack,
-                &mut node_depth,
-                rules,
-                template_str,
-                step,
-            ),
-            StepKind::ElementClosed => close_element(results, tag_info_stack, &mut node_depth),
-            StepKind::EmptyElementClosed => {
-                close_empty_element(results, tag_info_stack, &mut node_depth)
-            }
-            StepKind::TailTag => pop_element(
-                results,
-                tag_info_stack,
-                &mut node_depth,
-                rules,
-                template_str,
-                step,
-            ),
+            StepKind::Tag => push_element(results, tag_info_stack, rules, template_str, step),
+            StepKind::ElementClosed => close_element(results, tag_info_stack),
+            StepKind::EmptyElementClosed => close_empty_element(results, tag_info_stack),
+            StepKind::TailTag => pop_element(results, tag_info_stack, rules, template_str, step),
             StepKind::Text => push_text(results, tag_info_stack, rules, template_str, step),
             StepKind::Attr => push_attr(results, tag_info_stack, template_str, step),
             StepKind::AttrValue => push_attr_value(results, tag_info_stack, template_str, step),
@@ -44,9 +26,6 @@ pub fn compose_steps(
             _ => {}
         }
     }
-
-    println!("node_depth: {}", &node_depth);
-    return node_depth;
 }
 
 fn push_text(
@@ -117,7 +96,6 @@ pub fn push_text_component(
 fn push_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    node_depth: &mut isize,
     rules: &dyn RulesetImpl,
     template_str: &str,
     step: &Step,
@@ -168,10 +146,9 @@ fn push_element(
     results.push_str(tag);
 
     stack.push(tag_info);
-    *node_depth += 1;
 }
 
-fn close_element(results: &mut String, stack: &mut Vec<TagInfo>, node_depth: &mut isize) {
+fn close_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     let tag_info = match stack.last() {
         Some(prev_tag_info) => prev_tag_info,
         _ => return,
@@ -182,12 +159,11 @@ fn close_element(results: &mut String, stack: &mut Vec<TagInfo>, node_depth: &mu
     }
 
     if tag_info.void_el && "html" == tag_info.namespace {
-        *node_depth -= 1;
         stack.pop();
     }
 }
 
-fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>, node_depth: &mut isize) {
+fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>) {
     let tag_info = match stack.pop() {
         Some(curr) => curr,
         _ => return,
@@ -207,14 +183,11 @@ fn close_empty_element(results: &mut String, stack: &mut Vec<TagInfo>, node_dept
 
         results.push('>');
     }
-
-    *node_depth -= 1;
 }
 
 fn pop_element(
     results: &mut String,
     stack: &mut Vec<TagInfo>,
-    node_depth: &mut isize,
     rules: &dyn RulesetImpl,
     template_str: &str,
     step: &Step,
@@ -262,14 +235,12 @@ fn pop_element(
     if let Some(close_seq) = rules.get_close_sequence_from_alt_text_tag(tag) {
         results.push_str(close_seq);
         results.push('>');
-        *node_depth -= 1;
         return;
     }
 
     results.push_str("</");
     results.push_str(tag);
     results.push('>');
-    *node_depth -= 1;
 }
 
 fn all_spaces(line: &str) -> bool {
